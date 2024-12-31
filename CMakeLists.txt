@@ -136,7 +136,7 @@ endif ()
 if (BUILD_HCRT)
   add_custom_target(HCRT
     ALL
-    COMMAND exodus -ct T -f HCRT_BOOTSTRAP.BIN BuildHCRT.HC
+    COMMAND exodus -ct T -f HCRT_BOOTSTRAP.BIN BuildHCRT.ZC
     DEPENDS ${PROJECT_NAME}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 endif ()

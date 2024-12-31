@@ -430,7 +430,7 @@ static void STK_Exit(int *stk) {
 }
 
 static u8 *STK_MemCpy(i64 *stk) {
-  return memcpy((void *)stk[0], (void *)stk[1], stk[2]);
+  return memcopy((void *)stk[0], (void *)stk[1], stk[2]);
 }
 
 static u8 *STK_MemSet(i64 *stk) {
@@ -438,7 +438,7 @@ static u8 *STK_MemSet(i64 *stk) {
 }
 
 static i64 STK_MemCmp(i64 *stk) {
-  return memcmp((void *)stk[0], (void *)stk[1], stk[2]);
+  return memcompare((void *)stk[0], (void *)stk[1], stk[2]);
 }
 
 static i64 *STK_MemSetI64(i64 *restrict stk) {
@@ -463,11 +463,11 @@ static u16 *STK_MemSetU16(i64 *restrict stk) {
 }
 
 static i64 STK_StrCmp(char **stk) {
-  return strcmp(stk[0], stk[1]);
+  return strcompare(stk[0], stk[1]);
 }
 
 static void STK_StrCpy(char **stk) {
-  strcpy(stk[0], stk[1]);
+  strcopy(stk[0], stk[1]);
 }
 
 static u64 STK_StrLen(char **stk) {
@@ -539,7 +539,7 @@ void BootstrapLoader(void) {
       R("__CmdLineBootText", CmdLineBootText, 0),
       R("__CoreNum", CoreNum, 0),
       S(MPSetProfilerInt, 3),
-      R("mp_cnt", mp_cnt, 0),
+      R("mp_count", mp_count, 0),
       R("MPIntsInit", InitIRQ0, 0),
       R("__IsCmdLine", IsCmdLine, 0),
       S(__IsValidPtr, 1),
@@ -586,15 +586,15 @@ void BootstrapLoader(void) {
       S(DyadSetListenCallback, 4),
       S(DyadSetTimeout, 2),
       S(DyadSetNoDelay, 2),
-      S(MemCmp, 3),
-      S(MemCpy, 3),
+      S(MemCompare, 3),
+      S(MemCopy, 3),
       S(MemSet, 3),
       S(MemSetI64, 3),
       S(MemSetU32, 3),
       S(MemSetU16, 3),
       R("MemSetU8", STK_MemSet, 3),
-      S(StrCpy, 2),
-      S(StrCmp, 2),
+      S(StrCopy, 2),
+      S(StrCompare, 2),
       S(StrLen, 1),
       S(Sqr, 1),
       S(Sqrt, 1),

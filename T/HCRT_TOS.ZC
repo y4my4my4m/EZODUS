@@ -1,0 +1,152 @@
+#exe {Cd(__DIR__);;};;
+#define FPTRS 1
+#include "/Kernel/KernelA.HH"
+asm {
+  ALIGN 16,0; //MUST ALIGN SYS_FIXED_AREA TO 16 TO AVOID SEGUALTS WITH FXSAVE
+};
+CSysFixedArea sys_fixed_area,*SYS_FIXED_AREA;
+SYS_FIXED_AREA=&sys_fixed_area;
+U0 InitFX() {
+  I64 noreg ptr;
+  ptr=SYS_FIXED_AREA;
+  MOV RAX,&ptr[RBP]
+  FXSAVE U64[RAX]
+}
+InitFX;
+CCPU cpu_structs[MP_PROCESSORS_NUM];
+U32 SYS_CTRL_ALT_FLAGS=0;
+//[0xE8,0x100) is a UserReserved block in TEB
+//it's used by WinSrv/NTFS driver but not touched in usermode
+//using C side thread-local storage with FFI reduces headache but also perf
+asm {
+_GET_FS::
+	XOR	EAX,EAX
+	MOV	RAX,GS:0xE8[RAX]
+	RET
+_SET_FS::
+	PUSH	RBP
+	MOV	RBP,RSP
+	XOR	EAX,EAX
+	PUSH	RSI
+	MOV	RSI,SF_ARG1[RBP]
+	MOV	GS:0xE8[RAX],RSI
+	POP	RSI
+	POP	RBP
+	RET1	8
+_GET_GS::
+	XOR	EAX,EAX
+	MOV	RAX,GS:0xF0[RAX]
+	RET
+_SET_GS::
+	PUSH	RBP
+	MOV	RBP,RSP
+	XOR	EAX,EAX
+	PUSH	RSI
+	MOV	RSI,SF_ARG1[RBP]
+	MOV	GS:0xF0[RAX],RSI
+	POP	RSI
+	POP	RBP
+	RET1	8
+}
+_extern _GET_FS CTask* GetFs();
+_extern _SET_FS U0 SetFs(CTask *);
+_extern _GET_GS CCPU *GetGs();
+_extern _SET_GS U0 SetGs(CCPU *);
+
+Bool IsRaw() {
+  return __IsCmdLine;
+}
+CHeapCtrl ahc,ahd;
+CTask _boot_task;
+SetFs(&_boot_task);
+HeapCtrlInit(&ahc,Fs,0);
+HeapCtrlInit(&ahd,Fs,1);
+Fs->data_heap=&ahd;
+Fs->code_heap=&ahc;
+SetGs(&cpu_structs[0]);
+QueInit(&Gs->next_dying);
+TaskInit(Fs,0);
+CTask *System_task=Fs;
+#include "Kernel/KGlobals.ZC"
+#include "System/DolDoc/DocExterns.ZC"
+#include "Kernel/KUtils.ZC"
+#include "Kernel/KMathA.ZC"
+#include "Kernel/KMathB.ZC"
+// #include "Kernel/HASH.ZC"
+#include "Kernel/KHashA.ZC"
+#include "Kernel/KHashB.ZC"
+// #include "Kernel/STR.ZC"
+#include "Kernel/StrA.ZC"
+#include "Kernel/KernelB.HH"
+#include "System/Gr/Gr.HH"
+#include "Kernel/KDate.ZC"
+#include "Compiler/CHash.ZC"
+#include "Kernel/StrB.ZC"
+#include "Kernel/FunSeg.ZC"
+#include "Kernel/StrPrint.ZC"
+#include "Kernel/KDataTypes.ZC"
+#include "Kernel/Compress.ZC"
+#include "Kernel/QuickSort.ZC"
+#include "Kernel/KExcept.ZC"
+#include "Kernel/Display.ZC"
+#include "Kernel/Memory/MakeMemory.ZC"
+#include "Kernel/BlkDev/MakeBlkDev.ZC"
+#include "Kernel/Sched.ZC"
+// #include "Compiler/CMP_PRJ.ZC"
+#include "Compiler/Compiler.PRJ"
+CInit;
+#include "System/Math/Math.ZC"
+// #include "Kernel/FONT.ZC"
+// #include "Kernel/FONT2.ZC"
+#include "Kernel/FontStd.ZC"
+#include "Kernel/FontAux.ZC"
+#include "Kernel/KMisc.ZC"
+#include "Kernel/SerialDev/Keyboard.ZC"
+#include "Kernel/SerialDev/Mouse.ZC"
+#include "Kernel/Job.ZC"
+#include "Kernel/KTask.ZC"
+#include "Kernel/KDefine.ZC"
+#include "Kernel/KLoad.ZC"
+// #include "Kernel/KEND.ZC"
+#include "Kernel/KMain.ZC"
+#include "Kernel/EdLite.ZC"
+#include "System/TASK_SETTINGS.ZC"
+#include "System/Sound.ZC"
+#include "System/Math/MathODE.ZC.Z";
+#include "System/Gr/MakeGr.ZC"
+#include "System/Menu.ZC"
+#include "System/Win.ZC"
+#include "System/DolDoc/MakeDoc.ZC"
+#help_index "Ctrls"
+#include "System/Ctrls/CtrlsA.ZC"
+#include "System/Ctrls/CtrlsBttn.ZC"
+#include "System/Ctrls/CtrlsSlider.ZC"
+#help_index ""
+#include "System/WinMgr.ZC"
+#include "Kernel/KDebug.ZC"
+#include "AutoComplete/MakeAC.ZC"
+#include "System/God/MakeGod.ZC"
+#include "System/Utils/Find.ZC"
+#include "System/Registry.ZC"
+#include "System/Hash.ZC"
+
+#include "System/BlkDev/ZDiskA.ZC"
+#include "System/BlkDev/ZDiskB.ZC"
+
+// #include "System/ADBG.ZC"
+#include "System/Debug.ZC"
+
+#include "System/Utils/Diff.ZC"
+#include "System/Utils/CPURep.ZC"
+#include "Kernel/KeyDev.ZC"
+#include "System/FILEMGR.ZC"
+#include "System/Training.ZC"
+#include "System/InFile.ZC"
+#include "System/BlkDev/Mount.ZC"
+#include "System/Utils/TaskRep.ZC"
+#include "System/Utils/DocUtils.ZC"
+#include "System/Utils/StrUtils.ZC"
+#include "System/Utils/Merge.ZC"
+#include "System/Utils/Profiler.ZC"
+#include "HomeKeyPlugIns.ZC"
+// #include "System/MakeISOFile.ZC"
