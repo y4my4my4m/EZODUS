@@ -3,8 +3,8 @@
 #include <exodus/types.h>
 
 void VFsThrdInit(void);
-void VFsSetDrv(u8 d);
-u8 VFsGetDrv(void);
+void VFsSetDrive(u8 d);
+u8 VFsGetDrive(void);
 void VFsSetPwd(char const *pwd);
 bool VFsDirMake(char const *to);
 bool VFsDel(char const *p);

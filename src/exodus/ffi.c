@@ -298,7 +298,7 @@ static void STK_SetClipboardText(char **stk) {
   SetClipboard(stk[0]);
 }
 
-static char *STK___GetStr(char **stk) {
+static char *STK___StrGet(char **stk) {
   static char *boot_text;
   static bool init;
   if (!init) {
@@ -405,8 +405,8 @@ static u64 STK_VFsFSeek(i64 *stk) {
   return seekfd(stk[1], stk[0]);
 }
 
-static void STK_VFsSetDrv(u8 *stk) {
-  VFsSetDrv(stk[0]);
+static void STK_VFsSetDrive(u8 *stk) {
+  VFsSetDrive(stk[0]);
 }
 
 static void STK_SetVolume(f64 *stk) {
@@ -632,9 +632,9 @@ void BootstrapLoader(void) {
       S(VFsFOpenR, 1),
       S(VFsFClose, 1),
       S(VFsFSeek, 2),
-      S(VFsSetDrv, 1),
+      S(VFsSetDrive, 1),
       S(HPET, 0),
-      R("VFsGetDrv", VFsGetDrv, 0),
+      R("VFsGetDrive", VFsGetDrive, 0),
       S(SetVolume, 1),
       S(GetVolume, 0),
       S(_GrPaletteColorSet, 2),
