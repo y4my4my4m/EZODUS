@@ -84,10 +84,10 @@ Gs->seth_task=Spawn(&CoreAPSethTask,NULL,"Seth");
 U0 __InitCPUs() {
   MPIntsInit;
   I64 idx;
-  for (idx=Gs->num+1;idx<mp_cnt;++idx)
+  for (idx=Gs->num+1;idx<mp_count;++idx)
     __SpawnCore(&CoreAPSethTask);
-  for (idx=Gs->num+1;idx<mp_cnt;++idx)
-    while (!Bt(&mp_cnt_lock,idx))
+  for (idx=Gs->num+1;idx<mp_count;++idx)
+    while (!Bt(&mp_count_lock,idx))
       PAUSE
 }
 __InitCPUs;
