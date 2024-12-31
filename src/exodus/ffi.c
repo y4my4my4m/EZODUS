@@ -367,8 +367,8 @@ static u64 STK_VFsFWrite(char **stk) {
   return VFsFWrite(stk[0], (u8 const *)stk[1], (u64)stk[2]);
 }
 
-static u64 STK_VFsDirMk(char **stk) {
-  return VFsDirMk(stk[0]);
+static u64 STK_VFsDirMake(char **stk) {
+  return VFsDirMake(stk[0]);
 }
 
 static char **STK_VFsDir(argign void *stk) {
@@ -429,16 +429,16 @@ static void STK_Exit(int *stk) {
   terminate(stk[0]);
 }
 
-static u8 *STK_MemCpy(i64 *stk) {
-  return memcopy((void *)stk[0], (void *)stk[1], stk[2]);
+static u8 *STK_MemCopy(i64 *stk) {
+  return memcpy((void *)stk[0], (void *)stk[1], stk[2]);
 }
 
 static u8 *STK_MemSet(i64 *stk) {
   return memset((void *)stk[0], stk[1] & 0xFF, stk[2]);
 }
 
-static i64 STK_MemCmp(i64 *stk) {
-  return memcompare((void *)stk[0], (void *)stk[1], stk[2]);
+static i64 STK_MemCompare(i64 *stk) {
+  return memcmp((void *)stk[0], (void *)stk[1], stk[2]);
 }
 
 static i64 *STK_MemSetI64(i64 *restrict stk) {
@@ -462,12 +462,12 @@ static u16 *STK_MemSetU16(i64 *restrict stk) {
   return to;
 }
 
-static i64 STK_StrCmp(char **stk) {
-  return strcompare(stk[0], stk[1]);
+static i64 STK_StrCompare(char **stk) {
+  return strcmp(stk[0], stk[1]);
 }
 
-static void STK_StrCpy(char **stk) {
-  strcopy(stk[0], stk[1]);
+static void STK_StrCopy(char **stk) {
+  strcpy(stk[0], stk[1]);
 }
 
 static u64 STK_StrLen(char **stk) {
@@ -539,7 +539,7 @@ void BootstrapLoader(void) {
       R("__CmdLineBootText", CmdLineBootText, 0),
       R("__CoreNum", CoreNum, 0),
       S(MPSetProfilerInt, 3),
-      R("mp_count", mp_count, 0),
+      R("mp_cnt", mp_cnt, 0),
       R("MPIntsInit", InitIRQ0, 0),
       R("__IsCmdLine", IsCmdLine, 0),
       S(__IsValidPtr, 1),
@@ -549,7 +549,7 @@ void BootstrapLoader(void) {
       S(NewVirtualChunk, 2),
       S(FreeVirtualChunk, 2),
       R("Shutdown", STK_Exit, 1),
-      S(__GetStr, 1),
+      S(__StrGet, 1),
       S(FUnixTime, 1),
       R("GetClipboardText", ClipboardText, 0),
       S(SetClipboardText, 1),
@@ -625,7 +625,7 @@ void BootstrapLoader(void) {
       S(VFsFWrite, 3),
       S(VFsDel, 1),
       S(VFsDir, 0),
-      S(VFsDirMk, 1),
+      S(VFsDirMake, 1),
       S(VFsFBlkRead, 4),
       S(VFsFBlkWrite, 4),
       S(VFsFOpenW, 1),

@@ -6,7 +6,7 @@ void VFsThrdInit(void);
 void VFsSetDrv(u8 d);
 u8 VFsGetDrv(void);
 void VFsSetPwd(char const *pwd);
-bool VFsDirMk(char const *to);
+bool VFsDirMake(char const *to);
 bool VFsDel(char const *p);
 u64 VFsFUnixTime(char const *name);
 i64 VFsFSize(char const *name);

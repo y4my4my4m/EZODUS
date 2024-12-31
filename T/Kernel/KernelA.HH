@@ -47,9 +47,9 @@ extern class CTask;
 #define F64_MAX 	(0x7FEFFFFFFFFFFFFF(F64))
 #define F64_MIN 	(0xFFEFFFFFFFFFFFFF(F64))
 #define inf 		(0x7FF0000000000000(F64))
-#define ì 			(0x7FF0000000000000(F64))
+#define ï¿½ 			(0x7FF0000000000000(F64))
 #define pi			(0x400921FB54442D18(F64))
-#define ã 			(0x400921FB54442D18(F64))
+#define ï¿½ 			(0x400921FB54442D18(F64))
 #define exp_1 		(0x4005BF0A8B145769(F64)) //The number "e"
 #define log2_10 	(0x400A934F0979A371(F64))
 #define log2_e		(0x3FF71547652B82FE(F64))
@@ -1695,7 +1695,7 @@ public class CAutoCompleteDictGlobals
 #define OPTf_KEEP_PRIVATE 			7
 #define OPTf_NO_REG_VAR 			8	//Applied to functions, not statements
 #define OPTf_GLOBALS_ON_DATA_HEAP 	9
-//Disable 10-byte float consts for ã,log2_10,log10_2,loge_2
+//Disable 10-byte float consts for ï¿½,log2_10,log10_2,loge_2
 #define OPTf_NO_BUILTIN_CONST 		10	//Applied to functions, not statements
 #define OPTf_USE_IMM64				11	//Not completely implemented
 #define OPTf_DECIMAL_ONLY			12	//Only allow decimal numbers (no 0x or 0b prefixed numbers)
@@ -2708,7 +2708,7 @@ class CPCIDev
 //Physical Region Descriptor Table
 #define AHCI_PRD_MAX_BYTES		(4 * 1024 * 1024) //Max bytes that can go in one PRD entry ($ER$4 MiB). Section 4.2.3.3 Fig. 17 (DBC) 
 #define AHCI_PRDT_MAX_BLOCKS	(U16_MAX + 1) 	  //Max blocks you can transfer in one command. 
-#define AHCI_PRDT_MAX_LEN		8 				  //Max PRD entries in one command. This is equal to (MAX_BLOCKS * BLK_SIZE) ö MAX_BYTES.
+#define AHCI_PRDT_MAX_LEN		8 				  //Max PRD entries in one command. This is equal to (MAX_BLOCKS * BLK_SIZE) ï¿½ MAX_BYTES.
 
 //Global Host Control (Controller) flags
 #define AHCI_GHCf_HBA_RESET			0
@@ -4566,3 +4566,3782 @@ class CProgress
 #define PRINTF_NEG_AUX_FORMAT_NUM	0x800
 
 #help_index ""
+
+
+//Host Operating System
+#define OS_OTHER	0
+#define OS_NATIVE	1
+#define OS_LINUX	2
+#define OS_WINDOWS	3
+//Virtual Machine
+#define VM_OTHER	0
+#define VM_NATIVE	1
+#define VM_VMWARE	2
+#define VM_QEMU		3
+#define VM_VIRTUALBOX	4
+
+public class CInsReg
+{
+  Bool	registered;
+  I64	host_os		format "\dPURPLE\dInstall Registration\dFG\d\n\n"
+			"Host OS:\dLS,D=\"ST_HOST_OSES\"\d\n";
+  I64	host_vm		format "Host VM:\dLS,D=\"ST_HOST_VMS\"\d\n";
+  U8	initials[8]	format "\dDA-P,A=\"Your Initials:%s\"\d\n";
+  I64	machine_num	format
+
+			"\dDA-TRM,A=\"This Machine Num (Choose Any):%d\"\d\n";
+};
+#ifdef FPTRS
+#include "Compiler/Compiler.HH"
+// public _intern IC_CARRY I64 Carry();
+// public _intern IC_GET_RAX I64 GetRAX(); //Get RAX register value.
+// public _intern IC_GET_RBP U8 *GetRBP(); //Get RBP register value.
+// public _intern IC_GET_RFLAGS I64 GetRFlags(); //Get RFlags register value.
+// public _intern IC_GET_RSP U8 *GetRSP(); //Get RSP register value.
+// public _intern IC_POP I64 Pop(); //Pop value from stk.
+// public _intern IC_PUSH U0 Push(I64 d); //Push value on stk.
+// public _intern IC_SET_RAX U0 SetRAX(I64 d); //Set RAX register value.
+// public _intern IC_SET_RBP U0 SetRBP(U8 *d); //Set RBP register value.
+// public _intern IC_SET_RFLAGS U0 SetRFlags(I64 d); //Set RFlags register value.
+// public _intern IC_SET_RSP U0 SetRSP(U8 *d); //Set RSP register value.
+public _intern IC_CARRY I64 Carry(); //See $LK,"::/Demo/Carry.ZC"$
+public _intern IC_RAX_GET		I64		RAXGet(); //Get RAX register value.
+public _intern IC_RBP_GET		U8	   *RBPGet(); //Get RBP register value.
+public _intern IC_RFLAGS_GET	I64		RFlagsGet(); //Get RFlags register value.
+public _intern IC_RSP_GET		U8	   *RSPGet(); //Get RSP register value.
+public _intern IC_POP			I64		Pop(); //Pop value from stack.
+public _intern IC_PUSH			U0		Push(I64 d); //Push value on stack.
+public _intern IC_RAX_SET		U0		RAXSet(I64 d); //Set RAX register value.
+public _intern IC_RBP_SET		U0		RBPSet(U8 *d); //Set RBP register value.
+public _intern IC_RFLAGS_SET	U0		RFlagsSet(I64 d); //Set RFlags register value.
+public _intern IC_RSP_SET		U0		RSPSet(U8 *d); //Set RSP register value.
+
+#help_index "Bit"
+public _intern IC_BSF I64 Bsf(
+	I64 bit_field_val);//Scan fwd from lowest for 1st set. -1 if not found.
+public _intern IC_BSR I64 Bsr(
+	I64 bit_field_val);//Scan rev from highest for 1st set. -1 if not found.
+public _intern IC_BT Bool Bt(
+	U8 *bit_field,I64 bit); //Bit test.
+public _intern IC_BTC Bool Btc(
+	U8 *bit_field,I64 bit); //Bit test and complement (same as xor with 1).
+public _intern IC_BTR Bool Btr(
+	U8 *bit_field,I64 bit); //Bit test and reset to zero.
+public _intern IC_BTS Bool Bts(
+	U8 *bit_field,I64 bit); //Bit test and set to one.
+public _intern IC_LBTC Bool LBtc(
+	U8 *bit_field,I64 bit); //Locked bit test and complement (xor with 1).
+public _intern IC_LBTR Bool LBtr(
+	U8 *bit_field,I64 bit); //Locked bit test and reset to zero.
+public _intern IC_LBTS Bool LBts(
+	U8 *bit_field,I64 bit); //Locked bit test and set to one.
+public extern U8
+   *rev_bits_table,//Table with U8 bits revd
+   *set_bits_table;//Table with count of set bits in a U8
+public extern I64 BCnt(I64 d);//Count set bits in I64.
+#help_index ""
+
+public _intern IC_TOUPPER I64 ToUpper(U8 ch); //Cvt char to upper case.
+public _intern IC_QUE_INIT U0 QueueInit(
+	CQue *head); //Init queue head links.
+public _intern IC_QUE_INS U0 QueueInsert(
+	CQue *entry,CQue *pred);//Insert item into que after predecessor.
+public _intern IC_QUE_INS_REV U0 QueueInsertRev(
+	CQue *entry,CQue *succ);//Revd insert into que.
+//Ins item into que before successor.
+public _intern IC_QUE_REM U0 QueueRemove(CQue *entry); //Remove item from queue.
+public _intern IC_ABS_I64 I64 AbsI64(I64 i); //Absolute I64.
+public _intern IC_MAX_I64 I64 MaxI64(I64 n1,I64 n2); //Max of two I64s.
+public _intern IC_MAX_U64 U64 MaxU64(U64 n1,U64 n2); //Max of two U64s.
+public _intern IC_MIN_I64 I64 MinI64(I64 n1,I64 n2); //Min of two I64s.
+public _intern IC_MIN_U64 U64 MinU64(U64 n1,U64 n2); //Min of two U64s.
+public _intern IC_MOD_U64 U64 ModU64(U64 *q,U64 d); //Div and return U64 Modulo.
+public _intern IC_SIGN_I64 I64 SignI64(I64 i); //Sign of I64: -1,0,1.
+public _intern IC_SQR_I64  I64 SqrI64(I64 i); //Square of I64.
+public _intern IC_SQR_U64  U64 SqrU64(U64 i); //Square of U64.
+public _intern IC_SWAP_I64 U0 SwapI64(
+	I64 *n1,I64 *n2); //Swap two I64s. Not atomic.
+public _intern IC_SWAP_U16 U0 SwapU16(
+	U16 *n1,U16 *n2); //Swap two U16s. Not atomic.
+public _intern IC_SWAP_U32 U0 SwapU32(
+	U32 *n1,U32 *n2); //Swap two U32s. Not atomic.
+public _intern IC_SWAP_U8  U0 SwapU8(
+	U8 *n1,U8 *n2); //Swap two U8s. Not atomic.
+public _intern IC_TO_BOOL Bool ToBool(I64 i); //Convert to Boolean.
+public _intern IC_TO_F64 F64 ToF64(I64 i); //Convert to F64.
+public _intern IC_TO_I64 I64 ToI64(F64 d);  //Convert to I64. Truncates.
+extern I64 DistSqrI64(I64 x1,I64 y1,I64 x2,I64 y2);
+extern CDoc *DocNew(U8 *filename=NULL,CTask *task=NULL);
+extern U0 DocLoad(CDoc *doc,U8 *src2,I64 size);
+extern U0 DocClear(CDoc *doc=NULL,Bool clear_holds=FALSE);
+extern CDoc *DocPut(CTask *task=NULL);
+extern U0 DocTop(CDoc *doc=NULL);
+extern I64 TaskInit(CTask *,I64 );
+extern I64 Cmp(U8 *filename,U8 *map_name=NULL,U8 *out_name=NULL,U8 mapfile_drv_let=0);
+extern U0 DocTermNew();
+extern Bool GrLine(CDC *dc=NULL,I64 x1,I64 y1,I64 x2,I64 y2,
+	I64 step=1,I64 start=0);
+extern U0 WinScrollNull(CTask *task,CD3I64 *s);
+extern CTask *WinRefocus(CTask *task=NULL);
+extern U0 WinScrollRestore(CTask *task,CD3I64 *s);
+extern CWinMgrGlbls winmgr;
+extern U0 WinZBufUpdate();
+extern I64 WinToTop(CTask *task=NULL,Bool update_z_buf=TRUE);
+extern U0 WinScrollsInit(CTask *task);
+extern U0 DrawCtrls(CTask *task);
+extern U0 DrawMenu(CDC *dc);
+extern Bool WinBorder(Bool val=OFF,CTask *task=NULL);
+extern Bool WinHorz(I64 left,I64 right,CTask *task=NULL);
+extern Bool WinVert(I64 top,I64 bottom,CTask *task=NULL);
+extern U0 DrawMenu(CDC *dc);
+extern CMenuEntry *MenuSubEntryFind(
+	CMenuEntry *haystack_first,U8 *needle_entry_name);
+extern U0 MenuDel(CMenu *m);
+extern CMenu *MenuPush(U8 *st);
+extern CMenu *MenuFilePush(U8 *filename);
+extern CMenuEntry *MenuEntryFind(CMenu *haystack_menu,U8 *needle_full_name);
+extern CMenu *MenuNew(U8 *st,I64 flags=0,CTask *task=NULL);
+extern CMenu *MenuFile(U8 *filename,I64 flags=0,CTask *task=NULL);
+extern U0 MenuPop();
+extern U0 DrawMenu(CDC *dc);
+extern CCtrl *CtrlFindUnique(CTask *haystack_task,I64 needle_type);
+extern Bool CtrlInside(CCtrl *c,I64 x,I64 y);
+extern CCtrl *ViewAnglesNew(CTask *task=NULL);
+extern Bool OneTimePopUp(U8 *_flags,I64 flag_num,U8 *msg);
+extern CTask *PopUpViewDoc(CDoc *doc,I64 dof_flags=0);
+extern CTask *PopUpViewPrint(U8 *fmt,...);
+extern U8 *PopUpPickFile(U8 *dir=NULL);
+extern U8 *PopUpPickDir(U8 *dir=NULL);
+extern U8 *FileNameForm(U8 *dft=NULL,I64 dof_flags=0,CTask *mem_task=NULL);
+extern U8 *PopUpFileName(U8 *dft=NULL,I64 dof_flags=0);
+extern I64 PopUpPickLst(U8 *lst);
+extern U8 *PopUpPickDefineSub(U8 *dname);
+extern I64 PopUp1(U8 *b1,I64 n1,U8 *header=NULL,U8 *footer=NULL);
+extern I64 PopUp2(U8 *b1,I64 n1,U8 *b2,I64 n2,U8 *header=NULL,U8 *footer=NULL);
+extern Bool PopUpOk(U8 *header=NULL,U8 *footer=NULL);
+extern Bool PopUpNoYes(U8 *header=NULL,U8 *footer=NULL);
+extern Bool PopUpCancelOk(U8 *header=NULL,U8 *footer=NULL);
+extern I64 PopUpGetI64(U8 *msg,I64 dft,I64 lo=I64_MIN,I64 hi=I64_MAX);
+extern F64 PopUpGetF64(U8 *msg,F64 dft,F64 lo=F64_MIN,F64 hi=F64_MAX);
+extern I64 PopUpRangeI64(I64 lo,I64 hi,I64 step=1,
+	U8 *header=NULL,U8 *footer=NULL);
+extern F64 PopUpRangeF64(F64 lo,F64 hi,F64 step,
+    U8 *fmt="%9.4f",U8 *header=NULL,U8 *footer=NULL);
+extern F64 PopUpRangeF64Exp(F64 lo,F64 hi,F64 factor,
+    U8 *fmt="%9.4f",U8 *header=NULL,U8 *footer=NULL);
+extern I64 PopUpFile(U8 *filename,Bool warn_ext=TRUE,
+	CTask *parent=NULL,CTask **_pu_task=NULL);
+extern I64 PopUpColorLighting(U8 *header=NULL);
+extern U0 ViewAnglesDel(CTask *task=NULL);
+extern I64 PopUpMenu(CDoc *doc,I64 dof_flags=0);
+extern Bool PopUpForm(U8 *_d,U8 *class_name=lastclass,
+	I64 dof_flags=DOF_SIZE_MIN,U8 *header=NULL,U8 *footer=NULL);
+extern I64 PopUpColor(U8 *header=NULL,
+	Bool allow_transparent=TRUE,Bool allow_dft=TRUE);
+extern Bool DocForm(U8 *_d,U8 *class_name=lastclass,
+    I64 dof_flags=0,U8 *header=NULL,U8 *footer=NULL);
+extern I64 PopUpColorDither(U8 *header=NULL);
+extern U8 *PopUpGetStr(U8 *header=NULL);
+extern Bool View();
+extern U0 WallPaperInit();
+extern U0 Refresh(I64 cnt=1,Bool force=FALSE);
+extern Bool PopUpTransform(I64 *r);
+extern I64 PopUpColor(U8 *header=NULL,
+	Bool allow_transparent=TRUE,Bool allow_dft=TRUE);
+extern I64 PopUpColorLighting(U8 *header=NULL);
+extern I64 PopUpColorDither(U8 *header=NULL);
+extern Bool IsDotZ(U8 *filename);
+extern Bool IsDotC(U8 *filename);
+extern U8 *ExpandBuf(CArcCompress *arc,CTask*);
+extern CArcCompress *CompressBuf(U8 *src,I64 size,CTask *mem_task=NULL);
+extern U0 Print(U8 *fmt,...);
+public extern I64	QueCnt(CQue *head);
+public extern CQue	*QueCopy(CQue *head,CTask *mem_task=NULL);
+public extern U0	QueueDel(CQue *head,Bool QueueRemove=FALSE);
+public extern I64	QueSize(CQue *head);
+
+public extern I64	FifoI64Count(CFifoI64 *f);
+public extern U0	FifoI64Del(CFifoI64 *f);
+public extern U0	FifoI64Flush(CFifoI64 *f);
+public extern Bool	FifoI64Ins(CFifoI64 *f,I64 q);
+public extern CFifoI64	*FifoI64New(I64 size,CTask *mem_task=NULL);
+public extern Bool	FifoI64Peek(CFifoI64 *f,I64 *_q);
+public extern Bool	FifoI64Remove(CFifoI64 *f,I64 *_q);
+public extern I64	FifoU8Count(CFifoU8 *f);
+public extern U0	FifoU8Del(CFifoU8 *f);
+public extern U0	FifoU8Flush(CFifoU8 *f);
+public extern Bool	FifoU8Ins(CFifoU8 *f,U8 b);
+public extern CFifoU8	*FifoU8New(I64 size,CTask *mem_task=NULL);
+public extern Bool	FifoU8Peek(CFifoU8 *f,U8 *_b);
+public extern Bool	FifoU8Remove(CFifoU8 *f,U8 *_b);
+
+public extern I64	LinkedLstCnt(U8 **_lst);
+public extern U8	*LinkedLstCopy(U8 **_lst,CTask *mem_task=NULL);
+public extern U0	LinkedLstDel(U8 **_lst);
+public extern I64	LinkedLstSize(U8 **_lst);
+
+public extern U0	QueVectU8Del(CQueVectU8 *v);
+public extern I64	QueVectU8Get(CQueVectU8 *v,I64 idx);
+public extern CQueVectU8 *QueVectU8New(I64 min_idx=0);
+public extern U0	QueVectU8Put(CQueVectU8 *v,I64 idx,U8 ch);
+extern U8 *MStrPrint(U8 *fmt,...);
+extern U8 *StrGet(U8 *msg=NULL,U8 *dft=NULL,I64 flags=0);
+extern U0 throw(I64 ch=0,Bool no_log=FALSE);
+extern U8 *CatPrint(U8 *_dst,U8 *fmt,...);
+extern I64 DefineMatch(U8 *needle,U8 *haystack_lst_dname,I64 flags=0);
+extern U8 *StrPrint(U8 *dst,U8 *fmt,...);
+extern U8 *Define(U8 *dname);
+extern U8 *DefineSub(I64 sub,U8 *dname);
+extern U0 PrintErr(U8 *fmt,...);
+extern U0 PrintWarn(U8 *fmt,...);
+extern U8 *Caller(I64 num=1);
+extern U0 Message(I64 msg_code,I64 arg1,I64 arg2,I64 flags=0);
+extern Bool TaskValidate(CTask *task);
+extern I64 JobsHndlr(I64 run_flags,CTask *task=NULL);
+extern U0 JobDel(CJob *tmpc);
+extern U0 PutKey(I64 ch,I64 s);
+extern I64 CharGet(I64 *_scan_code=NULL,Bool echo=TRUE,
+	Bool raw_cursor=FALSE);
+extern CJob *TaskMsg(CTask *_srv,CTask *master,
+	I64 msg_code,I64 arg1,I64 arg2,I64 flags);
+extern U0 SrvTaskCont();
+extern Bool Suspend(CTask *t=NULL,Bool state=TRUE);
+extern U0 TaskWait(CTask *task=NULL,Bool cmd_line_pmt=FALSE);
+extern CTask *Spawn(U0 (*fp_start_addr)(U8 *data),U8 *data=NULL,U8 *task_name=NULL,
+	I64 target_cpu=-1,	//-1 for current CPU. See $LK,"multi-core",A="FI:::/Demo/MultiCore/LoadTest.HC"$.
+	CTask *parent=NULL,	//NULL means adam
+	I64 stk_size=0,		//0=default
+	I64 flags=1<<JOBf_ADD_TO_QUE);
+extern U0 XTalk(CTask *task,U8 *fmt,...);
+//PUBLICS
+public extern I64 CopyTree(U8 *src_files_find_mask,U8 *dst_files_find_mask,
+                    Bool no_mask=TRUE);
+public extern I64 DelTree(U8 *files_find_mask,U8 *fu_flags=NULL);
+public extern I64 Dir(U8 *files_find_mask="*",Bool full=FALSE);
+//
+public extern U0 R2P(F64 *_mag=NULL,F64 *_arg=NULL,F64 x,F64 y);
+public extern U0 P2R(F64 *_x=NULL,F64 *_y=NULL,F64 mag,F64 arg);
+public extern F64 Wrap(F64 e,F64 base=-pi);
+public extern I64 DistSqrI64(I64 x1,I64 y1,I64 x2,I64 y2);
+public extern I64 DistSqrI64(I64 x1,I64 y1,I64 x2,I64 y2);
+public extern F64 Sinh(F64 x);
+public extern F64 Cosh(F64 x);
+public extern U0 SoundTaskEndCB();
+public extern U0 SleepUntil(I64 wake);
+public extern U0 Beep(I8 ona=62,Bool busy=FALSE);
+public extern F64 Saw(F64 t,F64 period);
+public extern F64 FullSaw(F64 t,F64 period);
+public extern F64 Caw(F64 t,F64 period);
+public extern F64 FullCaw(F64 t,F64 period);
+public extern F64 Tri(F64 t,F64 period);
+public extern F64 FullTri(F64 t,F64 period);
+public extern F64 tM();
+public extern F64 Beat();
+public extern I8 Note2Ona(I64 note,I64 octave=4);
+public extern I8 Ona2Note(I8 ona);
+public extern I8 Ona2Octave(I8 ona);
+public extern U0 Play(U8 *st,U8 *words=NULL);
+public extern CTask *Sweep(I64 mS,F64 ona1,F64 ona2);
+public extern Bool Move(U8 *f1,U8 *f2);
+public extern I64 CopyTree(U8 *src_files_find_mask,U8 *dst_files_find_mask,
+                    Bool no_mask=TRUE);
+public extern I64 DelTree(U8 *files_find_mask,U8 *fu_flags=NULL);
+public extern CCtrl *CtrlFindUnique(CTask *haystack_task,I64 needle_type);
+public extern Bool CtrlInside(CCtrl *c,I64 x,I64 y);
+public extern CCtrl *ViewAnglesNew(CTask *task=NULL);
+public extern U0 ViewAnglesDel(CTask *task=NULL);
+class CCtrlBttnState
+{
+  I64 state,num_states,flags;
+  U8 *state_texts;
+  CColorROPU32 *state_colors;
+};
+public extern CCtrl *CtrlBttnNew(I64 x,I64 y,I64 width=-1,I64 height=-1,
+	I64 num_states=1,U8 *state_texts,
+	I32 *state_colors,CCtrlBttnState *_s=NULL);
+public extern U0 CtrlBttnDel(CCtrl *c);
+public extern I64 EdCurU8(CDoc *doc);
+public extern U0 EdCursorLeft(CDoc *doc,I64 sc=I64_MIN);
+public extern U0 EdCursorRight(CDoc *doc,I64 sc=I64_MIN);
+public extern U0 EdLineUp(CDoc *doc,I64 sc=I64_MIN);
+public extern U0 EdLineDown(CDoc *doc,I64 sc=I64_MIN);
+public extern U0 ClipDel();
+public extern U0 ClipCopy(CDoc *doc);
+public extern U0 ClipCut(CDoc *doc);
+public extern U0 ClipPaste(CDoc *doc);
+public extern U0 DocCut(CDoc *doc,CDocEntry *start,CDocEntry *end);
+public extern CDoc *DocCopy(CDoc *doc,CDocEntry *start,CDocEntry *end);
+public extern CDoc *DocPut(CTask *task=NULL);
+public extern CDoc *DocDisplay(CTask *task=NULL);
+public extern CDoc *DocBorder(CTask *task=NULL);
+public extern CDoc *DocDblBufStart(CTask *task=NULL);
+public extern Bool DocDblBufEnd(CTask *task=NULL);
+public extern Bool DocDblBufSwap(CTask *task=NULL);
+public extern Bool View();
+public extern Bool DocEd(CDoc *doc,I64 dof_flags=0);
+public extern Bool Ed(U8 *link_st,I64 edf_dof_flags=0);
+public extern Bool Plain(U8 *filename,I64 edf_dof_flags=0);
+public extern I64 PopUpEd(U8 *filename,CTask *parent=NULL,CTask **_pu_task=NULL);
+public extern U0 DocLoad(CDoc *doc,U8 *src2,I64 size);
+public extern CDoc *DocRead(U8 *name=NULL,I64 flags=0);
+public extern U8 *DocSave(CDoc *doc,I64 *_size=NULL);
+public extern Bool DocWrite(CDoc *doc,Bool prompt=FALSE);
+public extern U0 DocInsDoc(CDoc *doc=NULL,CDoc *doc2);
+public extern U0 StreamDoc(CDoc *doc);
+public extern Bool DocType(CDoc *doc=NULL,U8 *filename,I64 trailing_new_lines=1);
+public extern Bool Type(U8 *filename,I64 trailing_new_lines=1);
+public extern U8 *DocLineRead(U8 *filename,I64 line,CTask *mem_task=NULL);
+public extern U8 *DocLineRead(U8 *filename,I64 line,CTask *mem_task=NULL);
+public extern U8 *DocLineWrite(U8 *filename,I64 line,U8 *st);
+public extern Bool DocGoToLine(CDoc *doc,I64 line_num); //one based
+public extern Bool DocFind(CDoc *haystack_doc,I64 start_line_num=I64_MIN,
+U8 *needle,I64 match=1);
+public extern Bool DocAnchorFind(CDoc *haystack_doc,U8 *needle_str);
+public extern U0 EdFindNext(CDoc *doc);
+public extern U0 EdSelAll(CDoc *doc,Bool sel);
+public extern Bool EdFindPaired(CDoc *doc,U8 plus,U8 minus,
+Bool fwd,Bool abort_on_dbl_colon=FALSE);
+public extern Bool EdGoToFun(CDoc *doc,Bool fwd,Bool abort_on_dbl_colon);
+public extern U0 EdSelFun(CDoc *doc,Bool abort_on_dbl_colon=FALSE);
+public extern I64 EdReplace(CDoc *doc,U8 *find,U8 *replace,
+Bool sel=TRUE,Bool match_case=TRUE,Bool whole_labels=FALSE);
+public extern Bool DocForm(U8 *_d,U8 *class_name=lastclass,
+    I64 dof_flags=0,U8 *header=NULL,U8 *footer=NULL);
+public extern I64 DocMenu(CDoc *m,I64 dof_flags=0);
+public extern I64 PopUpMenu(CDoc *doc,I64 dof_flags=0);
+public extern Bool PopUpForm(U8 *_d,U8 *class_name=lastclass,
+	I64 dof_flags=DOF_SIZE_MIN,U8 *header=NULL,U8 *footer=NULL);
+public extern I64 DocGetKey(I64 *_sc=NULL);
+public extern U8 *DocScanLine(CDoc *doc,CDocEntry *doc_e,
+	I64 *cur_col=NULL,CDocEntry **_do_e_end=NULL);
+public extern I64 I64Get(U8 *msg=NULL,I64 dft=0,I64 lo=I64_MIN,I64 hi=I64_MAX);
+public extern F64 F64Get(U8 *msg=NULL,F64 dft=0,F64 lo=F64_MIN,F64 hi=F64_MAX);
+public extern I64 PopUpColor(U8 *header=NULL,
+	Bool allow_transparent=TRUE,Bool allow_dft=TRUE);
+public extern I64 PopUpColorLighting(U8 *header=NULL);
+public extern Bool PopUpTransform(I64 *r);
+public extern I64 PopUpColorDither(U8 *header=NULL);
+public extern U8 *DocEntryLink(CDoc *doc,CDocEntry *doc_e);
+public extern I64 EdLinkCvt(U8 *link_st,U8 **_filename=NULL,U8 **_needle_str=NULL,
+	I64 *_num=NULL,I64 edf_dof_flags=0);
+public extern Bool DocLinkChk(CDoc *doc,U8 *link_st);
+public extern U8 *DocLinkFile(U8 *link_st,CTask *mem_task=NULL);
+public extern Bool DocLock(CDoc *doc);
+public extern Bool DocUnlock(CDoc *doc);
+public extern U0 DocEntryDel(CDoc *doc,CDocEntry *doc_e);
+public extern I64 DocEntrySize(CDoc *,CDocEntry *doc_e);
+public extern CDocEntry *DocEntryCopy(CDoc *doc,CDocEntry *doc_e);
+public extern U0 DocInsEntry(CDoc *doc,CDocEntry *doc_e);
+public extern U0 DocRst(CDoc *doc,Bool is_old);
+public extern U0 DocDel(CDoc *doc);
+public extern I64 DocSize(CDoc *doc);
+public extern CDoc *DocNew(U8 *filename=NULL,CTask *task=NULL);
+public extern CTask *PopUpViewDoc(CDoc *doc,I64 dof_flags=0);
+public extern CTask *PopUpViewPrint(U8 *fmt,...);
+public extern U8 *PopUpPickFile(U8 *dir=NULL);
+public extern U8 *PopUpPickDir(U8 *dir=NULL);
+public extern U8 *FileNameForm(U8 *dft=NULL,I64 dof_flags=0,CTask *mem_task=NULL);
+public extern U8 *PopUpFileName(U8 *dft=NULL,I64 dof_flags=0);
+public extern I64 PopUpPickLst(U8 *lst);
+public extern U8 *PopUpPickDefineSub(U8 *dname);
+public extern I64 PopUp1(U8 *b1,I64 n1,U8 *header=NULL,U8 *footer=NULL);
+public extern I64 PopUp2(U8 *b1,I64 n1,U8 *b2,I64 n2,U8 *header=NULL,U8 *footer=NULL);
+public extern Bool PopUpOk(U8 *header=NULL,U8 *footer=NULL);
+public extern Bool PopUpNoYes(U8 *header=NULL,U8 *footer=NULL);
+public extern Bool PopUpNoYes(U8 *header=NULL,U8 *footer=NULL);
+public extern Bool PopUpCancelOk(U8 *header=NULL,U8 *footer=NULL);
+public extern U8 *PopUpGetStr(U8 *header=NULL);
+public extern I64 PopUpGetI64(U8 *msg,I64 dft,I64 lo=I64_MIN,I64 hi=I64_MAX);
+public extern F64 PopUpGetF64(U8 *msg,F64 dft,F64 lo=F64_MIN,F64 hi=F64_MAX);
+public extern I64 PopUpRangeI64(I64 lo,I64 hi,I64 step=1,
+	U8 *header=NULL,U8 *footer=NULL);
+public extern F64 PopUpRangeF64(F64 lo,F64 hi,F64 step,
+    U8 *fmt="%9.4f",U8 *header=NULL,U8 *footer=NULL);
+public extern F64 PopUpRangeF64Exp(F64 lo,F64 hi,F64 factor,
+    U8 *fmt="%9.4f",U8 *header=NULL,U8 *footer=NULL);
+public extern F64 PopUpRangeF64Log(F64 lo,F64 hi,I64 steps,
+    U8 *fmt="%9.4f",U8 *header=NULL,U8 *footer=NULL);
+public extern I64 PopUpFile(U8 *filename,Bool warn_ext=TRUE,
+	CTask *parent=NULL,CTask **_pu_task=NULL);
+public extern I64 PopUpRunFile(U8 *filename,I64 ccf_flags=0,...);
+public extern U0 DocPutKey(CDoc *doc,I64 ch=0,I64 sc=0);
+public extern CDocEntry *DocPrint(CDoc *doc=NULL,U8 *fmt,...);
+public extern U0 DocPrintPartial(CDoc *doc=NULL,U8 *fmt,...);
+public extern U0 DocPrintAtomic(CDoc *doc=NULL,U8 *fmt,...);
+public extern CDocEntry *DocPutLine(CDoc *doc=NULL,CDocEntry *doc_e);
+public extern U0 DocDm(U8 *buf,I64 cnt=0x80);
+public extern U0 DocD(U8 *buf,I64 cnt=0x80);
+public extern Bool DocRecalc(CDoc *doc,I64 recalc_flags=RECALCt_NORMAL);
+public extern U0 DocTop(CDoc *doc=NULL);
+public extern U0 DocCenter(CDoc *doc=NULL,I64 recalc_flags=RECALCt_NORMAL);
+public extern U0 DocBottom(CDoc *doc=NULL);
+public extern U0 DocClear(CDoc *doc=NULL,Bool clear_holds=FALSE);
+public extern Bool DocCursor(Bool show=OFF,CDoc *doc=NULL);
+public extern Bool DocHighlightCursor(Bool show=OFF,CDoc *doc=NULL);
+public extern Bool DocScroll(Bool val=OFF,CDoc *doc=NULL);
+public extern U0 DocCollapse(Bool collapse=TRUE,CDoc *doc=NULL);
+public extern I64 DocMax(I64 i=I64_MAX);
+public extern I64 DocEntryRun(CDoc *doc,CDocEntry *doc_e,
+	Bool exited,I64 *_has_action=NULL);
+public extern CDoc *DocBorderNew(CDoc *pdoc);
+public extern U0 DocTermNew();
+public extern Bool DocTreeFind(CDoc *haystack_doc,U8 *needle_path,
+  CDocEntry **_tree_entry=NULL,
+  CDocEntry **_start_indent=NULL, CDocEntry **_end_indent=NULL);
+public extern Bool DocTreeFFind(U8 *name,U8 *path);
+public extern Bool DocTreeMake(CDoc *doc,U8 *path);
+public extern Bool DocTreeWrite(CDoc *doc,U8 *path,Bool write=TRUE,U8 *fmt,...);
+public extern Bool DocTreeAppend(CDoc *doc,U8 *path,Bool write=TRUE,U8 *fmt,...);
+public extern Bool DocTreeAppend(CDoc *doc,U8 *path,Bool write=TRUE,U8 *fmt,...);
+public extern Bool DocTreeFWrite(U8 *name,U8 *path,U8 *fmt,...);
+public extern Bool DocTreeFAppend(U8 *name,U8 *path,U8 *fmt,...);
+public extern I64 ExeDoc(CDoc *doc,I64 ccf_flags=0);
+public extern I64 DocTreeExe(CDoc *doc,U8 *path);
+public extern I64 DocTreeFExe(U8 *name,U8 *path);
+public extern Bool GrPlot0(CDC *dc,I64 x,I64 y);
+public extern I64 GrPeek0(CDC *dc=NULL,I64 x,I64 y);
+public extern I64 GrBlot(CDC *dc=NULL,I64 x,I64 y,CDC *img);
+public extern CDC *DCExt(CDC *dc=NULL,I64 x1,I64 y1,I64 x2,I64 y2,
+	CTask *task=NULL);
+public extern CDC *DCDiff(CDC *base,CDC *update);
+public extern I64 GrPutChar(CDC *dc=NULL,I64 x,I64 y,U8 ch)
+public extern I64 GrPrint(CDC *dc=NULL,I64 x,I64 y,U8 *fmt,...);
+public extern I64 GrVPrint(CDC *dc=NULL,I64 x,I64 y,U8 *fmt,...);
+public extern I64 GrVPrint(CDC *dc=NULL,I64 x,I64 y,U8 *fmt,...);
+public extern I64 GrRect(CDC *dc=NULL,I64 x,I64 y,I64 w,I64 h);
+public extern I64 GrHLine(CDC *dc=NULL,I64 x1,I64 x2,I64 y,I64 z1=0,I64 z2=0);
+public extern I64 GrHLine(CDC *dc=NULL,I64 x1,I64 x2,I64 y,I64 z1=0,I64 z2=0);
+public extern I64 GrFillPoly3(CDC *dc=NULL,I64 n,CD3I32 *poly);
+public extern I64 GrRectB(CDC *dc=NULL,I64 x1,I64 y1,I64 x2,I64 y2);
+public extern I64 GrRect3(CDC *dc=NULL,I64 x,I64 y,I64 z,I64 w,I64 h);
+public extern Bool GrArrow3(CDC *dc=NULL,I64 x1,I64 y1,I64 z1,
+	I64 x2,I64 y2,I64 z2,F64 w=2.75,I64 step=1,I64 start=0);
+public extern Bool GrTextBox3(CDC *dc=NULL,I64 x1,I64 y1,I64 z1,U8 *s,I64 border=2);
+public extern Bool GrTextDiamond3(CDC *dc=NULL,
+	I64 x1,I64 y1,I64 z1,U8 *_s,I64 border=2);
+extern class CMeshTri;
+public extern I64 Gr3Mesh(CDC *dc=NULL,I64 vertex_cnt,CD3I32 *p,
+	I64 tri_cnt,CMeshTri *tri);
+public extern U0 DrawStdMouse(CDC *dc,I64 x,I64 y);
+public extern U0 DrawWaitMs(CDC *dc,I64 x,I64 y);
+public extern Bool GRScrnCaptureRead(U8 *filename,CDC *dc=NULL,I64 x=0,I64 y=0);
+public extern I64 GRScrnCaptureWrite(U8 *filename,Bool include_zoom=TRUE);
+public extern U0 Mat4x4MulXYZ(I64 *r,I64 *_x,I64 *_y,I64 *_z);
+public extern U0 DCTransform(CDC *dc,I64 *_x,I64 *_y,I64 *_z);
+public extern I64 *Mat4x4IdentEqu(I64 *r);
+public extern I64 *Mat4x4IdentNew(CTask *mem_task=NULL);
+public extern I64 Mat4x4NormSqr65536(I64 *r);
+public extern U0 DCMat4x4Set(CDC *dc=NULL,I64 *r);
+public extern U0 DCLighting(CDC *dc,
+	CD3I32 *p1,CD3I32 *p2,CD3I32 *p3,CColorROPU32 color);
+public extern U0 DCFill(CDC *dc=NULL,CColorROPU32 val=TRANSPARENT);
+public extern U0 DCClear(CDC *dc=NULL);
+public extern U0 DCRst(CDC *dc);
+public extern U0 DCExtentsInit(CDC *dc=NULL);
+public extern CDC *DCAlias(CDC *dc=NULL,CTask *task=NULL);
+public extern CDC *DCNew(I64 width,I64 height,CTask *task=NULL,Bool null_bitmap=FALSE);
+public extern U0 DCDel(CDC *dc);
+public extern I64 DCSize(CDC *dc);
+public extern I32 *DCDepthBufRst(CDC *dc);
+public extern I32 *DCDepthBufAlloc(CDC *dc);
+public extern CDC *DCCopy(CDC *dc,CTask *task=NULL);
+public extern U0 DCMono(CDC *dc,
+  I64 quest=TRANSPARENT,I64 true_color=0,I64 false_color=COLOR_MONO);
+public extern I64 DCColorChange(CDC *dc,I64 src_color,I64 dst_color=TRANSPARENT);
+public extern U8 *DCSave(CDC *dc,I64 *_size=NULL,I64 dcsf_flags=DCSF_COMPRESSED);
+public extern CDC *DCLoad(U8 *src,I64 *_size=NULL,CTask *task=NULL);
+public extern I64 GRWrite(U8 *filename,CDC *dc,I64 dcsf_flags=DCSF_COMPRESSED);
+public extern CDC *GRRead(U8 *filename,CTask *task=NULL);
+public extern U0 DocGR(CDoc *doc=NULL,U8 *filename);
+public extern CDC *DCScrnCapture(Bool include_zoom=TRUE,CTask *task=NULL);
+public extern U0 WinZBufUpdate();
+public extern Bool Line(U8 *aux_data,I64 x1,I64 y1,I64 z1,I64 x2,I64 y2,I64 z2,
+	Bool (*fp_plot)(U8 *aux,I64 x,I64 y,I64 z),I64 step=1,I64 start=0);
+public extern I64 *Mat4x4MulMat4x4Equ(I64 *dst,I64 *m1,I64 *m2);
+public extern I64 *Mat4x4MulMat4x4New(I64 *m1,I64 *m2,CTask *mem_task=NULL);
+public extern I64 *Mat4x4Equ(I64 *dst,I64 *src);
+public extern I64 *Mat4x4New(I64 *src,CTask *mem_task=NULL);
+public extern I64 *Mat4x4RotX(I64 *m,F64 ï¿½);
+public extern I64 *Mat4x4RotY(I64 *m,F64 ï¿½);
+public extern I64 *Mat4x4RotZ(I64 *m,F64 ï¿½);
+public extern I64 *Mat4x4Scale(I64 *m,F64 s);
+public extern U0 DCThickScale(CDC *dc=NULL);
+public extern I64 *Mat4x4TranslationEqu(I64 *r,I64 x,I64 y,I64 z);
+public extern I64 *Mat4x4TranslationAdd(I64 *r,I64 x,I64 y,I64 z);
+public extern Bool DCSymmetrySet(CDC *dc=NULL,I64 x1,I64 y1,I64 x2,I64 y2);
+public extern Bool DCSymmetry3Set(CDC *dc=NULL,I64 x1,I64 y1,I64 z1,
+	I64 x2,I64 y2,I64 z2,I64 x3,I64 y3,I64 z3);
+public extern U0 DCReflect(CDC *dc,I64 *_x,I64 *_y,I64 *_z);
+public extern Bool Circle(U8 *aux_data,I64 cx,I64 cy,I64 cz,I64 radius,
+	Bool (*fp_plot)(U8 *aux,I64 x,I64 y,I64 z),
+	I64 step=1,F64 start_radians=0,F64 len_radians=2*pi);
+public extern Bool Ellipse(U8 *aux_data,I64 cx,I64 cy,I64 cz,
+	I64 x_radius,I64 y_radius,Bool (*fp_plot)(U8 *aux,I64 x,I64 y,I64 z),
+	F64 rot_angle=0,I64 step=1,F64 start_radians=0,F64 len_radians=2*pi);
+public extern Bool RegPoly(U8 *aux_data,I64 cx,I64 cy,I64 cz,
+	I64 x_radius,I64 y_radius,I64 sides,
+	Bool (*fp_plot)(U8 *aux,I64 x,I64 y,I64 z),
+	F64 rot_angle=0,I64 step=1,F64 start_radians=0,F64 len_radians=2*pi);
+public extern F64 D3I32Dist(CD3I32 *p1,CD3I32 *p2);
+public extern I64 D3I32DistSqr(CD3I32 *p1,CD3I32 *p2);
+public extern F64 D3I32Norm(CD3I32 *p);
+public extern I64 D3I32DistSqr(CD3I32 *p1,CD3I32 *p2);
+public extern F64 D3I32Norm(CD3I32 *p);
+public extern I64 D3I32NormSqr(CD3I32 *p);
+public extern Bool Bezier2(U8 *aux_data,CD3I32 *ctrl,
+	Bool (*fp_plot)(U8 *aux,I64 x,I64 y,I64 z),Bool first=TRUE);
+public extern Bool Bezier2(U8 *aux_data,CD3I32 *ctrl,
+	Bool (*fp_plot)(U8 *aux,I64 x,I64 y,I64 z),Bool first=TRUE);
+public extern Bool Bezier3(U8 *aux_data,CD3I32 *ctrl,
+	Bool (*fp_plot)(U8 *aux,I64 x,I64 y,I64 z),Bool first=TRUE);
+public extern Bool BSpline2(U8 *aux_data,CD3I32 *ctrl,I64 cnt,
+	Bool (*fp_plot)(U8 *aux,I64 x,I64 y,I64 z),Bool closed=FALSE);
+public extern Bool BSpline3(U8 *aux_data,CD3I32 *ctrl,I64 cnt,
+	Bool (*fp_plot)(U8 *aux,I64 x,I64 y,I64 z),Bool closed=FALSE);
+public extern Bool ClipLine(I64 *_x1,I64 *_y1,I64 *_x2,I64 *_y2,
+	I64 left,I64 top,I64 right,I64 bottom);
+public extern I64 GR2MV(U8 *print_fmt="VID%03d.MV",
+	U8 *files_find_mask,U8 *fu_flags=NULL);
+public extern U0 GrPaletteGet(CBGR24 *bgr48);
+public extern U0 GrPaletteSet(CBGR24 *bgr48);
+public extern U0 PaletteSetStd();
+public extern Bool GrClamp(CDC *dc=NULL,I64 *left,I64 *top,I64 *right,I64 *bottom,
+	I64 width=0,I64 height=0);
+public extern U0 GrBorder(CDC *dc=NULL,I64 x1,I64 y1,I64 x2,I64 y2,
+	I64 step=1,I64 start=0);
+public extern Bool GrPlot(CDC *dc=NULL,I64 x,I64 y);
+public extern I64 GrPeek(CDC *dc=NULL,I64 x,I64 y);
+public extern I64 GrFloodFill(CDC *dc=NULL,I64 x,I64 y,
+	Bool not_color=FALSE,I64 z=0,I32 *db=NULL);
+public extern I64 GrFillCircle(CDC *dc=NULL,I64 cx,I64 cy,I64 z=0,I64 diameter);
+public extern Bool GrPlot3B(CDC *dc=NULL,I64 x,I64 y,I64 z);
+public extern Bool GrPlot3(CDC *dc=NULL,I64 x,I64 y,I64 z);
+public extern Bool GrLine(CDC *dc=NULL,I64 x1,I64 y1,I64 x2,I64 y2,
+	I64 step=1,I64 start=0);
+public extern Bool GrCircle(CDC *dc=NULL,I64 cx,I64 cy,I64 radius,
+  I64 step=1,F64 start_radians=0,F64 len_radians=2*pi);
+public extern Bool GrEllipse(CDC *dc=NULL,
+		I64 cx,I64 cy,
+		I64 x_radius,I64 y_radius,
+		F64 rot_angle=0,
+		I64 step=1,
+		F64 start_radians=0,
+		F64 len_radians=2*pi);
+public extern Bool GrRegPoly(CDC *dc=NULL,
+		I64 cx,I64 cy,
+		I64 x_radius,I64 y_radius,I64 sides,
+		F64 rot_angle=0,
+		I64 step=1,
+		F64 start_radians=0,
+		F64 len_radians=2*pi);
+public extern Bool Gr2Bezier(CDC *dc=NULL,CD3I32 *ctrl);
+public extern Bool Gr3Bezier(CDC *dc=NULL,CD3I32 *ctrl);
+public extern Bool Gr2BSpline(CDC *dc=NULL,CD3I32 *ctrl,I64 cnt,Bool closed=FALSE);
+public extern Bool Gr3BSpline(CDC *dc=NULL,CD3I32 *ctrl,I64 cnt,Bool closed=FALSE);
+public extern Bool GrLine3(CDC *dc=NULL,I64 x1,I64 y1,I64 z1,I64 x2,I64 y2,I64 z2,
+	I64 step=1,I64 start=0);
+public extern Bool GrPutChar3(CDC *dc=NULL,I64 x,I64 y,I64 z,U8 ch);
+public extern I64 GrPrint3(CDC *dc=NULL,I64 x,I64 y,I64 z,U8 *fmt,...);
+public extern I64 GrVPrint3(CDC *dc=NULL,I64 x,I64 y,I64 z,U8 *fmt,...);
+public extern Bool GrEllipse3(CDC *dc=NULL,
+		I64 cx,I64 cy,I64 cz,
+		I64 x_radius,I64 y_radius,
+		F64 rot_angle=0,
+		I64 step=1,
+		F64 start_radians=0,
+		F64 len_radians=2*pi);
+public extern Bool GrCircle3(CDC *dc=NULL,I64 cx,I64 cy,I64 cz,I64 radius,
+  I64 step=1,F64 start_radians=0,F64 len_radians=2*pi);
+public extern Bool GrRegPoly3(CDC *dc=NULL,
+		I64 cx,I64 cy,I64 cz,
+		I64 x_radius,I64 y_radius,I64 sides,
+		F64 rot_angle=0,
+		I64 step=1,
+		F64 start_radians=0,
+		F64 len_radians=2*pi);
+public extern I64 GrFloodFill3(CDC *dc=NULL,I64 x1,I64 y1,I64 z1,Bool not_color=FALSE);
+public extern I64 GrBlot3(CDC *dc=NULL,I64 x1,I64 y1,I64 z1,CDC *img);
+public extern Bool Gr2Bezier3(CDC *dc=NULL,CD3I32 *ctrl);
+public extern Bool Gr3Bezier3(CDC *dc=NULL,CD3I32 *ctrl);
+public extern I64 Gr2BSpline3(CDC *dc=NULL,CD3I32 *ctrl,I64 cnt,Bool closed=FALSE);
+public extern Bool Gr3BSpline3(CDC *dc=NULL,CD3I32 *ctrl,I64 cnt,Bool closed=FALSE);
+public extern I64 GrFillTri0(CDC *dc=NULL,CD3I32 *p1,CD3I32 *p2,CD3I32 *p4);
+public extern U0 GrScaleZoom(F64 scale);
+public extern U0 Sprite3(CDC *dc=NULL,I64 x,I64 y,I64 z,U8 *elems,
+	Bool just_one_elem=FALSE);
+public extern U0 Sprite3B(CDC *dc=NULL,I64 x,I64 y,I64 z,U8 *elems);
+public extern U0 Sprite3Mat4x4B(CDC *dc=NULL,I64 x,I64 y,I64 z,U8 *elems,I64 *m);
+public extern U0 Sprite3XB(CDC *dc=NULL,I64 x,I64 y,I64 z,U8 *elems,F64 ï¿½=0);
+public extern U0 Sprite3YB(CDC *dc=NULL,I64 x,I64 y,I64 z,U8 *elems,F64 ï¿½=0);
+public extern U0 Sprite3ZB(CDC *dc=NULL,I64 x,I64 y,I64 z,U8 *elems,F64 ï¿½=0);
+public extern U0 SpriteExtents(U8 *elems,I64 *min_x=NULL,I64 *max_x=NULL,
+				   I64 *min_y=NULL,I64 *max_y=NULL);
+public extern CDC *Sprite2DC(U8 *elems);
+public extern U8 *SpriteInterpolate(F64 t,U8 *elems0,U8 *elems1);
+public extern CDocEntry *DocSprite(CDoc *doc=NULL,U8 *elems,U8 *fmt=NULL);
+public extern CDocEntry *Sprite(U8 *elems,U8 *fmt=NULL);
+public extern U0 TextPrint(CTask *task,I64 x,I64 y,I64 attr,U8 *fmt,...);
+public extern U0 TextBorder(CTask *task=NULL,
+	I64 l,I64 r,I64 t,I64 b,I64 attr,Bool solid);
+public extern I64 GR2MV(U8 *print_fmt="VID%03d.MV",
+	U8 *files_find_mask,U8 *fu_flags=NULL);
+public extern U0 SoundShift(CSoundData *head,F64 dt=0);
+public extern I64 AUWrite(U8 *filename,CSoundData *head,CDate *t0_now,F64 t0_tS);
+public extern U0 TextRect(I64 l,I64 r,I64 t,I64 b,I64 d);
+public extern U0 Sprite2Code(CDoc *doc=NULL,U8 *elems);
+public extern U8 *Code2Sprite(CDoc *doc,I64 *_size=NULL);
+public extern U8 *SpriteTransform(U8 *elems,I64 *r);
+public extern I64 SpriteSize(U8 *elems);
+public extern U8 *DC2Sprite(CDC *tmpb);
+extern class CSprite;
+public extern U8 *SpriteElem2Summary(CSprite *tmpg);
+public extern I64 MessageScan(I64 *_arg1=NULL,I64 *_arg2=NULL,I64 mask=~1,CTask *task=NULL);
+public extern CMenuEntry *MenuSubEntryFind(
+	CMenuEntry *haystack_first,U8 *needle_entry_name);
+public extern CMenuEntry *MenuEntryFind(CMenu *haystack_menu,U8 *needle_full_name);
+public extern CMenu *MenuNew(U8 *st,I64 flags=0,CTask *task=NULL);
+public extern CMenu *MenuFile(U8 *filename,I64 flags=0,CTask *task=NULL);
+public extern U0 MenuDel(CMenu *m);
+public extern CMenu *MenuPush(U8 *st);
+public extern CMenu *MenuFilePush(U8 *filename);
+public extern U0 MenuPop();
+public extern CTaskSettings *SettingsPush(CTask *task=NULL,I64 flags=0);
+public extern U0 SettingsPop(CTask *task=NULL,I64 flags=0);
+public extern U0 WinScrollNull(CTask *task,CD3I64 *s);
+public extern U0 WinScrollRestore(CTask *task,CD3I64 *s);
+public extern CTask *WinRefocus(CTask *task=NULL);
+public extern I64 WinToTop(CTask *task=NULL,Bool update_z_buf=TRUE);
+public extern CTask *WinFocus(CTask *task=NULL);
+public extern Bool WinHorz(I64 left,I64 right,CTask *task=NULL);
+public extern Bool WinVert(I64 top,I64 bottom,CTask *task=NULL);
+public extern U0 WinTileHorz();
+public extern U0 WinTileVert();
+public extern U0 WinMax(CTask *task=NULL);
+public extern Bool WinBorder(Bool val=OFF,CTask *task=NULL);
+public extern U0 Refresh(I64 cnt=1,Bool force=FALSE);
+#endif
+public extern U0 ACInit(U8 *mask=NULL);
+public extern U0 ACDWordsLoad();
+public extern Bool AutoComplete(Bool val=OFF);
+public extern U8 *ACDDefGet(U8 *st,I64 def_num=1);
+public extern U8 *ACDDefsGet(U8 *st);
+public extern U8 *ACDWordPtAt(U8 *st);
+public extern U0 ACDDefsPut(CDoc *doc=NULL,U8 *st,I64 num=-1);
+extern U0 ACDFillin(I64 n);
+extern U0 ACFillIn(I64 n);
+extern U0 ACDDef(I64 n,CTask *parent=NULL);
+extern U0 ACMan(I64 n,CTask *parent_task=NULL);
+extern CHashDefineStr *DefineListLoad(U8 *dname,U8 *lst);
+extern CHashDefineStr *DefineLoad(U8 *dname,U8 *st);
+extern U0 UndefinedDefine(U8 *dname);
+extern U8 *Define(U8 *dname);
+extern U8 *DefineSub(I64 sub,U8 *dname);
+extern I64 DefineCnt(U8 *dname);
+extern U0 DefinePrint(U8 *dname,U8 *src,...);
+extern CHashDefineStr *DefineListLoad(U8 *dname,U8 *lst);
+extern I64 CharScan();
+extern U0 MusicSettingsReset();
+extern U0 Sound(I8 ona=0);
+extern CTask *User(U8 *fmt=NULL,...);
+extern U0 XTalkStrWait(CTask *task,U8 *fmt,...);
+extern U0 XTalkStr(CTask *task,U8 *fmt,...);
+extern U0 In(U8 *fmt,...);
+extern U0 InFile(U8 *filename);
+extern U0 InStr(U8 *fmt,...);
+extern U0 XTalkWait(CTask *task,U8 *fmt,...);
+extern U0 XTalk(CTask *task,U8 *fmt,...);
+extern U0 StreamPrint(U8 *fmt,...);
+extern I64 ExePrint(U8 *fmt,...);
+public extern CBlkDevGlbls blkdev;
+extern U0 UserTaskCont();
+extern I64 Char2ScanCode(I64 ch,I64 sc_flags=0);
+extern CDirEntry *FilesFind(U8 *files_find_mask,I64 fuf_flags=0);
+public extern I64 Size(U8 *files_find_mask="/*",U8 *fu_flags=NULL,I64 round_to=0);
+extern I64 Size1(CDirEntry *tmpde,I64 *_fuf_flags,I64 round_to);
+extern U0 FOFlatten(CDirEntry *tmpde,CDirEntry **a,I64 *i);
+public extern CDirEntry *DirTreeUnserialize(U8 *src);
+extern U8 *DirTreeUnserialize2(U8 *src,CDirEntry **tmpde);
+public extern U8 *DirTreeSerialize(CDirEntry *tmpde,I64 *_size=NULL);
+extern I64 DirTreeSerializeSize(CDirEntry *tmpde);
+extern I64 DirTreeSerializeFill(CDirEntry *tmpde,U8 *dst);
+public extern I64 FileCnt(CDirEntry *tmpde);
+extern I64 ExeFile2(U8 *name,I64 ccf_flags=0);
+#define BIBLE_FILENAME	"::/Misc/Bible.TXT"
+extern U0 GodBiblePassage(I64 num_lines=20);
+extern U0 GodBitsInsert(I64 num_bits,I64 n);
+extern U0 GodDoodle(U8 *hex=NULL);
+extern U0 GodSong();
+extern U0 GodWord(I64 bits=17);
+extern I64 Str2I64(U8 *st,I64 radix=10,U8 **_end_ptr=NULL);
+extern F64 Str2F64(U8 *src,U8 **_end_ptr=NULL);
+extern U8 *GodSongStr();
+//Need this for the Meta-data
+class CMakeSongSettings
+{
+  I64  complexity		format "$$LS,D=\"ST_RHYTHM_COMPLEXITY\"$$\n";
+  Bool rests			format "$$CB,\"Rests\"$$\n";
+  Bool six_eight		format "$$CB,\"Six Eight\"$$\n";
+  I64  octave			format "$$DA-TRM,A=\"Octave:%d\"$$\n";
+  I64  octave_state;
+};
+extern U0 PutChars(U64 ch);
+extern U0 PutExcept(Bool catch_it=TRUE);
+public extern U0 BibleView();
+public extern U0 BookLines(CDoc *doc_out=NULL,I64 start,I64 lines,
+	U8 *book_filename=BIBLE_FILENAME);
+
+#define GOD_BAD_BITS	4
+#define GOD_GOOD_BITS	24
+
+class CGodGlbls
+{
+  U8	**words,
+	*word_file_mask;
+  I64	word_fuf_flags,
+	num_words;
+  CFifoU8 *fifo;
+  CDC	*doodle_dc;
+  I64	doodle_ch;
+  CFifoU8 *doodle_fifo;
+  Bool	doodle_done;
+};
+extern CGodGlbls god;
+extern F64 tS();
+extern Bool OneTimePopUp(U8 *_flags,I64 flag_num,U8 *msg);
+extern Bool PrsAsmImm(CCmpCtrl *cc,CAsmArg *arg);
+extern Bool AsmStoreNum(CCmpCtrl *cc,CAsmNum2 *num2,I64 cnt,Bool U8_avail);
+extern Bool PrsAsmInst(CCmpCtrl *cc,CHashOpcode *tmpo,I64 argcnt);
+extern U0 PrsAsmDefine(CCmpCtrl *cc,I64 U8_cnt);
+extern U0 PrsBinFile(CCmpCtrl *cc);
+extern U0 PrsAsmBlk(CCmpCtrl *cc,I64 cmp_flags);
+extern U0 AOTStoreCodeU8(CCmpCtrl *cc,U8 b);
+extern U0 AOTStoreCodeU32(CCmpCtrl *cc,U32 d);
+extern U0 AOTStoreCodeU64(CCmpCtrl *cc,U64 q);
+extern U0 AOTStoreCodeU8At(CCmpCtrl *cc,I64 rip,...);
+extern I64 AsmLexExpression(CCmpCtrl *cc);
+extern U0 AsmLineLst(CCmpCtrl *cc);
+extern U0 AsmResolve(CCmpCtrl *cc,CAsmUnresolvedRef *tmpu,U8 *label,Bool undefined);
+extern U0 AOTLocalsResolve(CCmpCtrl *cc);
+extern U0 AOTGlblsResolve(CCmpCtrl *cc,CAOT *tmpaot);
+extern U0 AsmUnresolvedAdd(CCmpCtrl *cc,U8 *machine_code,I64 type,I64 rip,I64 rel_rip,
+	CAsmUndefHash *local_asm_undef_hash,CAsmUndefHash *glbl_asm_undef_hash,
+	I64 line_num,Bool U8_avail);
+extern U8 *MusicSetOctave(U8 *st);
+extern U8 *MusicSetMeter(U8 *st);
+extern U8 *MusicSetNoteLen(U8 *st);
+extern U0 MusicSettingsReset();
+extern U0 CurSongTask();
+extern U0 SoundEffectEndTaskCB();
+extern class CSoundEffectFrame;
+extern U0 SoundEffectTask(CSoundEffectFrame *ns);
+extern U0 AsmPrsInsFlags(CCmpCtrl *cc,CInst *tmpins);
+extern U0 AsmHashLoad();
+extern U0 ICAddEct(CIntermediateCode *tmpi,CICType t1,I64 r1,I64 d1,
+	CICType t2,I64 r2,I64 d2,CICType t3,I64 r3,I64 d3,I64 op,I64 rip);
+extern U0 ICAddSubEctImm(CIntermediateCode *tmpi,CICType t1,I64 r1,I64 d1,
+	CICType t2,I64 r2,I64 d2,I64 d,I64 op,I64 rip);
+extern U0 ICSub(CIntermediateCode *tmpi,CICType t1,I64 r1,I64 d1,
+	CICType t2,I64 r2,I64 d2,CICType t3,I64 r3,I64 d3,I64 rip);
+extern U0 ICMul(CIntermediateCode *tmpi,I64 rip);
+extern U0 ICMulEqu(CIntermediateCode *tmpi,I64 rip);
+extern U0 ICDiv(CIntermediateCode *tmpi,I64 rip);
+extern U0 ICDivEqu(CIntermediateCode *tmpi,Bool is_mod,I64 rip);
+extern U0 ICMod(CIntermediateCode *tmpi,I64 rip);
+extern U0 ICAddSubEctEqu(CIntermediateCode *tmpi,U8 type_pointed_to,
+	CICType t1,I64 r1,I64 d1,CICType t2,I64 r2,I64 d2,
+	CICType t3,I64 r3,I64 d3,I64 op,I64 rip);
+extern U0 ICShift(CIntermediateCode *tmpi,CICType t1,I64 r1,I64 d1,
+	CICType t2,I64 r2,I64 d2,CICType t3,I64 r3,I64 d3,
+	I64 us,I64 is,I64 rip);
+extern U0 ICShiftEqu(CIntermediateCode *tmpi,U8 type_pointed_to,
+	CICType t1,I64 r1,I64 d1,
+	CICType t2,I64 r2,I64 d2,
+	CICType t3,I64 r3,I64 d3,I64 us,I64 is,I64 rip);
+extern U0 ICUnaries(CIntermediateCode *tmpi,I64 op,I64 rip);
+extern U0 ICNot(CIntermediateCode *tmpi,I64 rip);
+extern U0 ICAndAnd(CIntermediateCode *tmpi,I64 rip);
+extern U0 ICOrOr(CIntermediateCode *tmpi,I64 rip);
+extern U0 ICXorXor(CIntermediateCode *tmpi,I64 rip);
+extern U0 ICCmp(CIntermediateCode *tmpi,I64 us,I64 is,I64 rip);
+extern U0 ICBitOps(CIntermediateCode *tmpi,CICArg *arg1,CICArg *arg2,
+	CIntermediateCode *tmpi2,I64 op,I64 op_imm,I64 rip);
+extern U0 ICToUpper(CIntermediateCode *tmpi,I64 rip);
+extern U0 ICToI64(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 rip);
+extern U0 ICToF64(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 rip);
+extern U0 ICToBool(CCmpCtrl *,CIntermediateCode *tmpi,I64 rip);
+extern U0 ICPreIncDec(CIntermediateCode *tmpi,I64 op,I64 rip);
+extern U0 ICPostIncDec(CIntermediateCode *tmpi,I64 op,I64 rip);
+extern U0 ICDerefPostIncDec(CIntermediateCode *tmpi,I64 op,I64 rip);
+extern U0 ICAssignPostIncDec(CIntermediateCode *tmpi,I64 op,I64 rip);
+extern U0 ICAssignPostIncDec(CIntermediateCode *tmpi,I64 op,I64 rip);
+extern U0 ICTestAndBranch(CIntermediateCode *tmpi,I64 rip,I64 is,U8 *buf,I64 rip2);
+extern U0 ICFlagBranch(CIntermediateCode *tmpi,I64 rip,I64 is,U8 *buf);
+extern U0 ICAndBranch(CIntermediateCode *tmpi,I64 rip,I64 is,U8 *buf,I64 rip2);
+extern U0 ICAssign(CIntermediateCode *tmpi,I64 rip);
+extern U0 ICBrBitOps(CIntermediateCode *tmpi,I64 rip,
+	I64 op,I64 op_imm,I64 is,U8 *buf,I64 rip2);
+extern U0 ICQueueInit(CIntermediateCode *tmpi,I64 rip2);
+extern U0 ICQueueInsert(CIntermediateCode *tmpi,I64 rip2);
+extern U0 ICQueueInsertRev(CIntermediateCode *tmpi,I64 rip2);
+extern U0 ICQueueRemove(CIntermediateCode *tmpi,I64 rip2);
+extern U0 ICMinMax(CIntermediateCode *tmpi,I64 op,I64 rip2);
+extern U0 ICSqr(CIntermediateCode *tmpi,I64 op,I64 rip2);
+extern U0 ICModU64(CIntermediateCode *tmpi,I64 rip2);
+extern U0 ICSwap(CIntermediateCode *tmpi,I64 rip2);
+extern U0 ICOrEqu(CIntermediateCode *tmpi,I64 rip2);
+extern U0 ICXorEqu(CIntermediateCode *tmpi,I64 rip2);
+extern U0 ICSwitch(CIntermediateCode *tmpi,I64 rip,
+	Bool nobound,CCmpCtrl *cc,U8 *buf,I64 rip2);
+extern U0 ICLocalVarInit(CIntermediateCode *tmpi);
+extern U0 CmpNoteFloatOp(CCmpCtrl *cc,CIntermediateCode *tmpi,
+	Bool dont_pushable,Bool dont_popable,I64 pos);
+extern U0 CmpSetFloatOpPushPop(CCmpCtrl *cc,CIntermediateCode *tmpi,
+	Bool *dont_push_float,Bool *dont_pop_float);
+extern U0 ICCopyTemplate(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 op,
+  Bool off_the_record,Bool dont_pushable,Bool dont_popable,I64 pos);
+extern U0 ICFCvt(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 r1,
+	CICType t2,I64 r2,I64 d2,Bool to_int,I64 pos,I64 rip);
+extern U0 ICFCvt2(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 r1,
+	CICType t2,I64 r2,I64 d2,Bool to_int,I64 rip);
+extern U0 ICFUnaryMinus(CCmpCtrl *cc,CIntermediateCode *tmpi,U8 *buf2,I64 rip);
+extern U0 ICFMod(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 rip);
+extern U0 ICFPow(CCmpCtrl *cc,CIntermediateCode *tmpi,U8 *buf,I64 rip);
+extern U0 ICFOp(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 op,U8 *buf2,I64 rip);
+extern U0 ICFCmp(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 op,I64 rip);
+extern U0 ICFModEqu(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 rip);
+extern U0 ICFOpEqu(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 op,U8 *buf2,I64 rip);
+extern U0 ICFCmpAndBranch(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 rip,
+   I64 us,I64 not_us,U8 *buf,I64 rip2);
+extern U0 ICFMul(CCmpCtrl *cc,CIntermediateCode *tmpi,U8 *buf,I64 rip);
+extern U0 ICFDiv(CCmpCtrl *cc,CIntermediateCode *tmpi,U8 *buf,I64 rip);
+extern U0 ICFAdd(CCmpCtrl *cc,CIntermediateCode *tmpi,U8 *buf,I64 rip);
+extern U0 ICFSub(CCmpCtrl *cc,CIntermediateCode *tmpi,U8 *buf,I64 rip);
+extern U0 ICFPreIncDec(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 op,I64 rip);
+extern U0 ICFPostIncDec(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 op,I64 rip);
+extern U0 ICFTemplateFun(CCmpCtrl *cc,CIntermediateCode *tmpi,I64 op,I64 rip);
+extern U0 ICU8(CIntermediateCode *tmpi,U8 b);
+extern U0 ICRex(CIntermediateCode *tmpi,U8 b);
+extern U0 ICOpSizeRex(CIntermediateCode *tmpi,U8 b);
+extern U0 ICU16(CIntermediateCode *tmpi,U16 w);
+extern U0 ICU24(CIntermediateCode *tmpi,U32 d);
+extern U0 ICU32(CIntermediateCode *tmpi,U32 d);
+extern U0 ICU64(CIntermediateCode *tmpi,U64 q);
+extern U0 ICAddRSP(CIntermediateCode *tmpi,I64 i,Bool optimize=TRUE);
+extern I64 ICModr1(I64 r,CICType t2,I64 r2,I64 d2);
+extern U0 ICModr2(CIntermediateCode *tmpi,I64 i,CICType t=0,I64 d,I64 rip=0);
+extern U0 ICSlashOp(CIntermediateCode *tmpi,CICType t1,I64 r1,I64 d1,I64 op,I64 rip);
+extern U0 ICPush(CIntermediateCode *tmpi,CICType t1,I64 r1,I64 d1,I64 rip);
+extern U0 ICPushRegs(CIntermediateCode *tmpi,I64 mask);
+extern U0 ICPop(CIntermediateCode *tmpi,CICType t1,I64 r1,I64 d1,I64 rip);
+extern U0 ICPopRegs(CIntermediateCode *tmpi,I64 mask);
+extern U0 ICZero(CIntermediateCode *tmpi,I64 r);
+extern U0 ICTest(CIntermediateCode *tmpi,I64 r);
+extern I64 ICBuiltInFloatConst(F64 d);
+extern U0 ICMov(CIntermediateCode *tmpi,
+	CICType t1,I64 r1,I64 d1,CICType t2,I64 r2,I64 d2,I64 rip);
+extern U0 ICLea(CIntermediateCode *tmpi,CICType t1,I64 r1,I64 d1,
+	CICType t2,I64 r2,I64 d2,CCmpCtrl *cc,U8 *buf,I64 rip);
+extern U0 ICDeref(CIntermediateCode *tmpi,I64 rip);
+extern U0 LexPutToken(CCmpCtrl *cc);
+extern U8 *LexPutLine(CCmpCtrl *cc,U8 *start);
+extern U0 LexPutPos(CCmpCtrl *cc);
+extern U0 LexWarn(CCmpCtrl *cc,U8 *str=NULL);
+extern U0 LexExcept(CCmpCtrl *cc,U8 *str=NULL);
+extern U0 UndefinedExtern();
+extern U0 UnusedExternWarning(CCmpCtrl *cc,CHashClass *tmpc);
+extern U0 ParenWarning(CCmpCtrl *cc);
+extern U0 ICClassPut(CHashClass *c);
+extern U0 ICArgPut(CICArg *a,I64 type_pointed_to);
+extern U0 ICPut(CCmpCtrl *cc,CIntermediateCode *tmpi);
+extern U0 HashDel(CHashSrcSym *tmph);
+extern U0 HashSrcFileSet(CCmpCtrl *cc,CHashSrcSym *h,I64 line_num_offset=0);
+extern I64 HashTypeNum(CHash *tmph);
+extern I64 HashVal(CHash *tmph);
+extern CHashTable *HashTableNew(I64 size,CTask *t=NULL);
+extern U0 HashTableDel(CHashTable *table);
+extern I64 HashTablePurge(CHashTable *table);
+extern CHashGeneric *HashGenericAdd(U8 *name,I64 type,
+                             I64 u0=0,I64 u1=0,I64 u2=0,CTask *task=NULL);
+extern U0 HashSrcFileSet(CCmpCtrl *cc,CHashSrcSym *h,I64 line_num_offset=0);
+extern CHashGeneric *HashPublic(U8 *st,I64 mask,Bool val=TRUE);
+extern I64 HashLstAdd(U8 *lst,I64 type,CHashTable *table);
+extern I64 HashDefineLstAdd(U8 *dname,I64 type,CHashTable *table);
+extern I64 FramePtr(U8 *name,CTask *task=NULL);
+extern CHashGeneric *FramePtrAdd(U8 *name,I64 val=0,CTask *task=NULL);
+extern I64 FramePtrSet(U8 *name,I64 val,CTask *t=NULL);
+extern I64 FramePtrDel(U8 *name,CTask *t=NULL);
+extern U0 CmpFillTables();
+extern U8 *LexStmt2Bin(CCmpCtrl *cc,I64 *_type,I64 cmp_flags=0);
+extern CAOT *CmpJoin(CCmpCtrl *cc,I64 cmp_flags,U8 *map_name=NULL,U8 mapfile_drv_let=0);
+extern CAOT *CmpBuf(U8 *buf,U8 *map_name=NULL,
+             I64 *error_cnt=NULL, I64 *warning_cnt=NULL,U8 mapfile_drv_let=0);
+extern U0 CmpFixUpAOTAsm(CCmpCtrl *cc,CAOT *tmpaot);
+extern I64 Cmp(U8 *filename,U8 *map_name=NULL,U8 *out_name=NULL,U8 mapfile_drv_let=0);
+extern I64 ExePutS(U8 *buf,U8 *filename=NULL,
+            I64 ccf_flags=0,CLexHashTableContext *htc=NULL);
+extern I64 ExePrint(U8 *fmt,...);
+extern I64 ExeFile(U8 *name,I64 ccf_flags=0);
+extern I64 RunFile(U8 *name,I64 ccf_flags=0,...);
+extern I64 ExePutS2(U8 *buf,U8 *filename=NULL,I64 ccf_flags=0);
+extern I64 ExePrint2(U8 *fmt,...);
+extern I64 ExeFile2(U8 *name,I64 ccf_flags=0);
+extern I64 RunFile2(U8 *name,I64 ccf_flags=0,...);
+extern I64 StreamExePrint(U8 *fmt,...);
+extern U0 CInit();
+extern Bool Option(I64 num,Bool val);
+extern Bool GetOption(I64 num);
+extern I64 PassTrace(I64 i=0b10001111101);
+extern Bool Trace(Bool val=ON);
+extern Bool Echo(Bool val);
+extern U0 StreamPrint(U8 *fmt,...);
+extern U0 StreamDir();
+extern CD2I32 *LexD2I32(CCmpCtrl *cc,CD2I32 *p);
+extern CD3I32 *LexD3I32(CCmpCtrl *cc,CD3I32 *p);
+extern U8 *CmdLinePmt();
+extern I64 ArcDetermineCompressionType(U8 *src,I64 size);
+extern U0 ArcCompressBuf(CArcCtrl *c);
+extern Bool ArcFinishCompression(CArcCtrl *c);
+extern U0 ArcExpandBuf(CArcCtrl *c);
+extern CArcCtrl *ArcCtrlNew(Bool expand,I64 compression_type=CT_8_BIT);
+extern U0 ArcCtrlDel(CArcCtrl *c);
+extern U8 *ExpandBuf(CArcCompress *arc,CTask*);
+extern CArcCompress *CompressBuf(U8 *src,I64 size,CTask *mem_task=NULL);
+extern U0 CtrlsUpdate(CTask *task);
+extern Bool CtrlInsideRect(CCtrl *c,I64 x,I64 y);
+extern U0 DrawCtrls(CTask *task);
+extern U0 DrawWinScroll(CDC *dc,CCtrl *c);
+extern U0 WinDerivedScrollValsUpdate(CCtrl *c);
+extern U0 LeftClickHWinScroll(CCtrl *c,I64 x,I64,Bool down);
+extern U0 LeftClickVWinScroll(CCtrl *c,I64,I64 y,Bool down);
+extern U0 WheelChangeWinScroll(CCtrl *c,I64 delta);
+extern U0 WinScrollsInit(CTask *task);
+extern U0 DrawViewAnglesCtrl(CDC *dc,CCtrl *c);
+extern U0 UpdateDerivedViewAnglesCtrl(CCtrl *c);
+extern U0 LeftClickViewAngles(CCtrl *c,I64 x,I64 y,Bool);
+extern U0 DrawCtrlBttn(CDC *dc,CCtrl *c);
+extern U0 LeftClickCtrlBttn(CCtrl *c,I64,I64,Bool down);
+extern class CTemplateCS;
+extern CTemplateCS *CtrlSliderGet();
+extern U0 TemplateCtrlSlider(CDoc *doc);
+extern U0 DrawCtrlSlider(CDC *dc,CCtrl *c);
+extern U0 UpdateDerivedCtrlSlider(CCtrl *c);
+extern U0 LeftClickSlider(CCtrl *c,I64 x,I64 y,Bool down);
+extern CCtrl *SliderNew();
+extern U0 SliderDel(CCtrl *c);
+extern U0 WinDerivedValsUpdate(CTask *task);
+extern Bool WinInside(I64 x,I64 y,CTask *task=NULL,I64 border=0);
+extern U0 DirEntryDel(CDirEntry *tmpde);
+extern U0 DirEntryDel2(CDirEntry *tmpde);
+extern U0 DirTreeDel(CDirEntry *tmpde);
+extern U0 DirTreeDel2(CDirEntry *tmpde);
+extern I64 DirEntryCompareName(CDirEntry *e1,CDirEntry *e2);
+extern I64 DirEntryCompareClus(CDirEntry *e1,CDirEntry *e2);
+extern U0 DirFilesSort(CDirEntry **_tmpde,I64 key);
+extern CDirEntry *DirFilesFlatten(CDirEntry *tmpde,CDirEntry **_res,I64 fuf_flags);
+extern U0 DirContextDel(CDirContext *dirc,Bool restore=TRUE);
+extern Bool Cd2(U8 *to,Bool make=FALSE);
+public extern CDirContext *DirContextNew(U8 *mask,
+	Bool make_mask=FALSE,Bool make_dirs=FALSE,Bool no_mask=FALSE);
+extern CDirEntry *FilesFind2(U8 *files_find_mask,I64 fuf_flags);
+extern CDirEntry *FilesFind(U8 *files_find_mask,I64 fuf_flags=0);
+extern Bool FileFind(U8 *filename,CDirEntry *_de=NULL,I64 fuf_flags=FUF_Z_OR_NOT_Z);
+extern U0 PutFileLink(U8 *filename,U8 *full_name=NULL,I64 line=0,Bool plain_text=FALSE);
+public extern I64 Dir(U8 *files_find_mask="*",Bool full=FALSE);
+extern U8 *FileExtDot(U8 *src);
+extern U8 *FileExtRemove(U8 *src,U8 *dst=NULL);
+extern Bool IsDotZ(U8 *filename);
+extern Bool IsDotC(U8 *filename);
+extern Bool FilesFindMatch(U8 *_test_name,U8 *files_find_mask,I64 fuf_flags=0);
+extern U8 *ExtChange(U8 *filename,U8 *extension);
+extern Bool FileNameChk(U8 *filename);
+extern U8 *ToggleZorNotZ(U8 *name);
+extern U8 *DirFile(U8 *dirname,U8 *name=NULL,U8 *_extension=NULL);
+extern I64 HasLower(U8 *src);
+extern U0 HashFunSegFind(CHashTable *h,U8 *addr,
+	Bool *_has_lower,U64 *_best,CHash **_res);
+extern CHash *FunSegFind(U8 *addr,I64 *_offset);
+extern U0 FunSegCacheAdd(CHash *tmps,U8 *addr);
+extern U8 *FunSegCacheFind(U8 *addr,I64 *_offset);
+extern U0 StrPrintFunSeg(U8 *buf,I64 addr,I64 field_len,I64 flags);
+extern I64 SrcLineNum(U8 *addr,I64 cnt=1);
+extern U8 *SrcFileName(U8 *addr,I64 cnt=1);
+extern U8 *SrcEdLink(U8 *addr,I64 cnt=1,CTask *mt=NULL);
+extern U0 JobDel(CJob *tmpc);
+extern U0 JobQueueDel(CJob *head);
+extern U0 SrvCmdLine(I64 dummy=0);
+extern U0 JobCtrlInit(CJobCtrl *ctrl);
+extern U0 TaskRstAwaitingMsg(CTask *task=NULL);
+extern CJob *TaskExe(CTask *srv,CTask *master,U8 *data,I64 flags);
+extern CJob *TaskText(CTask *srv,CTask *master,U8 *data,I64 flags);
+extern CJob *TaskMsg(CTask *_srv,CTask *master,
+	I64 msg_code,I64 arg1,I64 arg2,I64 flags);
+extern Bool JobResScan(CJob *rqst=NULL,I64 *_res=NULL);
+extern I64 JobResGet(CJob *rqst=NULL);
+extern U0 TaskWait(CTask *task=NULL,Bool cmd_line_pmt=FALSE);
+extern U0 MessagePost(CTask *task,I64 msg_code,I64 arg1,I64 arg2,I64 flags=0);
+extern U0 MessagePostWait(CTask *task,I64 msg_code,I64 arg1,I64 arg2,I64 flags=0);
+extern U0 Message(I64 msg_code,I64 arg1,I64 arg2,I64 flags=0);
+extern Bool Suspend(CTask *t=NULL,Bool state=TRUE);
+extern I64 JobRunOne(I64 run_flags,CJobCtrl *ctrl);
+extern I64 JobsHndlr(I64 run_flags,CTask *task=NULL);
+extern I64 PopUp(U8 *buf,CTask *parent=NULL,CTask **_pu_task=NULL);
+extern I64 PopUpPrint(U8 *fmt,...);
+extern U0 XTalk(CTask *task,U8 *fmt,...);
+extern U0 XTalkWait(CTask *task,U8 *fmt,...);
+extern U0 XTalkWait(CTask *task,U8 *fmt,...);
+extern U0 InFile(U8 *filename);
+extern U0 In(U8 *fmt,...);
+extern U0 XTalkStr(CTask *task,U8 *fmt,...);
+extern U0 XTalkStrWait(CTask *task,U8 *fmt,...);
+public extern Bool Kill(CTask *task,Bool wait=TRUE,Bool just_break=FALSE);
+extern I64 Char2ScanCode(I64 ch,I64 sc_flags=0);
+extern U8 ScanCode2Char(I64 sc);
+extern U0 InputFilterTask();
+extern U8 *Char2KeyName(I64 ch,Bool include_ctrl=TRUE);
+extern U8 *ScanCode2KeyName(I64 sc);
+extern I64 FlushMsgs(CTask *task=NULL);
+extern I64 MessageGet(I64 *_arg1=NULL,I64 *_arg2=NULL,I64 mask=~1,CTask *task=NULL);
+extern I64 CharScan();
+extern Bool KeyScan(I64 *_ch=NULL,I64 *_scan_code=NULL,Bool echo=FALSE);
+extern I64 KeyGet(I64 *_scan_code=NULL,Bool echo=FALSE,Bool raw_cursor=FALSE);
+extern I64 CharGet(I64 *_scan_code=NULL,Bool echo=TRUE,Bool raw_cursor=FALSE);
+extern U8 *StrGet(U8 *msg=NULL,U8 *dft=NULL,I64 flags=0);
+extern I64 GetS(U8 *buf,I64 size,Bool allow_ext=TRUE);
+extern U0 KbdInit() ;
+extern I64 KbdMsgsQue();
+extern I64 KbdMsEvtTime();
+extern U0 LinkedLstDel(U8 **_lst);
+extern U8 *LinkedLstCopy(U8 **_lst,CTask *mem_task=NULL);
+extern I64 LinkedLstCnt(U8 **_lst);
+extern I64 LinkedLstSize(U8 **_lst);
+extern U0 QueueDel(CQue *head,Bool QueueRemove=FALSE);
+extern CQue *QueCopy(CQue *head,CTask *mem_task=NULL);
+extern I64 QueCnt(CQue *head);
+extern I64 QueSize(CQue *head);
+extern CQueVectU8 *QueVectU8New(I64 min_idx=0);
+extern U0 QueVectU8Put(CQueVectU8 *v,I64 idx,U8 ch);
+extern U0 QueVectU8Del(CQueVectU8 *v);
+extern I64 QueVectU8Get(CQueVectU8 *v,I64 idx);
+extern CFifoU8 *FifoU8New(I64 size,CTask *mem_task=NULL);
+extern U0 FifoU8Del(CFifoU8 *f);
+extern Bool FifoU8Ins(CFifoU8 *f,U8 b);
+extern Bool FifoU8Remove(CFifoU8 *f,U8 *_b);
+extern Bool FifoU8Peek(CFifoU8 *f,U8 *_b);
+extern U0 FifoU8Flush(CFifoU8 *f);
+extern I64 FifoU8Count(CFifoU8 *f);
+extern CFifoI64 *FifoI64New(I64 size,CTask *mem_task=NULL);
+extern U0 FifoI64Del(CFifoI64 *f);
+extern Bool FifoI64Ins(CFifoI64 *f,I64 q);
+extern Bool FifoI64Remove(CFifoI64 *f,I64 *_q);
+extern Bool FifoI64Peek(CFifoI64 *f,I64 *_q);
+extern U0 FifoI64Flush(CFifoI64 *f);
+extern I64 FifoI64Count(CFifoI64 *f);
+extern U8 *Caller(I64 num=1);
+extern U8 *__CallerBP(U8 **rbp,I64 num=1);
+extern U0 SysGlblsInit();
+extern CHashDefineStr *DefineLoad(U8 *dname,U8 *st);
+extern CHashDefineStr *DefineListLoad(U8 *dname,U8 *lst);
+extern U0 UndefinedDefine(U8 *dname);
+extern U8 *Define(U8 *dname);
+extern U8 *DefineSub(I64 sub,U8 *dname);
+extern I64 DefineCnt(U8 *dname);
+extern I64 DefineMatch(U8 *needle,U8 *haystack_lst_dname,I64 flags=0);
+extern U0 DefinePrint(U8 *dname,U8 *src,...);
+extern U0 SysDefinesLoad();
+extern CColorROPU16 Str2ColorU16(U8 *st);
+extern CColorROPU16 Str2ColorU16(U8 *st);
+extern U0 PutExcept(Bool catch_it=TRUE);
+extern U0 SysTry(U8 *catch_start,U8 *untry_start);
+extern U0 SysUntry();
+extern U0 throw(I64 ch=0,Bool no_log=FALSE);
+extern U0 Break();
+extern Bool BreakLock(CTask *task=NULL);
+extern Bool BreakUnlock(CTask *task=NULL);
+extern U0 LoadOneImport(U8 **_src,U8 *module_base,I64 ld_flags);
+extern U0 SysSymImportsResolve(U8 *st_ptr,I64 ld_flags=0);
+extern U0 LoadPass1(U8 *src,U8 *module_base,I64 ld_flags);
+extern U0 LoadPass2(U8 *src,U8 *module_base,I64);
+extern CBinFile *Load(U8 *filename,I64 ld_flags=0,CBinFile *bfh_addr=INVALID_PTR);
+extern F64 Clamp(F64 d,F64 lo,F64 hi);
+extern F64 Min(F64 n1,F64 n2);
+extern F64 Max(F64 n1,F64 n2);
+extern F64 Pow10I64(I64 i);
+extern U64 FloorU64(U64 num,U64 to);
+extern U64 CeilU64(U64 num,U64 to);
+extern I64 RoundI64(I64 num,I64 to);
+extern I64 FloorI64(I64 num,I64 to);
+extern I64 CeilI64(I64 num,I64 to);
+extern I16 RandI16();
+extern U16 RandU16();
+extern I32 RandI32();
+extern U32 RandU32();
+extern I64 RandI64();
+extern U64 RandU64();
+extern F64 Rand();
+extern I64 Seed(I64 seed=0,CTask *task=NULL);
+extern F64 tS();
+extern Bool Blink(F64 Hz=2.5);
+extern U16 EndianU16(U16 d);
+extern U32 EndianU32(U32 d);
+extern I64 EndianI64(I64 d);
+extern F64 Ona2Freq(I8 ona);
+extern I8 Freq2Ona(F64 freq);
+extern U0 Sound(I8 ona=0) ;
+extern Bool Silent(Bool val=ON);
+extern Bool IsSilent();
+extern CLexFile *LexFilePush(CCmpCtrl *cc);
+extern CLexFile *LexFilePop(CCmpCtrl *cc);
+extern CCmpCtrl *CmpCtrlNew(U8 *buf=NULL,I64 flags=0,U8 *filename=NULL);
+extern U0 CmpCtrlDel(CCmpCtrl *cc);
+extern I64 CmpCtrlSize(CCmpCtrl *cc);
+extern Bool LexDollar(CCmpCtrl *cc,CDoc *doc,CDocEntry *doc_e);
+extern U0 LexSkipEol(CCmpCtrl *cc);
+extern U8 *LexFirstRem(CCmpCtrl *cc,U8 *marker,I64 _len=NULL);
+extern U0 LexIncludeStr(CCmpCtrl *cc,U8 *abs_filename,U8 *src,Bool actual_file);
+extern U0 LexAttachDoc(CCmpCtrl *cc,CLexFile *tmpf=NULL,
+	CDoc *doc=NULL,U8 *abs_filename=NULL,CDocEntry *doc_e=NULL,I64 col=0);
+extern I64 LexInStr(CCmpCtrl *cc,U8 *buf,I64 size,Bool *done);
+extern I64 Lex(CCmpCtrl *cc);
+extern U0 LexBackupLastChar(CCmpCtrl *cc);
+extern U0 LexPush(CCmpCtrl *cc);
+extern U0 LexPopRestore(CCmpCtrl *cc);
+extern U0 LexPopNoRestore(CCmpCtrl *cc);
+extern I64 MemberMetaData(U8 *needle_str,CMemberList *haystack_member_lst);
+extern CMemberListMeta *MemberMetaFind(U8 *needle_str,CMemberList *haystack_member_lst);
+extern CMemberList *MemberFind(U8 *needle_str,CHashClass *haystack_class);
+extern CMemberList *MemberClassBaseFind(CHashClass *needle_class,
+	CHashClass *haystack_class);
+extern U0 MemberAdd(CCmpCtrl *cc,CMemberList *tmpm,CHashClass *tmpc,I64 mode);
+extern CMemberList *MemberLstNew(I64 _reg);
+extern Bool  MemberLstCmp(CMemberList *tmpm1,CMemberList *tmpm2,I64 cnt=I64_MAX);
+extern U0 MemberLstDel(CMemberList *tmpm);
+extern U0 ClassMemberLstDel(CHashClass *tmpc);
+extern I64 MemberLstSize(CHashClass *tmpc);
+extern U8 *LexExtStr(CCmpCtrl *cc,I64 *_size=NULL,Bool lex_next=TRUE);
+extern CTask *MenuTask();
+extern CMenuEntry *MenuNewSub(CCmpCtrl *cc,CTask *task);
+extern U0 MenuDelSub(CMenuEntry *tmpme);
+extern I64 MenuEntryWidth(CMenuEntry *tmpme);
+extern U0 DrawMenu(CDC *dc);
+extern U0 GridInit();
+extern U0 MsUpdate(I64 x,I64 y,I64 z,Bool l,Bool r);
+extern U0 MouseSet(I64 x=I64_MAX,I64 y=I64_MAX,I64 z=I64_MAX,I64 l=I64_MAX,I64 r=I64_MAX);
+extern U0 MsInit();
+extern U0 MsHardSetPre();
+extern U0 MsHardSetPost();
+extern U0 MsHardSet(I64 x,I64 y,I64 z,I64 l,I64 r);
+extern CCodeMisc *OptLabelFwd(CCodeMisc *lb);
+extern CHashClass *OptClassFwd(CHashClass *tmpc);
+extern U0 OptSetNOP1(CIntermediateCode *tmpi);
+extern U0 OptSetNOP2(CIntermediateCode *tmpi,I64 stk_delta=1);
+extern CIntermediateCode *OptFree(CIntermediateCode *tmpi);
+extern CIntermediateCode *OptLag(CIntermediateCode *tmpi);
+extern CIntermediateCode *OptLag1(CIntermediateCode *tmpi);
+extern CIntermediateCode *OptLag2(CIntermediateCode *tmpi);
+extern CIntermediateCode *OptLead1(CIntermediateCode *tmpi);
+extern I64 CmpOffset2Reg(I64 offset,COptReg *reg_offsets);
+extern Bool OptFixupBinaryOp1(CIntermediateCode *tmpi,
+     CIntermediateCode *tmpi1,CIntermediateCode *tmpi2,
+     Bool *is_unsigned);
+extern Bool OptFixupBinaryOp2(CIntermediateCode **tmpi1,CIntermediateCode **tmpi2);
+extern Bool OptFixupUnaryOp(CIntermediateCode *tmpi, CIntermediateCode *tmpi1,
+     Bool *is_unsigned);
+extern CIntermediateCode *OptBrZero(CCmpCtrl *cc,CIntermediateCode *tmpi);
+extern CIntermediateCode *OptBrNotZero(CCmpCtrl *cc,CIntermediateCode *tmpi);
+extern U0 OptFixSizeOf(CIntermediateCode *tmpi1,
+	CIntermediateCode *tmpi_push,CHashClass *tmpcc);
+extern I64 CmpRawType(CHashClass *tmpc);
+extern I64 CmpRawTypePointed(CHashClass *tmpc);
+extern U0 CmpMinTypePointed(CIntermediateCode *tmpi,I64 pt1);
+extern U0 CmpF1PushPop(CIntermediateCode *tmpi,CIntermediateCode *tmpi2);
+extern U0 CmpF2PushPop(CIntermediateCode *tmpi,
+	CIntermediateCode *tmpi1,CIntermediateCode *tmpi2);
+extern class COptMemberVar;
+extern I64 OptMVCompare(COptMemberVar *mv1,COptMemberVar *mv2);
+extern U0 OptPass3(CCmpCtrl *cc,COptReg *reg_offsets);
+extern Bool OptIC4(CIntermediateCode *tmpi);
+extern U0 OptPass5(CCmpCtrl *cc);
+extern Bool OptIC6(CIntermediateCode *tmpi);
+extern U0 OptPass6Lag(CCmpCtrl *cc,CPrsStk *ps,CIntermediateCode *tmpi,
+               I64 *_stk_ptr,I64 reg_stk_size,I64 *_clobbered_reg_mask);
+extern U0 OptPass6(CCmpCtrl *cc);
+extern I64 OptPass789A(CCmpCtrl *cc,COptReg *reg_offsets,U8 *buf,CDebugInfo **_dbg);
+extern CIntermediateCode *OptPass012(CCmpCtrl *cc);
+extern CIntermediateCode *PrsAddOp(CCmpCtrl *cc,I64 stk_op,CHashClass *tmpc);
+extern U0 PrsExpression2(CCmpCtrl *cc,I64 *_max_prec,CPrsStk *ps);
+extern Bool PrsExpression(CCmpCtrl *cc,I64 *_max_prec,Bool end_exp,CPrsStk *_ps=NULL);
+extern I64 PrsFunCall(CCmpCtrl *cc,CPrsStk *ps,Bool indirect,CHashFun *tmpf);
+extern I64 PrsUnaryTerm(CCmpCtrl *cc,CPrsStk *ps,CMemberList **_local_var,
+	CArrayDim **_tmpad,I64 *max_prec,I64 *unary_pre_prec,I64 *paren_prec);
+extern I64 PrsUnaryModifier(CCmpCtrl *cc,CPrsStk *ps,CMemberList **_local_var,
+	CArrayDim **_tmpad,I64 *unary_post_prec);
+extern U8 *LexExpression2Bin(CCmpCtrl *cc,I64 *_type=NULL);
+extern Bool IsLexExpression2Bin(CCmpCtrl *cc,U8 **_machine_code);
+extern I64 LexExpressionI64(CCmpCtrl *cc);
+extern F64 LexExpressionF64(CCmpCtrl *cc);
+extern I64 LexExpression(CCmpCtrl *cc);
+extern U0 PrsPush(CPrsStk *ps,I64 val);
+extern I64 PrsPop(CPrsStk *ps);
+extern U0 PrsPush2(CPrsStk *ps,I64 val);
+extern I64 PrsPop2(CPrsStk *ps);
+extern U0 PrsPopDeref(CPrsStk *ps);
+extern I64 PrsKeyWord(CCmpCtrl *cc);
+extern CHashClass *PrsClassNew();
+extern CHashFun *PrsFunNew();
+extern CIntermediateCode *ICAdd(CCmpCtrl *cc,
+   I64 opcode_and_precedence,I64 arg, CHashClass *c,I64 flags=0);
+extern U0 COCInit(CCmpCtrl *cc);
+extern U0 COCPush(CCmpCtrl *cc);
+extern CCmpCtrl *COCPopNoFree(CCmpCtrl *cc);
+extern U0 COCPop(CCmpCtrl *cc);
+extern U0 COCAppend(CCmpCtrl *cc, CCodeCtrl *tmpcbh);
+extern CCodeMisc *COCMiscNew(CCmpCtrl *cc,I64 ty);
+extern CCodeMisc *COCGoToLabelFind(CCmpCtrl *cc,U8 *name);
+extern I64 COCFloatConstFind(CCmpCtrl *cc,F64 d);
+extern U0 COCDel(CCmpCtrl *cc,CCodeCtrl *coc);
+extern U0 COCHeaderPut(CCmpCtrl *cc,I64 pass,Bool put);
+extern U8 *COCCompile(CCmpCtrl *cc,I64 *_code_size,CDebugInfo **_dbg,I64 *_type);
+extern CHashClass *PrsClass(CCmpCtrl *cc,I64 keyword,I64 fsp_flags,Bool is_extern);
+extern CHashFun *PrsFunJoin(CCmpCtrl *cc,CHashClass *tmp_return,
+	U8 *name,I64 fsp_flags);
+extern U0 PrsFun(CCmpCtrl *cc,CHashClass *tmp_return,U8 *name,I64 fsp_flags);
+extern U0 PrsGlblVarLst(CCmpCtrl *cc,I64 saved_mode,CHashClass *saved_tmpc,
+  I64 saved_val,I64 fsp_flags);
+extern U0 PrsIf(CCmpCtrl *cc,I64 try_cnt,CCodeMisc *lb_break);
+extern U0 PrsWhile(CCmpCtrl *cc,I64 try_cnt);
+extern U0 PrsDoWhile(CCmpCtrl *cc,I64 try_cnt);
+extern U0 PrsFor(CCmpCtrl *cc,I64 try_cnt);
+extern U0 PrsSwitch(CCmpCtrl *cc,I64 try_cnt);
+extern U0 PrsNoWarn(CCmpCtrl *cc);
+extern U0 PrsTryBlk(CCmpCtrl *cc,I64 try_cnt);
+extern Bool PrsStmt(CCmpCtrl *cc,I64 try_cnt=0,
+  CCodeMisc *lb_break=NULL,I64 cmp_flags=CMPF_PRS_SEMICOLON);
+extern Bool PrsStmt(CCmpCtrl *cc,I64 try_cnt=0,
+  CCodeMisc *lb_break=NULL,I64 cmp_flags=CMPF_PRS_SEMICOLON);
+extern U0 PrsVarInit2(CCmpCtrl *cc,U8 **_dst,CHashClass *tmpc,
+	CArrayDim *tmpad,U8 *data_addr_rip,U8 **_base,Bool data_heap,I64 pass);
+extern U0 PrsGlblInit(CCmpCtrl *cc,CHashGlobalVar *tmpg,I64 pass);
+extern U0 PrsStaticInit(CCmpCtrl *cc,CMemberList *tmpm,I64 pass);
+extern U0 PrsArrayDims(CCmpCtrl *cc,I64 mode,CArrayDim *dim);
+extern CHashClass *PrsType(CCmpCtrl *cc,CHashClass **_tmpc1,
+  I64 *_mode,CMemberList *tmpm,U8 **_ident,CHashFun **_fun_ptr,
+  CHashExport **_tmpex,CArrayDim *tmpad,I64 fsp_flags);
+extern U0 PrsDotDotDot(CCmpCtrl *cc,CHashFun *tmpf,I64 _reg);
+extern U0 PrsVarLst(CCmpCtrl *cc,CHashClass *tmpc,I64 mode,I64 union_base=0);
+extern U0 QuickSortI64(I64 *base,I64 num, I64 (*fp_compare)(I64 e1,I64 e2));
+extern U0 QSort2a(U8 **base,I64 num,I64 (*fp_compare)(U8 **_e1,U8 **_e2));
+extern U0 QSort2b(U8 *base,I64 num, I64 width,
+	I64 (*fp_compare)(U8 *e1,U8 *e2),U8 *tmp);
+extern U0 QuickSort(U8 *base,I64 num, I64 width, I64 (*fp_compare)(U8 *e1,U8 *e2));
+extern U8 *StrPrintHex(U8 *dst,I64 num;I64 width);
+extern U0 PutHex(I64 num,I64 width);
+extern U0 SPutChar(U8 **_dst,U8 ch,U8 **_buf);
+extern U0 OutStr(U8 *ptr,U8 **_buf,U8 **_dst,I64 len,I64 flags);
+extern U8 *MPrintTime(CDate cdt);
+extern U8 *MPrintDate(CDate cdt);
+extern U8 *MPrintQ(U8 *ptr,I64 flags);
+extern U8 *MPrintq(U8 *ptr,I64 flags);
+extern U8 *StrPrintJoin(U8 *dst,U8 *fmt,I64 argc,I64 *argv);
+extern U8 *StrPrint(U8 *dst,U8 *fmt,...);
+extern U0 Print(U8 *fmt,...);
+extern U8 *MStrPrint(U8 *fmt,...);
+extern U0 PrintErr(U8 *fmt,...);
+extern U0 PrintWarn(U8 *fmt,...);
+extern U0 SettingsPop2(CTask *task,CTaskSettings *tmpse);
+extern I64 InstEntriesCompare(CInst *tmpins1,CInst *tmpins2);
+extern CInst *InstEntryFind(U8 *rip,I64 opsize,I64 seg_size);
+extern U0 UAsmHashLoad();
+extern U0 Ui(U8 *buf,U8 **_rip,I64 seg_size=64,I64 *_jmp_dst=NULL,Bool just_ins=FALSE);
+extern U8 *U(U8 *rip,I64 cnt=20,I64 seg_size=64);
+extern I64 Un(U8 *rip,I64 cnt=0x80,I64 seg_size=64);
+extern CDate Str2Date(U8 *_src);
+extern I64 Bcd2Bin(U64 b);
+extern I64 LastDayOfYear(I64 i);
+extern I64 FirstDayOfYear(I64 i);
+extern I64 LastDayOfMon(I64 i);
+extern I64 FirstDayOfMon(I64 i);
+extern U0 Date2Struct(CDateStruct *_ds,CDate cdt);
+extern CDate Struct2Date(CDateStruct *_ds);
+extern I64 YearStartDate(I64 year);
+extern CDate Unix2CDate(I64 timestamp);
+extern I64 CDate2Unix(CDate dt);
+extern U0 DeathWait(CTask **_task,Bool send_exit=FALSE);
+#define FND_REPLACE	0
+#define FND_SKIP	1
+#define FND_ALL		2
+#define FND_ED		3
+#define FND_ABORT_FILE	4
+#define FND_SKIP_FILE	5
+
+extern I64 PopUpFindMenu();
+extern I64 FindFile(U8 *needle_str,U8 *haystack_filename,
+	I64 *_fuf_flags,U8 *replace_text);
+extern I64 Find(U8 *needle_str,U8 *files_find_mask="*",
+	U8 *fu_flags=NULL,U8 *replace_text=NULL);
+extern I64 FileOcc(U8 *needle_str,
+	U8 *files_find_mask="*",U8 *fu_flags="+r+i+l");
+class CFind
+{
+  U8	find_text[STR_LEN] format "$$DA-P,"
+	"A=\"FIND        :%s\"$$\n";
+  U8	replace_text[STR_LEN] format "$$DA-P,"
+	"A=\"REPLACE     :%s\"$$\n";
+  Bool	replace		format "$$CB,\"REPLACE\"$$\n";
+  Bool	match_case	format "$$CB,\"MATCH CASE\"$$\n";
+  Bool	whole_labels	format "$$CB,\"WHOLE LABELS\"$$\n";
+  U8	filemask[STR_LEN] format "$$DA-P,A=\"FILE MASK   :%s\"$$\n";
+  Bool	recurse		format "$$CB,\"RECURSE\"$$\n";
+};
+
+extern I64 FindWiz();
+extern U0 BirthWait(CTask **_task);
+class CEdLineGoTo
+{
+  I64 line format "\dDA,A=\"Go to Line:%d\"\d";
+};
+class CTransformForm
+{
+  F64 x_scale	format "\dDA-TRM,A=\"X Scale :%12.6f\"\d\n";
+  F64 y_scale	format "\dDA-TRM,A=\"Y Scale :%12.6f\"\d\n";
+  F64 z_scale	format "\dDA-TRM,A=\"Z Scale :%12.6f\"\d\n";
+  F64 ï¿½_z	format "\nAngles are in degrees\n"
+		       "\dDA-TRM,A=\"Z-Axis  :%12.6f\"\d\n";
+  F64 ï¿½_y	format "\dDA-TRM,A=\"Y-Axis  :%12.6f\"\d\n";
+  F64 ï¿½_x	format "\dDA-TRM,A=\"X-Axis  :%12.6f\"\d\n";
+  F64 x_offset	format "\n\dDA-TRM,A=\"X Offset:%12.6f\"\d\n";
+  F64 y_offset	format "\dDA-TRM,A=\"Y Offset:%12.6f\"\d\n";
+  F64 z_offset	format "\dDA-TRM,A=\"Z Offset:%12.6f\"\d\n";
+};
+class CEdFileLink
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	file[512]	format "$$DA-P,A=\"File          :%s\"$$\n";
+  I64	book;
+  U8	aux[512];
+  I64	num;
+  U8	html_link[512]	format "$$DA-P,A=\"Html Link     :%s\"$$\n";
+  Bool	pop_up		format "$$CB,\"PopUp\"$$\n",
+	quote		format "$$CB,\"Quote\"$$\n",
+	hide;
+};
+
+class CEdFileAnchorLink
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	file[512]	format "$$DA-P,A=\"File          :%s\"$$\n";
+  I64	book;
+  U8	aux[512]	format "$$DA-P,A=\"Anchor Label  :%s\"$$\n";
+  I64	num;
+  U8	html_link[512]	format "$$DA-P,A=\"Html Link     :%s\"$$\n";
+  Bool	pop_up		format "$$CB,\"PopUp\"$$\n",
+	quote		format "$$CB,\"Quote\"$$\n",
+	hide;
+};
+
+class CEdFileFindLink
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	file[512]	format "$$DA-P,A=\"File          :%s\"$$\n";
+  I64	book;
+  U8	aux[512]	format "$$DA-P,A=\"Str        :%s\"$$\n";
+  I64	num		format "$$DA-TRM,A=\"Occurrence Num:%04d\"$$\n";
+  U8	html_link[512]	format "$$DA-P,A=\"Html Link     :%s\"$$\n";
+  Bool	pop_up		format "$$CB,\"PopUp\"$$\n",
+	quote		format "$$CB,\"Quote\"$$\n",
+	hide;
+};
+
+class CEdFileLineLink
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	file[512]	format "$$DA-P,A=\"File          :%s\"$$\n";
+  I64	book;
+  U8	aux[512];
+  I64	num		format "$$DA-TRM,A=\"Line Num      :%04d\"$$\n";
+  U8	html_link[512]	format "$$DA-P,A=\"Html Link     :%s\"$$\n";
+  Bool	pop_up		format "$$CB,\"PopUp\"$$\n",
+	quote		format "$$CB,\"Quote\"$$\n",
+	hide;
+};
+
+class CEdManPageLink
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	file[512];
+  I64	book;
+  U8	aux[512]	format "$$DA-P,A=\"Label         :%s\"$$\n";
+  I64	num;
+  U8	html_link[512]	format "$$DA-P,A=\"Html Link     :%s\"$$\n";
+  Bool	pop_up		format "$$CB,\"PopUp\"$$\n",
+	quote		format "$$CB,\"Quote\"$$\n",
+	hide;
+};
+
+class CEdAddrLink
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	file[512];
+  I64	book;
+  U8	aux[512]	format "$$DA-P,A=\"Addr Exp   :%s\"$$\n";
+  I64	num		format "$$DA-TRM,A=\"Bin Size      :%04d\"$$\n";
+  U8	html_link[512]	format "$$DA-P,A=\"Html Link     :%s\"$$\n";
+  Bool	pop_up		format "$$CB,\"PopUp\"$$\n",
+	quote		format "$$CB,\"Quote\"$$\n",
+	hide;
+};
+
+class CEdPlaceAnchor
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	file[512];
+  I64	book;
+  U8	aux[512]	format "$$DA-P,A=\"Anchor Label  :%s\"$$\n";
+  I64	num;
+  U8	html_link[512]	format "$$DA-P,A=\"Html Link     :%s\"$$\n";
+  Bool	pop_up,
+	quote		format "$$CB,\"Quote\"$$\n",
+	hide		format "$$CB,\"Hide\"$$\n";
+};
+
+class CEdBibleLink
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	file[512];
+  I64	book		format "$$LS,D=\"ST_BIBLE_BOOKS\"$$\n";
+  U8	aux[512]	format "$$DA-P,A=\"Chapter Verse :%s\"$$\n";
+  I64	num;
+
+  U8	html_link[512]	format "$$DA-P,A=\"Html Link     :%s\"$$\n";
+  Bool	pop_up		format "$$CB,\"PopUp\"$$\n",
+	quote		format "$$CB,\"Quote\"$$\n",
+	hide;
+};
+
+class CEdDefLink
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	file[512];
+  I64	book;
+  U8	aux[512]	format "$$DA-P,A=\"Word          :%s\"$$\n";
+  I64	num		format "$$DA-TRM,A=\"Def Num       :%4d\"$$\n";
+  U8	html_link[512]	format "$$DA-P,A=\"Html Link     :%s\"$$\n";
+  Bool	pop_up		format "$$CB,\"PopUp\"$$\n",
+	quote		format "$$CB,\"Quote\"$$\n",
+	hide;
+};
+
+class CEdProject
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	file[512]	format "$$DA-P,A=\"File          :%s\"$$\n";
+  I64	book;
+  U8	aux[512];
+  I64	num;
+  U8	html_link[512]	format "$$DA-P,A=\"Html Link     :%s\"$$\n";
+  Bool	pop_up		format "$$CB,\"PopUp\"$$\n",
+	quote		format "$$CB,\"Quote\"$$\n",
+	hide;
+};
+class CEdPageSetting1
+{
+  U8	val[512]	format "$$DA-P,A=\"Setting Val:%s\"$$\n";
+  Bool	winrel;
+};
+
+class CEdPageSetting2
+{
+  U8	val[512]	format "$$DA-P,A=\"Setting Val:%s\"$$\n";
+  Bool	winrel		format "$$CB,\"Win Relative\"$$\n";
+};
+class CEdText
+{
+  U8	tag[512]  format "$$DA-P,A=\"Tag Text      :%s\"$$\n";
+  Bool	left_x	  format "$$CB,\"Left X\"$$\n",
+	center_x  format "$$CB,\"Center X\"$$\n",
+	right_x   format "$$CB,\"Right X\"$$\n",
+	margin_rel format "$$CB,\"Margin Rel X\"$$\n",
+	blink	  format "$$CB,\"Blink\"$$\n",
+	invert	  format "$$CB,\"Invert\"$$\n",
+	underline format "$$CB,\"Underline\"$$\n",
+	tree	  format "$$CB,\"Tree\"$$\n",
+	collapsed format "$$CB,\"Collapsed\"$$\n";
+  U8	scroll_x [512]	format "$$DA-P,A=\"Scroll X Length Expression:%s\"$$\n",
+	shift_x  [512]	format "$$DA-P,A=\"X Offset Expression       :%s\"$$\n",
+	shift_y  [512]	format "$$DA-P,A=\"Y Offset Expression       :%s\"$$\n",
+	define_str[512]	format "$$DA-P,A=\"Define Str                :%s\"$$\n",
+	html_link[512]	format "$$DA-P,A=\"Html Link                 :%s\"$$\n";
+};
+class CEdMacroMenu
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text                  :%s\"$$\n",
+	left_macro[512]	format "$$DA-P,A=\"Left Click Macro          :%s\"$$\n",
+	left_exp[512]	format "$$DA-P,A=\"Left Click Expression     :%s\"$$\n";
+  Bool	popup		format "$$CB,\"PopUp\"$$\n",
+	left_is_in_str	format "$$CB,\"Left is InStr\"$$\n",
+	left_x		format "$$CB,\"Left X \"$$\n",
+	center_x	format "$$CB,\"Center X \"$$\n",
+	right_x		format "$$CB,\"Right X \"$$\n",
+	margin_rel	format "$$CB,\"Margin Rel X\"$$\n",
+	blink		format "$$CB,\"Blink\"$$\n",
+	invert		format "$$CB,\"Invert\"$$\n",
+	underline	format "$$CB,\"Underline\"$$\n",
+	escape		format "$$CB,\"Escape\"$$\n";
+  U8	scroll_x[512]	format "$$DA-P,A=\"Scroll X Length Expression:%s\"$$\n",
+	shift_x[512]	format "$$DA-P,A=\"X Offset Expression       :%s\"$$\n",
+	shift_y[512]	format "$$DA-P,A=\"Y Offset Expression       :%s\"$$\n";
+};
+class CEdBttn
+{
+  U8	tag[512]   format "$$DA-P,A=\"Tag Text      :%s\"$$\n";
+  Bool	popup	   format "$$CB,\"PopUp\"$$\n",
+	left_x	   format "$$CB,\"Left X \"$$\n",
+	center_x   format "$$CB,\"Center X \"$$\n",
+	right_x	   format "$$CB,\"Right X \"$$\n",
+	margin_rel format "$$CB,\"Margin Rel X\"$$\n",
+	escape	   format "$$CB,\"Escape\"$$\n";
+  U8	left_macro[512]	format "$$DA-P,A=\"Left Click Macro:%s\"$$\n";
+  Bool	left_is_in_str	format "$$CB,\"Left is InStr\"$$\n";
+  U8	left_exp[512]	format "$$DA-P,A=\"Left Click Expression:%s\"$$\n";
+  Bool	quote		format "$$CB,\"Quote\"$$\n";
+};
+class CEdCursorMovement
+{
+  U8	left_exp[512]	 format "$$DA-P,A=\"X Expression (LE):%s\"$$\n",
+	right_exp[512]	 format "$$DA-P,A=\"Y Expression (RE):%s\"$$\n";
+  Bool	left_x	 format "$$CB,\"Left   X \"$$\n",
+	center_x format "$$CB,\"Center X \"$$\n",
+	right_x  format "$$CB,\"Right  X \"$$\n",
+	margin_rel format "$$CB,\"Margin Rel X\"$$\n",
+	top_y	 format "$$CB,\"Top    Y \"$$\n",
+	center_y format "$$CB,\"Center Y \"$$\n",
+	bottom_y format "$$CB,\"Bottom Y \"$$\n",
+	page_rel format "$$CB,\"Page Rel Y\"$$\n",
+	quote	 format "$$CB,\"Quote\"$$\n";
+};
+class CEdSong
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n",
+	song[512]	format "$$DA-P,A=\"Song          :%s\"$$\n";
+};
+class CEdHtmlCode
+{
+  U8	tag[512]	format "$$DA-P,A=\"Html Code:%s\"$$\n";
+};
+class CEdDataNum
+{
+  U8	fmt_str[512]	format "$$DA-P,A=\"Format Str:%s\"$$\n";
+  I64	len;
+  Bool	term		format "$$CB,\"Form Field Terminator\"$$\n",
+	remalloc,
+	refresh		format "$$CB,\"Refresh Data\"$$\n",
+	update		format "$$CB,\"Update Data\"$$\n";
+};
+
+class CEdDataStr
+{
+  U8	fmt_str[512]	format "$$DA-P,A=\"Format Str:%s\"$$\n";
+  I64	len		format "$$DA,A=\"Length:%d\"$$\n";
+  Bool	term		format "$$CB,\"Zero Terminator\"$$\n",
+	remalloc	format "$$CB,\"Remalloc for Unlimited Length\"$$\n",
+	refresh		format "$$CB,\"Refresh Data\"$$\n",
+	update		format "$$CB,\"Update Data\"$$\n";
+};
+class CEdCheckBox
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n";
+  Bool	refresh		format "$$CB,\"Refresh Data\"$$\n";
+  I64	type		format "$$LS,D=\"ST_INT_SIZE_TYPES\"$$\n";
+};
+class CEdLst
+{
+  U8	tag[512]	format "$$DA-P,A=\"Dft Sel    :%s\"$$\n",
+	define_str[512]	format "$$DA-P,A=\"Define Str    :%s\"$$\n";
+  Bool	refresh		format "$$CB,\"Refresh Data\"$$\n";
+  I64	type		format "$$LS,D=\"ST_INT_SIZE_TYPES\"$$\n";
+};
+class CEdHexEd
+{
+  I64	cnt	format "$$DA,A=\"Count:%d\"$$\n",
+	cols	format "$$DA,A=\"Columns:%d\"$$\n";
+  Bool	zero	format "$$CB,\"Zero Based\"$$\n",
+	refresh	format "$$CB,\"Refresh Data\"$$\n";
+};
+class CEdBin
+{
+  U8	tag[512]		format "$$DA-P,A=\"Tag Text      :%s\"$$\n";
+  I64	bin_num			format "$$DA,A=\"Bin Num:%d\"$$\n";
+  U8	bin_ptr_link_file[512]	format "$$DA-P,A=\"File:%s\"$$\n";
+  I64	bin_ptr_link_bin_num	format "$$DA,A=\"File Bin Num:%d\"$$\n";
+  U8	bin_ptr_link_tag[512]	format "$$DA-P,A=\"File Bin Tag:%s\"$$\n";
+};
+class CEdTree
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text      :%s\"$$\n";
+  I64	indent		format "$$DA,A=\"Indention:%d\"$$\n";
+  Bool	collapsed	format "$$CB,\"Collapsed\"$$\n";
+};
+class CEdMacroSprite
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text       :%s\"$$\n",
+	exp[512]	format "$$DA-P,A=\"Macro          :%s\"$$\n";
+  Bool	escape		format "$$CB,\"Escape\"$$\n",
+	popup		format "$$CB,\"PopUp\"$$\n",
+	is_in_str		format "$$CB,\"InStr\"$$\n";
+};
+
+class CEdMenuSprite
+{
+  U8	tag[512]	format "$$DA-P,A=\"Tag Text       :%s\"$$\n",
+	exp[512]	format "$$DA-P,A=\"Expression     :%s\"$$\n";
+  Bool	escape		format "$$CB,\"Escape\"$$\n",
+	popup,
+	is_in_str;
+};
+
+#define SPF_SEL			128
+#define SPf_SEL			7
+
+#define SPT_END			0	//$LK,"CSpriteBase",A="MN:CSpriteBase"$
+#define SPT_COLOR		1	//$LK,"CSpriteColor",A="MN:CSpriteColor"$
+#define SPT_DITHER_COLOR	2	//$LK,"CSpriteDitherColor",A="MN:CSpriteDitherColor"$
+#define SPT_THICK		3	//$LK,"CSpriteT",A="MN:CSpriteT"$
+#define SPT_PLANAR_SYMMETRY	4	//$LK,"CSpritePtPt",A="MN:CSpritePtPt"$
+#define SPT_TRANSFORM_ON	5	//$LK,"CSpriteBase",A="MN:CSpriteBase"$
+#define SPT_TRANSFORM_OFF	6	//$LK,"CSpriteBase",A="MN:CSpriteBase"$
+#define SPT_SHIFT		7	//$LK,"CSpritePt",A="MN:CSpritePt"$
+#define SPT_PT			8	//$LK,"CSpritePt",A="MN:CSpritePt"$
+#define SPT_POLYPT		9	//$LK,"CSpriteNumPtU8s",A="MN:CSpriteNumPtU8s"$
+#define SPT_LINE		10	//$LK,"CSpritePtPt",A="MN:CSpritePtPt"$
+#define SPT_POLYLINE		11	//$LK,"CSpriteNumU8s",A="MN:CSpriteNumU8s"$
+#define SPT_RECT		12	//$LK,"CSpritePtPt",A="MN:CSpritePtPt"$
+#define SPT_ROTATED_RECT	13	//$LK,"CSpritePtPtAng",A="MN:CSpritePtPtAng"$
+#define SPT_CIRCLE		14	//$LK,"CSpritePtRad",A="MN:CSpritePtRad"$
+#define SPT_ELLIPSE		15	//$LK,"CSpritePtWHAng",A="MN:CSpritePtWHAng"$
+#define SPT_POLYGON		16	//$LK,"CSpritePtWHAngSides",A="MN:CSpritePtWHAngSides"$
+#define SPT_BSPLINE2		17	//$LK,"CSpriteNumU8s",A="MN:CSpriteNumU8s"$
+#define SPT_BSPLINE2_CLOSED	18	//$LK,"CSpriteNumU8s",A="MN:CSpriteNumU8s"$
+#define SPT_BSPLINE3		19	//$LK,"CSpriteNumU8s",A="MN:CSpriteNumU8s"$
+#define SPT_BSPLINE3_CLOSED	20	//$LK,"CSpriteNumU8s",A="MN:CSpriteNumU8s"$
+#define SPT_FLOOD_FILL		21	//$LK,"CSpritePt",A="MN:CSpritePt"$
+#define SPT_FLOOD_FILL_NOT	22	//$LK,"CSpritePt",A="MN:CSpritePt"$
+#define SPT_BITMAP		23	//$LK,"CSpritePtWHU8s",A="MN:CSpritePtWHU8s"$
+#define SPT_MESH		24	//$LK,"CSpriteMeshU8s",A="MN:CSpriteMeshU8s"$ See $MA-X+PU,"::/Apps/GrModels",LM="Cd(\"::/Apps/GrModels\");Dir;View;\n"$.
+#define SPT_SHIFTABLE_MESH	25	//$LK,"CSpritePtMeshU8s",A="MN:CSpritePtMeshU8s"$ See $MA-X+PU,"::/Apps/GrModels",LM="Cd(\"::/Apps/GrModels\");Dir;View;\n"$.
+#define SPT_ARROW		26	//$LK,"CSpritePtPt_I",A="MN:CSpritePtPt"$
+#define SPT_TEXT		27	//$LK,"CSpritePtStr",A="MN:CSpritePtStr"$
+#define SPT_TEXT_BOX		28	//$LK,"CSpritePtStr",A="MN:CSpritePtStr"$
+#define SPT_TEXT_DIAMOND	29	//$LK,"CSpritePtStr",A="MN:CSpritePtStr"$
+#define SPT_TYPES_NUM		30
+#define SPG_TYPE_MASK		0x7F
+
+#define EST_SPRITE		0
+#define EST_SPRITE_PTR		1
+#define EST_DUP_SPRITE		2
+#define EST_SPRITE_SIZE		3
+#define EST_SPRITE_MACRO	4
+#define EST_SPRITE_MENU		5
+#define EST_SPRITE_LINK		6
+
+#define SPT_MENU	-2
+#define SPT_INS_SCRN_BITMAP		-3
+#define SPT_INS_TRANSPARENT_SCRN_BITMAP	-4
+#define SPT_ED_MENU	-5
+#define SPT_EXIT	-6
+
+#define SPED_SEL_UNSEL_ALL	0
+#define SPED_SEL		2
+#define SPED_SEL_RECTS		3
+#define SPED_UNSEL		4
+#define SPED_UNSEL_RECTS	5
+#define SPED_SHIFT_PTS		6
+#define SPED_SHIFT_RECTS	7
+#define SPED_SHIFT_SEL		8
+#define SPED_TRANSFORM_SEL	9
+#define SPED_SET_ORIGIN		10
+#define SPED_SHIFT_SUB_ORIGIN	11
+#define SPED_TEXT_ED		12
+#define SPED_INS_CLIP		13
+#define SPED_MAIN_MENU		14
+#define SPED_EXIT		15
+
+
+extern U0 BibleInit();
+extern U8 *BibleLine2Verse(I64 line,I64 separate_ch=CH_SPACE);
+extern U0 BookLines(CDoc *doc_out=NULL,I64 start,I64 lines,
+	U8 *book_filename=BIBLE_FILENAME);
+extern U0 BibleVerse(CDoc *doc_out=NULL,U8 *verse,I64 lines);
+extern CDoc *BibleDoc();
+extern U0 BibleView();
+extern U0 GodDoodleDraw(CTask *task,CDC *dc);
+extern U0 GodDoodleSmooth(I64 num);
+extern U0 GodDoodleBitsIns(I64 num_bits,I64 n);
+extern U0 GodDoodleHexIns(U8 *st);
+extern I64 GodDoodleBits(I64 num_bits);
+extern U8 *GodDoodleSprite(U8 *hex=NULL);
+extern U0 GodDoodle(U8 *hex=NULL);
+extern U0 InsNote(CMakeSongSettings *mss,U8 *buf,I64 k,I64 *j);
+extern U8 *GodSongStr();
+extern U0 GodSong();
+extern U8 *TimeStampCB(CDoc *,CDocEntry *,CTask *mem_task);
+extern U8 *KbdMsTimeCB(CDoc *,CDocEntry *,CTask *mem_task);
+extern I64 PopUpTimerOk(U8 *header=NULL,U8 *footer=NULL);
+extern I64 GodPick(U8 *msg=NULL);
+extern U0 GodBitsInsert(I64 num_bits,I64 n);
+extern U0 GodHexIns(U8 *st);
+extern I64 GodBits(I64 num_bits,U8 *msg=NULL);
+extern I64 GodInit(U8 *files_find_mask="/God/Vocab.DD*",U8 *fu_flags=NULL);
+extern U8 *GodWordStr(I64 bits=17);
+extern U0 GodWord(I64 bits=17);
+extern U0 GodBiblePassage(I64 num_lines=20);
+#define EF_REINDENT	0
+#define EF_CMP_CHK	1
+#define EF_RENUM_ASM	2
+#define EF_CTRL_SLIDER	3
+#define EF_CH_SC	4
+extern U0 Free(U8 *ptr);
+extern U8 *MAlloc32(I64 size,CTask *task=NULL);
+extern U8 *CAlloc32(I64 size,CTask *task=NULL);
+extern U8 *StrScan(U8 *src,U8 *fmt,...);
+extern U0 DbgInfoRead(U8 *name);
+extern U0 TaskDerivedValsUpdate(CTask *task=NULL,Bool update_z_buf=TRUE);
+class CMusicGlbls
+{
+  U8	*cur_song;
+  CTask	*cur_song_task;
+  I64	octave;
+  F64	note_len;
+  U8	note_map[7];
+  Bool	mute;
+  I64	meter_top,meter_bottom;
+  F64	tempo,stacatto_factor;
+
+  //If you wish to sync with a
+  //note in a Play() string.  0 is the start
+  I64	play_note_num;
+
+  F64	tM_correction,last_Beat,last_tM;
+} ;
+extern CMusicGlbls music;
+class CGrGlbls
+{
+  I64	*to_8_bits,*to_8_colors;
+  CDC	*scrn_image,	//Read only.
+	*dc,		//Persistent
+	*dc1,
+	*dc2,		//Updated every refresh
+	*dc_cache,
+	*zoomed_dc;
+  U32	*text_base;	//See $LK,"TextBase Layer",A="HI:TextBase Layer"$. (Similar to 0xB8000 but 32 bits)
+  U16	*win_z_buf;
+
+  #define SPHT_ELEM_CODE	1
+  CHashTable *sprite_hash;
+
+  U16	*win_uncovered_bitmap;
+  I64	highest_uncovered;
+  U16	*vga_text_cache;
+  I64	pan_text_x,pan_text_y;	//[-7,7]
+  U0	(*fp_final_screen_update)(CDC *dc);//Mouse cursor is handled here.
+  U0	(*fp_wall_paper)(CTask *task);
+  U0	(*fp_draw_mouse)(CDC *dc,I64 x,I64 y);
+  U0	(*fp_draw_grab_mouse)(CDC *dc,I64 x,I64 y,Bool closed);
+  U8	*empty_sprite; //Gets assigned $LK,"gr.empty_sprite",A="FF:::/Adam/AMouse.HC,empty_sprite"$
+
+  #define GR_PEN_BRUSHES_NUM 64
+  CDC	*pen_brushes[GR_PEN_BRUSHES_NUM],
+	*collision_pen_brushes[GR_PEN_BRUSHES_NUM],
+	*even_pen_brushes[GR_PEN_BRUSHES_NUM],
+	*odd_pen_brushes[GR_PEN_BRUSHES_NUM];
+  I8	circle_lo[GR_PEN_BRUSHES_NUM][GR_PEN_BRUSHES_NUM],
+	circle_hi[GR_PEN_BRUSHES_NUM][GR_PEN_BRUSHES_NUM];
+
+  #define GR_SCRN_ZOOM_MAX	8
+  U8	*scrn_zoom_tables[GR_SCRN_ZOOM_MAX+1];
+  I64	scrn_zoom,sx,sy;
+
+  //When zoomed, this keeps the mouse centered.
+  Bool	continuous_scroll,
+	hide_row,hide_col;
+};
+extern CGrGlbls gr;
+extern CMsStateGlbls	ms,ms_last;
+
+extern Bool RegCache();
+public extern Bool RegDefault(U8 *path,U8 *val,Bool is_adam_entry=FALSE);
+public extern I64 RegExe(U8 *path);
+public extern Bool RegWrite(U8 *path,U8 *fmt,...);
+public extern I64 RegCnt(U8 *path);
+public extern Bool RegAppend(U8 *path,U8 *fmt,...);
+public extern Bool OneTimePopUp(U8 *_flags,I64 flag_num,U8 *msg);
+extern U0 RegOneTimePopUp(I64 flag_num,U8 *msg);
+extern U0 RegInit();
+public extern U0 OnceFlush();
+public extern U0 Once(U8 *fmt,...);
+public extern U0 OnceDrv(U8 drv_let=0,U8 *fmt,...);
+public extern U0 OnceExe();
+
+public extern U0 PopUpHelpIndex(U8 *idx,CTask *parent=NULL);
+public extern U0 DocHelpIdx(CDoc *doc,U8 *idx);
+public extern I64 HashDepthRep(CHashTable *table=NULL);
+public extern U0 Who(U8 *fu_flags=NULL,CHashTable *h=NULL,
+	U8 *idx=NULL,CDoc *doc=NULL);
+extern class CWho;
+extern I64 HashEntriesCompare3(CWho *h1,CWho *h2);
+extern U8 *HelpComment(CTask *task,CHash *tmph,U8 *_src_link);
+extern U8 *HelpIndexStr(U8 **_ptr,U8 *idx);
+extern I64 HelpIndexCnt(U8 *ptr,U8 *idx);
+extern I64 HashEntriesCompare2(CWho *h1,CWho *h2);
+extern I64 HashEntriesCompare(CWho *h1,CWho *h2);
+
+public extern I64 Unzip(U8 *files_find_mask="*.Z",U8 *fu_flags=NULL);
+public extern I64 Zip(U8 *files_find_mask="*",U8 *fu_flags=NULL);
+public extern I64 FF(U8 *files_find_mask,U8 *fu_flags=NULL);
+
+extern Bool DCClipLine(CDC *dc=NULL,I64 *x1,I64 *y1,I64 *x2,I64 *y2,
+	I64 width=0,I64 height=0);
+extern CTask *sys_winmgr_task;
+extern U0 KeyDescSet(U8 *fmt,...);
+extern U0 KeyDevRem(CKeyDevEntry *tmpk);
+extern CKeyDevEntry *KeyDevAdd(Bool (*fp_put_key)(I64 ch,I64 sc),
+	Bool (*fp_puts)(U8 *st),I64 priority,Bool key_descs=FALSE);
+extern U0 CtrlAltCBSet(U8 ch,U0 (*fp_hndlr)(I64 sc),
+	U8 *no_shift_desc=NULL,U8 *shift_desc=NULL,Bool in_irq=FALSE);
+extern U0 UserCmdLine(I64 dummy=0);
+extern U0 KeyMap(CTask *task=NULL);
+extern U0 KeyMapFamily(CTask *task,I64 scf,Bool no_shift,Bool shift);
+extern U0 KeyMapFamily2(U8 **entries,CTask *task,I64 scf);
+extern I64 KMCompare(U8 *e1,U8 *e2);
+extern U0 KMComparePrepare(U8 *buf,I64 *src);
+extern U0 KeyMapCtrlAltFamily(Bool no_shift,Bool shift);
+extern U0 KeyMapKeyPrint(I64 sc,U0 (*fp_hndlr)(I64 sc),U8 *desc,CTask *task=NULL);
+extern U8 *KeyMapKeyMStrPrint(I64 sc,U0 (*fp_hndlr)(I64 sc),
+	U8 *desc,CTask *task=NULL);
+public extern U8 *MStrPrint(U8 *fmt,...);
+public extern U8 *MStrUtil(U8 *src,I64 flags,F64 indent_scale_factor=0);
+public extern U8 *ScaleIndent(U8 *src,F64 indent_scale_factor);
+public extern I64 Spaces2Tabs(U8 *dst,U8 *src);
+public extern U8 *StrFind(U8 *needle,U8 *haystack_str,I64 flags=0);
+public extern U8 *StrFirstOcc(U8 *src,U8 *marker);
+public extern U8 *StrFirstRemove(U8 *src,U8 *marker,U8 *dst=NULL);
+public extern U8 *StrLastOcc(U8 *src,U8 *marker);
+public extern U8 *StrLastRemove(U8 *src,U8 *marker,U8 *dst=NULL);
+public extern I64 StrOcc(U8 *src, U8 ch);
+public extern U8 *StrPrint(U8 *dst,U8 *fmt,...);
+public extern U8 *StrPrintJoin(U8 *dst,U8 *fmt,I64 argc,I64 *argv);
+public extern U8 *StrUtil(U8 *_src,I64 flags);
+public extern U8 *Tabs2Spaces(U8 *src);
+public extern Bool WildMatch(U8 *test_str,U8 *wild_str);
+#define	GR_SCALE	(1<<32)
+#define RIGHT_INCLUDE	0
+#define RIGHT_AINCLUDE	1
+#define RIGHT_COPY	2
+#define RIGHT_MOVE	3
+#define RIGHT_DELETE	4
+#define RIGHT_TYPE	5
+#define RIGHT_ED	6
+#define RIGHT_MOUNT	7
+#define RIGHT_PLAIN	8
+#define RIGHT_INFILE	9
+public extern CTask *Noise(I64 mS,F64 min_ona,F64 max_ona);
+extern Bool Man(U8 *st,I64 edf_dof_flags=0);
+extern Bool E(U8 *addr,I64 cnt=512,I64 edf_dof_flags=0);
+extern Bool PutSrcLink(U8 *addr,I64 cnt=1,U8 *buf=NULL);
+extern U8 *U(U8 *rip,I64 cnt=20,I64 seg_size=64);
+public extern U0 Uf(U8 *st);
+public extern U0 FunRep(U8 *st,U8 *rbp=NULL,I64 max_depth=2,CTask *task=NULL,Bool include_regs=FALSE);
+#define RSAC_REPLACE	0
+#define RSAC_SKIP	1
+#define RSAC_ALL	2
+public extern U0 ClassRepD(U8 *_d,U8 *class_name=lastclass,
+	I64 max_depth=2,Bool fun=FALSE,I64 offset=0);
+
+public extern U0 ClassRep(U8 *_d,U8 *class_name=lastclass,
+	I64 max_depth=2,Bool fun=FALSE,I64 offset=0,Bool include_regs=FALSE);
+extern Bool ClassRep2(CDoc *doc,U8 *_d,U8 *class_name=lastclass,
+	I64 depth,I64 max_depth,Bool dynamic,I64 types=HTT_CLASS,I64 offset=0,Bool include_regs=FALSE);
+extern Bool Copy(U8 *src_files_find_mask,U8 *dst_files_find_mask=".");
+public _intern IC_FS CTask *Fs();
+public _intern IC_GS CCPU *Gs();
+extern U0 Sleep(I64 ms);
+extern U0 Yield();
+extern CTask *SpawnQue(U0 (*fp_addr)(U8 *data),U8 *data=NULL,U8 *task_name=NULL,
+	I64 target_cpu, CTask *parent=NULL, //NULL means adam
+	I64 stk_size=0,I64 flags=1<<JOBf_ADD_TO_QUE);
+extern CJob *JobQueue(I64 (*fp_addr)(U8 *data),U8 *data=NULL,
+       I64 target_cpu=1,I64 flags=1<<JOBf_FREE_ON_COMPLETE,
+       I64 job_code=JOBT_CALL,U8 *aux_str=NULL,I64 aux1=0,I64 aux2=0);
+extern U0 CoreAPSethTask();
+extern U0 TaskKillDying();
+extern U0 TaskFocusNext();
+extern CHeapCtrl *HeapCtrlInit(CHeapCtrl *hc=NULL,CTask *task=NULL,CBlkPool *bp);
+extern U0 HeapCtrlDel(CHeapCtrl *hc);
+extern U8 *StrNew(U8 *buf,CTask *mem_task=NULL)
+extern U8 *AStrNew(U8 *buf)
+extern U8 *CAllocAligned(I64 size,I64 alignment,
+	CTask *mem_task=NULL,I64 misalignment=0);
+extern U8 *MAllocAligned(I64 size,I64 alignment,
+	CTask *mem_task=NULL,I64 misalignment=0);
+extern U8 *AMAllocIdent(U8 *src);
+extern U8 *MAllocIdent(U8 *src,CTask *mem_task=NULL);
+extern U8 *ACAlloc(I64 size);
+extern U8 *MAlloc32(I64 size,CTask *task=NULL);
+extern U8 *CAlloc32(I64 size,CTask *task=NULL);
+extern U8 *CAlloc(I64 size,CTask *mem_task=NULL);
+extern U8 *SysMAlloc(I64 size);
+//This dude will whine on OOB by printinng a bracktrace to the console
+extern U0 EdCharIns(I64 ch,I64 sc,CDoc *doc);
+extern CTask *sys_task;
+extern Bool YorN();
+extern I64 PressAKey();
+extern Bool AreYouSure();
+public extern U32 char_bmp_alpha[16],char_bmp_alpha_numeric[16],
+char_bmp_alpha_numeric_no_at[16],	char_bmp_word[16],
+char_bmp_dec_numeric[16],		char_bmp_hex_numeric[16],
+char_bmp_white_space[16],		char_bmp_non_eol_white_space[16],
+char_bmp_zero_cr_nl_cursor[16],	char_bmp_zero_tab_cr_nl_cursor[16],
+char_bmp_zero_tab_cr_nl_cursor_dollar[16],
+char_bmp_macro[16],			char_bmp_printable[16],
+char_bmp_displayable[16],		char_bmp_safe_dollar[16],
+char_bmp_filename[16],			char_bmp_non_eol[16];
+#define DS_USE_FILE1	0
+#define DS_USE_FILE2	1
+#define DS_REMAINDER_1	2
+#define DS_REMAINDER_2	3
+#define DS_ABORT_FILE	4
+#define DF_MODIFIED			0x01
+#define DF_DONT_MODIFIED		0x02
+#define DF_REMAINDER_ALL_FILE1		0x04
+#define DF_REMAINDER_ALL_FILE2		0x08
+#define DF_ABORT_FILE			0x10
+#define DF_ABORT_ALL_FILES		0x20
+#define DF_NO_MORE_PMTS_THIS_FILE	0x40
+public extern Bool Diff(U8 *dst_file,U8 *src_file,I64 *_df_flags=NULL);
+extern CDirEntry *Cd2DirEntry(CDirEntry *tmpde,U8 *abs_name);
+
+#define FM_NORMAL	0
+#define FM_PICK_FILE	1
+#define FM_PICK_DIR	2
+
+#define DEF2_PROCESSED		1
+#define DEF2_NOT_INITIALIZED	2
+
+#define FMR_INCLUDE		0
+#define FMR_ADAM_INCLUDE	1
+#define FMR_DELETE		2
+#define FMR_RENAME		3
+#define FMR_MKDIR		4
+#define FMR_PLAIN		5
+#define FMR_PASTE		6
+#define FMR_CHG_DSK		7
+#define FMR_FORMAT		8
+#define FMR_MOUNT_REDSEA_ISO_C	9
+#define FMR_UNMOUNT		10
+#define FMR_MAKE_REDSEA_ISO_C	11
+#define FMR_BURN_ISO		12
+#define FMR_HELP		13
+public extern U8 *FileMgr(I64 mode=FM_NORMAL,CTask *mem_task=NULL);
+extern CKbdStateGlbls	kbd;
+extern F64 LowPass1(F64 a,F64 y0,F64 y,F64 dt=1.0);
+public extern CMathODE *ODENew(I64 n,F64 max_tolerance=1e-6,I64 flags=0);
+public extern Bool ODEPause(CMathODE *ode,Bool val=ON);
+public extern U0 ODEDel(CMathODE *ode);
+public extern I64 ODESize(CMathODE *ode);
+extern U0 ODESetMassesPtrs(CMathODE *ode,F64 *state,F64 *DstateDt);
+extern U0 ODEState2Internal(CMathODE *ode);
+extern U0 ODEInternal2State(CMathODE *ode);
+public extern U0 ODERenum(CMathODE *ode);
+public extern CMass *MassFind(CMathODE *ode,F64 x,F64 y,F64 z=0);
+public extern CSpring *SpringFind(CMathODE *ode,F64 x,F64 y,F64 z=0);
+public extern U0 MassOrSpringFind(
+	CMathODE *ode,CMass **res_mass,CSpring **res_spring,
+	F64 x,F64 y,F64 z=0);
+public extern CMass *MassFindNum(CMathODE *ode,I64 num);
+public extern U0 ODERstInactive(CMathODE *ode);
+extern U0 ODECalcSprings(CMathODE *ode);
+extern U0 ODECalcDrag(CMathODE *ode);
+extern U0 ODEApplyAccelerationLimit(CMathODE *ode);
+extern U0 ODEMPTask(CMathODE *ode);
+extern U0 ODEMPWake(CMathODE *ode);
+extern U0 ODEMPSleep(CMathODE *ode);
+extern U0 ODECallMPDerivative(CMathODE *ode,F64 t,F64 *state,F64 *DstateDt);
+extern U0 ODECallDerivative(CMathODE *ode,F64 t,F64 *state,F64 *DstateDt);
+extern U0 ODEOneStep(CMathODE *ode);
+extern U0 ODERK4OneStep(CMathODE *ode);
+extern U0 ODECashKarp(CMathODE *ode);
+extern U0 ODERK5OneStep(CMathODE *ode);
+extern U0 ODEsUpdate(CTask *task);
+extern CCPU cpu_structs[MP_PROCESSORS_NUM];
+public extern I64 gr_x_offsets[8],
+	   gr_y_offsets[8],
+	  gr_x_offsets2[4],
+	  gr_y_offsets2[4];
+public extern CMsStateGlbls ms;
+public extern CGridGlbls ms_grid;
+public extern CMsHardStateGlbls ms_hard;
+extern CMsHardStateGlbls ms_hard_last;
+extern CMsStateGlbls ms_last;
+extern U0 ProgressBarsRegTf(U8 *path=NULL);
+extern U0 ProgressBarsRst(U8 *path=NULL);
+extern CDate Now();
+extern U8 *TaskCaller(CTask *task=NULL,I64 num=0,Bool saved_context=FALSE);
+#define FBO1_NOT_CONST	0
+#define FBO1_INT	1
+#define FBO1_F64	2
+
+#define MODR_REG			0
+#define MODR_INDIRECT_REG		1
+#define MODR_D8_INDIRECT_REG		2
+#define MODR_D32_INDIRECT_REG		3
+#define MODR_SIB_INDIRECT_REG		4
+#define MODR_SIB_D8_INDIRECT_REG	5
+#define MODR_SIB_D32_INDIRECT_REG	6
+#define MODR_RIP_REL			7
+#define MODR_RIP_REL_IMM_U32		8
+
+#define SLASH_OP_INC		0x0003000000FFFE00
+#define SLASH_OP_DEC		0x052B000000FFFE01
+#define SLASH_OP_NOT		0x0000000000F7F602
+#define SLASH_OP_NEG		0x0000000000F7F603
+#define SLASH_OP_IMM_U8		0x0000000000838000
+#define SLASH_OP_IMM_U32	0x0000000000818300
+#define SLASH_OP_MUL		0x0000000000F7F604
+#define SLASH_OP_IMUL		0x0000000000F7F605
+#define SLASH_OP_DIV		0x0000000000F7F606
+#define SLASH_OP_MOV		0x0000000000898800
+#define SLASH_OP_MOV_IMM	0x0000000000C7C600
+#define SLASH_OP_PUSH		0x0000000000FFFF06
+#define SLASH_OP_POP		0x00000000008F8F00
+#define SLASH_OP_FADD		0x0000C1DE01DCDC00
+#define SLASH_OP_FSUB		0x0000E9DE01DCDC04
+#define SLASH_OP_FSUBR		0x0000E1DE01DCDC05
+#define SLASH_OP_FMUL		0x0000C9DE01DCDC01
+#define SLASH_OP_FDIV		0x0000F9DE01DCDC06
+#define SLASH_OP_FDIVR		0x0000F1DE01DCDC07
+#define SLASH_OP_FLD		0x0000000001DDDD00
+#define SLASH_OP_FSTP		0x0000000001DDDD03
+#define SLASH_OP_FISTTP		0x0000000001DDDD01
+#define SLASH_OP_FILD		0x0000000001DFDF05
+
+#define SPE_ABORT	(-1)
+#define SPE_EXIT	0
+#define SPE_CONT	1
+
+#define MESH_WORKSPACE_SIZE	4000
+
+#define VF_SEL		1
+#define VF_COPIED	2
+#define VF_IGNORE	4
+
+#define TF_SEL	1
+#define TF_COPIED	2
+
+#define SEL_MESH_EQU	0
+#define SEL_MESH_OR	1
+#define SEL_MESH_AND	2
+
+#define SPEDT_SIMPLE_PT		0
+#define SPEDT_WIDTH_HEIGHT	1
+
+#define DUR_4		0
+#define DUR_8_8		1
+#define DUR_3_3_3	2
+#define DUR_16_16_16_16	3
+#define DUR_8DOT_16	4
+#define DUR_8_16_16	5
+#define DUR_16_16_8	6
+
+#define DHT_DOC_CMD	1
+#define DHT_DOC_FLAG	2
+#define DHT_COLOR	4
+
+#define WIZ_HIGHLIGHT_ON	(DOCT_ERROR+1)
+#define WIZ_HIGHLIGHT_OFF	(DOCT_ERROR+2)
+
+#define C_INDENT_SPACES		2
+#define ASM_RENUM_SPACING	5
+
+#define EF_REINDENT	0
+#define EF_CMP_CHK	1
+#define EF_RENUM_ASM	2
+#define EF_CTRL_SLIDER	3
+#define EF_CH_SC	4
+
+#define LK_FILE 	0
+#define LK_FILE_ANCHOR	1
+#define LK_FILE_FIND	2
+#define LK_FILE_LINE	3
+#define LK_MAN_PAGE	4
+#define LK_PLAIN	5
+#define LK_PLAIN_FIND	6
+#define LK_PLAIN_LINE	7
+#define LK_BIBLE_FIND	8
+#define LK_DEF		9
+#define LK_HELP_INDEX	10
+#define LK_ADDR		11
+#define LK_DOC		12 //See $LK,"SpriteEdText",A="MN:SpriteEdText"$()
+#define LK_DOC_ANCHOR	13
+#define LK_DOC_FIND	14
+#define LK_DOC_LINE	15
+#define LK_PLACE_ANCHOR	16
+
+#define SM_RECORD	0
+#define SM_INS		1
+#define SM_PLAY		2
+#define SM_REPEAT_N	3
+#define SM_STOP		4
+
+#define FND_REPLACE	0
+#define FND_SKIP	1
+#define FND_ALL		2
+#define FND_ED		3
+#define FND_ABORT_FILE	4
+#define FND_SKIP_FILE	5
+
+extern I64 PopUpFindMenu();
+
+#define PE_UNARY_TERM1		0
+#define PE_UNARY_TERM2		1
+#define PE_MAYBE_MODIFIERS	2
+#define PE_UNARY_MODIFIERS	3
+#define PE_DEREFERENCE		4
+#define PE_CHECK_BINARY_OPS1	5
+#define PE_CHECK_BINARY_OPS2	6
+#define PE_DO_UNARY_OP		7
+#define PE_DO_BINARY_OP		8
+#define PE_POP_HIGHER		9
+#define PE_PUSH_LOWER		10
+#define PE_POP_ALL1		11
+#define PE_POP_ALL2		12
+
+#define FMR_INCLUDE		0
+#define FMR_ADAM_INCLUDE	1
+#define FMR_DELETE		2
+#define FMR_RENAME		3
+#define FMR_MKDIR		4
+#define FMR_PLAIN		5
+#define FMR_PASTE		6
+#define FMR_CHG_DSK		7
+#define FMR_FORMAT		8
+#define FMR_MOUNT_REDSEA_ISO_C	9
+#define FMR_UNMOUNT		10
+#define FMR_MAKE_REDSEA_ISO_C	11
+#define FMR_BURN_ISO		12
+#define FMR_HELP		13
+
+
+#define DEF2_PROCESSED		1
+#define DEF2_NOT_INITIALIZED	2
+
+#define FM_NORMAL	0
+#define FM_PICK_FILE	1
+#define FM_PICK_DIR	2
+
+#define DF_MODIFIED			0x01
+#define DF_DONT_MODIFIED		0x02
+#define DF_REMAINDER_ALL_FILE1		0x04
+#define DF_REMAINDER_ALL_FILE2		0x08
+#define DF_ABORT_FILE			0x10
+#define DF_ABORT_ALL_FILES		0x20
+#define DF_NO_MORE_PMTS_THIS_FILE	0x40
+
+#define CN_A2	0
+#define CN_A1	1
+#define CN_INST	2
+#define CN_RES	3
+
+#define SE_NOISE	0
+#define SE_SWEEP	1
+
+extern U0 DocDataFmt(CDoc *doc,CDocEntry *doc_e,I64 d=DOCM_CANCEL);
+public extern Bool ChkOnStk(U8 *ptr,CTask *task=NULL);
+public extern U0 CallerRep(U8 **rbp=NULL,CTask *task=NULL);
+public extern U0 G2(U8 *ip=INVALID_PTR,CTask *task=NULL);
+public extern U0 G(U8 *ip=INVALID_PTR,CTask *task=NULL);
+public extern I64 B2(CTask *task=NULL,Bool live=TRUE);
+public extern Bool B(U8 *addr,CTask *task=NULL,Bool live=TRUE);
+public extern Bool BptR(U8 *addr,CTask *task=NULL,Bool live=TRUE,Bool rem=TRUE);
+public extern Bool BptS(U8 *addr,CTask *task=NULL,Bool live=TRUE);
+public extern CBpt *BptFind(U8 *needle_addr,CTask *haystack_task=NULL,Bool rem=FALSE);
+public extern U0 DbgHelp();
+public extern U0 BList(CTask *task=NULL);
+public extern U0 S(U8 *pc=INVALID_PTR,CTask *task=NULL);
+public extern Bool ViewFrameVars(I64 frame=0,I64 depth=2);
+public extern  I64 *TaskRegAddr(CTask *task,I64 reg_num);
+extern U0 StkRep(CTask *task=NULL);
+extern U0 Dr(CTask *task=NULL);
+extern U0 D(U8 *addr,I64 cnt=0x80,Bool show_offset=TRUE);
+extern U0 Dm(U8 *addr,I64 cnt=0x80);
+extern U0 Da(U8 **addr,I64 cnt=0x10);
+extern CTask *sys_focus_task;
+
+#help_index "DolDoc"
+extern Bool DocEd(CDoc *doc,I64 dof_flags=0);
+extern I64 DocEntryRun(CDoc *doc,CDocEntry *doc_e,
+	Bool exited,I64 *_has_action=NULL);
+extern U0 DocFormBwd(CDoc *doc,Bool giveup=FALSE);
+extern Bool DocGoToLine(CDoc *doc,I64 line_num);
+extern U0 DocLoad(CDoc *doc,U8 *src2,I64 size);
+extern U0 DocPrintAtomic(CDoc *doc=NULL,U8 *fmt,...);
+extern U0 DocPrintPartial(CDoc *doc=NULL,U8 *fmt,...);
+extern CDocEntry *DocPutS(CDoc *doc,U8 *st);
+extern U8 *DocSave(CDoc *doc,I64 *_size=NULL);
+extern I64 EdLeftClickLink(CDoc *doc,CDocEntry *doc_e);
+extern I64 PopUpPickLst(U8 *lst);
+extern I64 TermRightClickLink(CDoc *doc,CDocEntry *doc_e);
+public extern U0 DocDel(CDoc *doc);
+public extern I64 DocSize(CDoc *doc);
+extern U8 *Doc2PlainText(CDoc*,CDocEntry*);
+extern CDoc *DocNew(U8 *filename=NULL,CTask *task=NULL);
+public extern Bool DocUnlock(CDoc *doc);
+public extern Bool DocLock(CDoc *doc);
+extern U8 *DC2Sprite(CDC *tmpb);
+extern U0 DocUpdateTaskDocs(CTask *task);
+extern CDocEntry *DocPrint(CDoc *doc=NULL,U8 *fmt,...);
+extern U0 DocBinDel(CDoc *doc,CDocBin *b);
+extern U0 DocBinsValidate(CDoc *doc);
+extern Bool DocHighlightCursor(Bool show=OFF,CDoc *doc=NULL);
+extern U0 DocDataFmt(CDoc *doc,CDocEntry *doc_e,I64 d=DOCM_CANCEL);
+extern U8 *EdSprite(I64 bin_num);
+extern Bool DocRecalc(CDoc *doc,I64 recalc_flags=RECALCt_NORMAL);
+extern U0 DocEntryDel(CDoc *doc,CDocEntry *doc_e);
+extern U0 ClipDel();
+extern CDoc *DocRead(U8 *name=NULL,I64 flags=0);
+extern U0 DocCenter(CDoc *doc=NULL,I64 recalc_flags=RECALCt_NORMAL);
+extern Bool Ed(U8 *link_st,I64 edf_dof_flags=0);
+extern U0 EdCodeTools(CDoc *doc);
+public extern U0 InGetStr(U8 *st);
+public extern U0 InPrint(I64 mS=100,U8 *fmt,...);
+public extern U0 InGetKey(I64 scan_code,I64 sc_mask=0xFF|SCF_SHIFT|SCF_CTRL|SCF_ALT);
+public extern I64 InGetChar(...);
+public extern U0 InUntilKey(I64 scan_code,I64 sc_mask=0xFF|SCF_SHIFT|SCF_CTRL|SCF_ALT);
+public extern I64 InUntilChar(...);
+public extern Bool InView();
+public extern U0 InSetMs(I64 mS=7,I64 x=I64_MAX,I64 y=I64_MAX,I64 z=I64_MAX,
+		I64 l=I64_MAX,I64 r=I64_MAX);
+#define GR_SCALE1_BITS	24
+#define GR_SCALE2_BITS	8
+extern Bool GrLinePlot0(CDC *dc,I64 x,I64 y,I64 z);
+public extern CBGR24 gr_palette_gray[COLORS_NUM];
+public extern CBGR24 gr32_palette_std[COLORS_NUM];
+public extern U0 SoundRst();
+
+extern Bool GrPlot1(CDC *dc=NULL,I64 x,I64 y);
+public extern U8 *MAlloc(I64 size,CTask *mem_task=NULL);
+#define SPBM_EXIT		0
+#define SPBM_MAIN_MENU		1
+#define SPBM_COLOR		2
+#define SPBM_DITHER_COLOR	3
+#define SPBM_WIDTH		4
+#define SPBM_PT			5
+#define SPBM_LINE		6
+#define SPBM_ARROW		7
+#define SPBM_RECT		8
+#define SPBM_CIRCLE		9
+#define SPBM_TEXT		10
+#define SPBM_TEXT_BOX		11
+#define SPBM_TEXT_DIAMOND	12
+#define SPBM_FLOOD_FILL		13
+#define SPBM_FLOOD_FILL_NOT	14
+#define SPBM_POLYLINE		15
+#define SPBM_POLYPT		16
+#define SPBM_COPY		17
+#define SPBM_DELETE		18
+#define SPBM_PASTE		19
+#define SPBM_PASTE_TRANSPARENT	20
+#define SPBM_FIND_AND_REPLACE	21
+#define SPBM_TRIM_TO_EXTENTS	22
+#define SPBM_ADD_OUTLINE	23
+#define SPBM_ETCH		24
+#define SPBM_UNDO		25
+#define SPBM_SAVE_GR		26
+extern U8 *PopUpGetStr2(U8 *header,CTask *mem_task);
+extern U0 Decrypt(U8 *ciphertext=NULL,U8 *decryptedtext=NULL,U64 textlen=0,U8 *key=NULL,U64 keylen=0);
+extern U0 Decrypt(U8 *ciphertext=NULL,U8 *decryptedtext=NULL,U64 textlen=0,U8 *key=NULL,U64 keylen=0);
+extern Bool IsEncryptedRight(U8 *file);
+extern U8 Drive2Letter(CDrive *dv=NULL);
+extern CBlkDev *BlkDevChk(CBlkDev *bd,Bool except=TRUE);
+extern CDrive *Letter2Drive(U8 drv_let=0,Bool except=TRUE);
+extern Bool RedSeaValidate(U8 drv_let);
+extern U0 RedSeaInit(CDrive *dv);
+extern U0 RedSeaFmt(U8 drv_let,Bool quick=TRUE);
+extern U0 DskCacheInvalidate(CDrive *dv);
+extern U0 DskCacheInit(I64 size_in_U8s);
+extern I64 DskCacheHash(I64 blk);
+extern U0 DskCacheQueueRemove(CCacheBlk *tmpc);
+extern U0 DskCacheQueueInsert(CCacheBlk *tmpc);
+extern CCacheBlk *DskCacheFind(CDrive *dv,I64 blk);
+extern U0 DskCacheAdd(CDrive *dv,U8 *buf, I64 blk, I64 cnt);
+extern I64 Let2BlkDevType(U8 drv_let);
+extern U0 DrvBlkDevDel(CBlkDev *bd);
+extern CDrive *DriveCheck(CDrive *dv,Bool except=TRUE);
+extern U8 Letter2Letter(U8 drv_let=0);
+extern U0 RedSeaFreeFreeLst(CDrive *dv);
+extern Bool BlkRead(CDrive *dv,U8 *buf, I64 blk, I64 cnt);
+extern Bool BlkWrite(CDrive *dv,U8 *buf, I64 blk, I64 cnt);
+extern Bool ISOInit(CDrive *dv,I64 blk);
+extern Bool Drive(U8 drv_let);
+extern I64 RedSeaAllocClus(CDrive *dv,I64 cnt);
+extern I64 FAT32AllocContiguousClus(CDrive *dv,I64 cnt);
+extern I64 FAT32AllocClus(CDrive *dv,I64 c,I64 cnt);
+extern Bool CFileNameTo(U8 *dst,U8 *src);
+#help_index "File/Cmd Line (Typically);Cmd Line (Typically)"
+public extern Bool Cd(U8 *dirname=NULL,Bool make_dirs=FALSE);
+public extern I64 Del(U8 *files_find_mask,Bool make_mask=FALSE,
+	Bool del_dir=FALSE,Bool print_msg=TRUE);
+public extern I64 Dir(U8 *files_find_mask="*",Bool full=FALSE);
+public extern Bool DirMake(U8 *filename,I64 entry_cnt=0);
+public extern Bool Drive(U8 drv_let);
+public extern U0 DskChg(U8 drv_let=0);
+public extern U0 HomeSet(U8 *dirname);
+
+#help_index "File/Cmd Line (Typically);Cmd Line (Typically);Install"
+public extern Bool DrvMap(U8 drv_let,CDrive *dv);
+
+#help_index "File/FileNames"
+extern CDirEntry *Cd2DirEntry(CDirEntry *tmpde,U8 *abs_name);
+public extern U8 *DirCur(CTask *task=NULL,CTask *mem_task=NULL);
+public extern U8 *DirFile(U8 *dirname,U8 *name=NULL,U8 *_extension=NULL);
+public extern U8 *DirNameAbs(U8 *dirname);
+public extern CBlkDev *DriveIsWritable(U8 drv_let=0,Bool except=FALSE);
+public extern U8 *ExtChange(U8 *filename,U8 *extension);
+public extern U8 *ExtDefault(U8 *filename,U8 *extension);
+public extern U8 *FileExtDot(U8 *src);
+public extern U8 *FileExtRemove(U8 *src,U8 *dst=NULL);
+public extern U8 *FileNameAbs(U8 *filename,I64 fuf_flags=0);
+public extern Bool FileNameChk(U8 *filename);
+public extern Bool FilesFindMatch(U8 *_test_name,
+	U8 *files_find_mask,I64 fuf_flags=0);
+public extern Bool IsDir(U8 *dir_name);
+public extern Bool IsDotC(U8 *filename);
+public extern Bool IsDotZ(U8 *filename);
+public extern U0 PutDirLink(U8 *dirname,U8 *full_name=NULL);
+public extern U0 PutFileLink(U8 *filename,U8 *full_name=NULL,
+	I64 line=0,Bool plain_text=FALSE);
+public extern U0 ToFileLine(U8 *_fl_file_line,U8 **_filename,I64 *_linenum);
+public extern U8 *ToggleZorNotZ(U8 *name);
+
+#help_index "File/FileNames;Misc"
+public extern U8 *FileNameTmpTxt();
+
+#help_index "File/Internal"
+public extern U0 DirContextDel(CDirContext *dirc,Bool restore=TRUE);
+public extern CDirContext *DirContextNew(U8 *mask,
+	Bool make_mask=FALSE,Bool make_dirs=FALSE,Bool no_mask=FALSE);
+public extern Bool DirNew(CDrive *dv,U8 *cur_dir,
+	CDirEntry *tmpde,Bool free_old_chain=TRUE);
+extern I64 FileAttr(U8 *name,I64 old_attr=0);
+
+#help_index "File/Low Level"
+#help_file "::/Doc/FileLowLevel.DD"
+public extern CBlkDev *BlkDevChk(CBlkDev *bd,Bool except=TRUE);
+public extern U0 BlkDevDel(CBlkDev *bd);
+public extern Bool BlkDevLock(CBlkDev *bd);
+public extern CBlkDev *BlkDevNextFreeSlot(U8 first_drive_let,I64 type);
+public extern Bool BlkDevUnlock(CBlkDev *bd,Bool rst=FALSE);
+public extern U0 BlkDevsRelease();
+public extern Bool BlkRead(CDrive *dv,U8 *buf, I64 blk, I64 cnt);
+public extern Bool BlkWrite(CDrive *dv,U8 *buf, I64 blk, I64 cnt);
+public extern U0 BlkWriteZero(CDrive *dv,I64 blk,I64 cnt);
+public extern I64 Clus2Blk(CDrive *dv,I64 c);
+public extern I64 ClusAlloc(CDrive *dv,I64 c=0,
+	I64 cnt=1,Bool contiguous=FALSE);
+public extern I64 ClusBlkRead(CDrive *dv,U8 *buf,I64 c,I64 blks);
+public extern I64 ClusBlkWrite(CDrive *dv,U8 *buf,I64 c,I64 blks);
+public extern I64 ClusNumNext(CDrive *dv,I64 c,I64 cnt=1);
+public extern I64 ClusRead(CDrive *dv,U8 *buf,I64 c,I64 cnt);
+public extern I64 ClusWrite(CDrive *dv,U8 *buf,I64 c,I64 cnt);
+extern Bool CopySingle(U8 *f1,U8 *f2); //Just one file
+public extern U8 Drive2Letter(CDrive *dv=NULL);
+public extern CDrive *DriveCheck(CDrive *dv,Bool except=TRUE);
+public extern U0 DrvDel(CDrive *dv);
+public extern Bool DriveLock(CDrive *dv);
+public extern CDrive *DrvMakeFreeSlot(U8 drv_let);
+public extern U8 *DrvModelNum(U8 drv_let=0);
+public extern U8 DrvNextFreeLet(U8 first_drive_let='C');
+public extern U8 *DrvSerialNum(U8 drv_let=0);
+public extern U8 DriveTextAttrGet(U8 drv_let=0);
+public extern Bool DriveUnlock(CDrive *dv,Bool rst=FALSE);
+public extern U0 DrvsRelease();
+extern U0 FAT32FreeClus(CDrive *dv,I64 c);
+public extern CBlkDev *Letter2BlkDev(U8 drv_let=0,Bool except=TRUE);
+public extern I64 Let2BlkDevType(U8 drv_let);
+public extern CDrive *Letter2Drive(U8 drv_let=0,Bool except=TRUE);
+public extern U8 Letter2Letter(U8 drv_let=0);
+extern I64 Name2DirClus(CDrive *dv,U8 *dirname);
+extern I64 Name2ParentDirClus(CDrive *dv,U8 *dirname);
+extern U0 RedSeaFreeClus(CDrive *dv,I64 c,I64 cnt);
+public extern U0 DVDImageRead(U8 dvd_drv_let,U8 *out_name);
+public extern U0 DVDImageWrite(U8 dvd_drv_let,
+	U8 *in_name=NULL,I64 media_type=MT_DVD);
+public extern Bool FBlkRead(CFile *f,U8 *buf,I64 blk=FFB_NEXT_BLK,I64 cnt=1);
+public extern Bool FBlkWrite(CFile *f,U8 *buf,I64 blk=FFB_NEXT_BLK,I64 cnt=1);
+public extern U0 FClose(CFile *f);
+public extern CFile *FOpen(U8 *filename,U8 *flags,I64 cnt=0,CTask *mem_task=NULL);
+
+extern I64 RedSeaAllocClus(CDrive *dv,I64 cnt);
+extern Bool RedSeaDirNew(CDrive *dv,U8 *cur_dir,CDirEntry *tmpde,
+	Bool free_old_chain);
+extern Bool RedSeaFileFind(CDrive *dv,I64 cur_dir_clus,U8 *name,
+	CDirEntry *_res,I64 fuf_flags=0);
+extern U0 RedSeaFmt(U8 drv_let,Bool quick=TRUE);
+extern U0 RedSeaFreeFreeLst(CDrive *dv);
+extern U0 RedSeaInit(CDrive *dv);
+extern Bool RedSeaValidate(U8 drv_let);
+extern I64 FAT32AllocClus(CDrive *dv,I64 c,I64 cnt);
+extern I64 FAT32AllocContiguousClus(CDrive *dv,I64 cnt);
+extern Bool FAT32DirNew(CDrive *dv,U8 *cur_dir,CDirEntry *tmpde,
+	Bool free_old_chain);
+extern Bool FAT32FileFind(CDrive *dv,I64 cur_dir_clus,U8 *name,
+	CDirEntry *_res,I64 fuf_flags=0);
+extern U0 FAT32Init(CDrive *dv);
+extern U8 Drive2Letter(CDrive *dv=NULL);
+extern U0 DrvBlkDevDel(CBlkDev *bd);
+extern CDrive *DriveCheck(CDrive *dv,Bool except=TRUE);
+extern U8 DriveTextAttrGet(U8 drv_let=0);
+extern Bool DrvTypeSet(U8 drv_let,I64 type=FSt_REDSEA);
+extern U0 DrvsRelease();
+extern U0 DskCacheInvalidate(CDrive *dv);
+extern U8 *FileExtRemove(U8 *src,U8 *dst=NULL);
+extern U8 *FileNameAbs(U8 *_filename,I64 fuf_flags=0);
+extern U8 *FileRead(U8 *filename,I64 *_size=NULL,I64 *_attr=NULL);
+extern I64 FileWrite(U8 *filename,U8 *fbuf,I64 size,CDate cdt=0,I64 attr=0);
+extern CDirEntry *VirtFilesFind(U8 *files_find_mask,I64 fuf_flags,
+	CDirEntry *parent=NULL);
+public extern U8 MountFile(U8 *filename,U8 drv_let='M');
+public extern U0 Unmount(U8 drv_let=0);
+extern CDirEntry *FMRebuildDocDrv(U8 drv_let,CDoc *doc,CDirEntry **_head,Bool init);
+extern U0 FMRebuildDoc(CDoc **_doc,CDirEntry **_head,I64 mode);
+extern U0 SetResolution(I64 w,I64 h);
+extern U0 SetScaleResolution(I64 w,I64 h);
+extern U0 ScaleMouseCords(I64 *x,I64 *y);
+public extern I64i GrPaletteColorGet(I64i color_num);
+public extern U0 GrPaletteColorSet(I64i color_num,CBGR24 gr48);
+extern U0 EnableScaling(Bool on=FALSE);
+extern U0 SetVolume(F64);
+extern F64 GetVolume();
+extern CTextGlbls text;
+extern CTask *sys_task_being_scrn_updated;
+public extern U0 TaskRep();
+extern Bool IsFrozen(CCPU *gs=NULL);
+extern CAutoCompleteDictGlbls acd;
+extern CDate GetDate(U8 *msg=NULL,CDate dft=I64_MIN,
+	CDate lo=I64_MIN,CDate hi=I64_MAX);
+extern U0 CursorRemFile(U8 *filename);
+public extern U0 CursorRem(U8 *files_find_mask="*");
+extern U0 CollapseFile(U8 *filename,Bool collapse=TRUE);
+public extern U0 Collapse(U8 *files_find_mask="*",
+	Bool collapse=TRUE,U8 *fu_flags=NULL);
+extern I64 DocOptEntry(CDoc *,CDocEntry *doc_e,I64 fuf_flags);
+extern I64 DocOptDoc(CDoc *doc,I64 fuf_flags);
+extern I64 DocOptFile(U8 *filename,I64 fuf_flags);
+public extern I64 DocOpt(U8 *files_find_mask="*",U8 *fu_flags=NULL);
+
+public extern U0 Merge(U8 *dst_files_find_mask="/*",U8 *src_files_find_mask="/*",
+  U8 *fu_flags=NULL);
+public extern U0 NewFiles(U8 *files_find_mask="/*",CDate cdt=0,U8 *fu_flags=NULL);
+public extern I64 Sort(U8 *_in_name,U8 *_out_name=NULL,
+	I64 entry_lines=1,Bool unique=FALSE);
+public extern U0 S2T(U8 *files_find_mask,U8 *fu_flags=NULL);
+public extern U0 SU(U8 *files_find_mask,I64 suf_flags,U8 *fu_flags=NULL,
+	F64 indent_scale_factor=0);
+public extern I64 LongLines(U8 *files_find_mask="*",I64 cols=80,U8 *fu_flags=NULL);
+public extern Complex *CPoly(Complex *dst,I64 n,Complex *zeros,Complex *x);
+public extern Complex *CEqu(Complex *dst,F64 x,F64 y);
+public extern Complex *CCopy(Complex *dst,Complex *src);
+public extern Complex *CScale(Complex *dst,F64 s);
+public extern Complex *CDiv(Complex *quot,Complex *n1,Complex *n2);
+public extern Complex *CMul(Complex *prod,Complex *n1,Complex *n2);
+public extern Complex *CSub(Complex *diff,Complex *n1,Complex *n2);
+public extern Complex *CAdd(Complex *sum,Complex *n1,Complex *n2);
+#define VIEWANGLES_SPACING	22
+#define VIEWANGLES_RANGE	48
+#define VIEWANGLES_BORDER	2
+#define VIEWANGLES_SNAP		2
+#help_index "Sprites/Binary"
+
+class CMeshTri
+{
+  I32 color;	//Give one of 0-7 colors.
+//Colors 8-15 are 0-7 with intensity bit set.
+  I32 nums[3];	//Vertex number
+};
+class CQueMeshTri
+{
+  CQueMeshTri *next,*last;
+  U0 start;
+  I32 color;
+  I32 nums[3];
+};
+
+public class CSpriteBase
+{
+  U8 type;
+};
+
+public class CSpriteColor : CSpriteBase
+{
+  U8 color;
+};
+
+public class CSpriteDitherColor : CSpriteBase
+{
+  U16 dither_color;
+};
+
+public class CSpriteT : CSpriteBase
+{
+  I32 thick;
+};
+
+public class CSpritePt : CSpriteBase
+{
+  I32 x1;
+  I32 y1;
+};
+
+public class CSpritePtRad : CSpritePt
+{
+  I32 radius;
+};
+
+public class CSpritePtPt : CSpritePt
+{
+  I32 x2;
+  I32 y2;
+};
+
+public class CSpritePtPtAng : CSpritePtPt
+{
+  F64 angle;
+};
+
+public class CSpritePtWH : CSpritePt
+{
+  I32 width;
+  I32 height;
+};
+
+public class CSpritePtWHU8s : CSpritePtWH
+{
+  U8 u[0];
+};
+
+public class CSpritePtWHAng : CSpritePtWH
+{
+  F64 angle;
+};
+
+public class CSpritePtWHAngSides : CSpritePtWHAng
+{
+  I32 sides;
+};
+
+public class CSpriteNumU8s : CSpriteBase
+{
+  I32 num;
+  U8  u[0];
+};
+
+public class CSpriteNumPtU8s : CSpriteBase
+{
+  I32 num;
+  I32 x;
+  I32 y;
+  U8  u[0];
+};
+
+public class CSpritePtStr : CSpritePt
+{
+  U8  st[0];
+};
+
+public class CSpriteMeshU8s : CSpriteBase
+{
+  I32 vertex_cnt;
+  I32 tri_cnt;
+  U8  u[0];
+};
+
+public class CSpritePtMeshU8s : CSpriteBase
+{
+  I32 x;
+  I32 y;
+  I32 z;
+  I32 vertex_cnt;
+  I32 tri_cnt;
+  U8  u[0];
+};
+
+
+
+#help_index "Graphics/Sprite;Sprites;Sprites/Binary"
+
+//See $LK,"Sprites",A="HI:Sprites"$.  See $LK,"::/Adam/Gr/GrSpritePlot.HC",A="FL:::/Adam/Gr/GrSpritePlot.HC,1"$ and
+//$LK,"::/Demo/Graphics/SpriteRaw.HC"$ for how CSprite are stored.
+public class CSprite
+{
+  CSprite *next,*last;
+  U0 start;
+  union {
+    U8 type;
+    CSpriteBase		b;
+    CSpriteColor	c;
+    CSpriteDitherColor	d;
+    CSpriteT		t;
+    CSpritePt		p;
+    CSpritePtPt		pp;
+    CSpritePtPtAng	ppa;
+    CSpritePtRad	pr;
+    CSpritePtWHU8s	pwhu;
+    CSpritePtWHAng	pwha;
+    CSpritePtWHAngSides pwhas;
+    CSpriteNumU8s	nu;
+    CSpriteNumPtU8s	npu;
+    CSpriteMeshU8s	mu;
+    CSpritePtMeshU8s	pmu;
+    CSpritePtStr	ps;
+  }
+};
+
+extern U0 ACDPopUpDef(U8 *st,I64 num=-1,CTask *parent=NULL);
+extern CHashAC *ACHashAdd(U8 *w);
+extern U0 ACSingleFileAdd(U8 *buf);
+extern U0 ACMainFileLstTraverse(U8 *files_find_mask);
+extern U0 ACDDictWordsAdd(U8 *st);
+extern U0 ACDocRst(I64 left,I64 top);
+extern I64 ACSkipCrap(U8 *src,I64 len);
+extern I64 ACPriorWordInStr(U8 *src,U8 *dst,I64 len,I64 buf_size);
+extern U0 ACFillInAdd(CHashAC *tmpw);
+extern U0 ACPutChoices(CDoc *focus_l,CDocEntry *doc_e,CTask *focus_task,	Bool force_refresh);
+extern U0 ACTaskNormal(I64 sc,I64 last_sc,	CTask *focus_task,CTask *original_focus_task);
+extern U0 ACTaskCtrl(I64 sc,I64 last_sc,	CTask *focus_task,CTask *original_focus_task);
+extern U0 ACTaskAlt(I64 sc,I64 last_sc,	CTask *,CTask *original_focus_task);
+extern U0 ACTaskEndCB();
+extern U0 ACTask(I64);
+extern U0 BlkDevLockFwdingSet(CBlkDev *bd);
+extern I64 BlkDevAdd(CBlkDev *bd,I64 prt_num=I64_MIN,	Bool whole_drv,Bool make_free);
+extern Bool DrvEnable(U8 drv_let,Bool val);
+extern U0 BlkDevsInitAll();
+extern Bool BlkDevInit(CBlkDev *bd);
+extern class CDualBuf;
+extern U0 DVDImageWriteTask(CDualBuf *d);
+extern I64 FSetClus(CFile *f,I64 c,I64 blk,Bool read);
+extern U0 DskCacheInvalidate2(CDrive *dv);
+extern U0 RCache(CDrive *dv,U8 **_buf, I64 *_blk, I64 *_cnt);
+extern Bool CopySingleZ(U8 *f1,U8 *f2) //Just one file;
+extern U0 DrvFATBlkAlloc(CDrive *dv);
+extern U0 DrvFATBlkClean(CDrive *dv,I64 fat_sel=3);
+extern U0 DrvFATBlkSet(CDrive *dv,I64 c,I64 fat_sel=3);
+extern U0 DriveRep();
+extern U0 Fmt(I64 drv_let,Bool quick=TRUE,Bool confirm=TRUE,I64 type=FSt_FAT32);
+extern U0 CDate2Dos(U16 *t,U16 *d,CDate cdt);
+extern CDate Dos2CDate(U16 t,U16 d);
+extern U0 FAT32Fmt(U8 drv_let,Bool quick=TRUE);
+extern Bool FATNameTo(U8 *dst,U8 *src);
+extern I64 FATNameXSum(U8 *src);
+extern Bool FATFromName(U8 *dst,U8 *src);
+extern Bool DirLongNameFill(CDirEntry *tmpde,CFAT32DirEntryLong *de,I64 *xsum);
+extern Bool FAT32CDirFill(CDirEntry *tmpde,	CFAT32DirEntry *de,CDate _local_time_offset);
+extern Bool FAT32DirFill(CFAT32DirEntry *de,	CDirEntry *tmpde,I64 *_de_cnt,CDate _local_time_offset);
+extern U8 *FAT32FileRead(CDrive *dv,U8 *cur_dir,U8 *filename,I64 *_size,I64 *_attr);
+extern Bool FAT32Cd(U8 *name,I64 cur_dir_clus);
+extern I64 FAT32FilesDel(CDrive *dv,U8 *cur_dir,U8 *files_find_mask,I64 fuf_flags,		     Bool del_dir,Bool print_msg);
+extern I64 FAT32FileWrite(CDrive *dv,U8 *cur_dir,U8 *name,U8 *buf,I64 size,	CDate cdt,I64 attr);
+extern CDirEntry *FAT32FilesFind(U8 *files_find_mask,	I64 fuf_flags,CDirEntry *parent=NULL,I64 *_dir_size=NULL);
+extern Bool FAT32MkDir(CDrive *dv,U8 *cur_dir,U8 *name,I64 entry_cnt);
+extern U0 RedSeaFreeLstBuild(CDrive *dv);
+extern U8 *RedSeaFileRead(CDrive *dv,U8 *cur_dir,U8 *filename,I64 *_size,I64 *_attr);
+extern Bool RedSeaCd(U8 *name,I64 cur_dir_clus);
+extern I64 RedSeaFilesDel(CDrive *dv,U8 *cur_dir,U8 *files_find_mask,I64 fuf_flags,		     Bool del_dir,Bool print_msg);
+extern I64 RedSeaFileWrite(CDrive *dv,U8 *cur_dir,U8 *name,U8 *buf,I64 size,	CDate cdt,I64 attr);
+extern CDirEntry *RedSeaFilesFind(U8 *files_find_mask,I64 fuf_flags,	CDirEntry *parent=NULL);
+extern Bool RedSeaMkDir(CDrive *dv,U8 *cur_dir,U8 *name,I64 entry_cnt);
+extern U0 VirtInit(CDrive *dv);
+extern Bool VirtFileFind(CDrive *dv,U8 *cur_dir,U8 *name,	CDirEntry *_res,I64 fuf_flags=0);
+extern U8 *VirtFileRead(CDrive *dv,U8 *cur_dir,U8 *filename,I64 *_size,I64 *_attr);
+extern Bool VirtCd(U8 *name,U8 *cur_dir);
+extern I64 VirtFilesDel(CDrive *dv,U8 *cur_dir,U8 *files_find_mask,I64 fuf_flags,		     Bool del_dir,Bool print_msg);
+extern I64 VirtFileWrite(CDrive *dv,U8 *cur_dir,U8 *name,U8 *buf,I64 size,	CDate cdt,I64 attr);
+extern Bool VirtMkDir(CDrive *dv,U8 *cur_dir,U8 *name,I64 entry_cnt);
+extern CDocBin *DocBinFindNum(CDoc *haystack_doc,I64 needle_num);
+extern CDocBin *DocBinFindTag(CDoc *haystack_doc,U8 *needle_tag);
+extern I64 DocBinPtrRst(CDoc *doc,CDocEntry *doc_e);
+extern U0 EdCharDel(CDoc *doc);
+extern U0 ChkDollarBufSize(CDoc *doc);
+extern U0 EdLineDel(CDoc *doc);
+extern U0 EdReplaceTroubleOne(CDoc *doc,U8 *st_original,U8 *st_safe,I64 num,	Bool to_safe,Bool sel);
+extern U0 EdReplaceTroubleAll(CDoc *doc,Bool to_safe,Bool sel);
+extern I64 PopUpEdFmt();
+extern class CRILex;
+extern I64 EdRILex(CRILex *rx);
+extern U0 EdRIExp(CRILex *rx);
+extern U0 EdRIStmt(CRILex *rx,Bool indent);
+extern CQueVectU8 *EdRICode(CDoc *doc);
+extern U0 EdRemFunLeadingSpace(CDoc *doc);
+extern I64 EdRAGetU8(CDoc *doc);
+extern class CRenum;
+extern U0 EdRACollect(CDoc *doc,CRenum *head);
+extern U0 EdRenumAsm(CDoc *doc);
+extern U0 EdCodeTools2(CDoc *doc,I64 tool_action,Bool beep=TRUE);
+extern U0 EdPopUpChSC(I64 *_ch,I64 *_sc);
+extern U0 EdChSC(CDoc *doc);
+extern U8 *EdOverStrikeCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern U8 *EdAutoSaveCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern U8 *EdFilterCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern U8 *EdDollarCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern U8 *EdMoreCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern U8 *EdDollarTypeCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern Bool DocCaptureUndo(CDoc *doc,Bool force=FALSE);
+extern U0 DocUndoRestore(CDoc *doc);
+extern I64 PopUpReplaceSkipAllCancel(U8 *header=NULL,U8 *footer=NULL);
+extern I64 EdFindReplace(CDoc *doc);
+extern U0 EdGoToLine(CDoc *doc);
+extern U0 DocFormFwd(CDoc *doc,Bool giveup=FALSE);
+extern U0 DocDataScan(CDoc *doc,CDocEntry *doc_e);
+extern U0 DocMenuEndTaskCB();
+extern U0 EdUndoFilter(CDoc *doc);
+extern U8 *DocGetStr2(I64 flags=0);
+extern U0 DrawIt(CTask *task,CDC *dc);
+extern I64 DitherColor2(U8 *header=NULL);
+extern U32 *DocHighlight(CDocEntry *doc_e,U8 *src,I64 len,I64 _tmp_u32_attr);
+extern U0 DocInit();
+extern Bool DocFileEd(I64 _type,U8 *filename,	U8 *needle_str,I64 *_num,I64 edf_dof_flags);
+extern Bool IsEditableText(CDocEntry *doc_e);
+extern CDocEntry *DocEntryNewBase(CDoc *doc,I64 type,I64 de_flags=0,	I64 x=0,I64 y=0,I64 page_line_num=0);
+extern CDocEntry *DocEntryNewTag(CDoc *doc,CDocEntry *doc_ce,U8 *tag);
+extern U0 DocUndoDel(CDoc *,CDocUndo *u);
+extern U0 DocUndoCntSet(CDoc *doc);
+extern U0 DocRemSoftNewLines(CDoc *doc=NULL,CDocEntry *doc_e=NULL);
+extern I64 EdLeftClickLink0(CDoc *doc,CDocEntry *doc_e) ;
+extern I64 PrsDocFlagSingle(CCmpCtrl *cc,I64 *_de_flags,U32 *_type,Bool turn_on);
+extern I64 PrsDocFlags(CCmpCtrl *cc,I64 *_de_flags,U32 *_type);
+extern CDocEntry *PrsDollarCmd(CDoc *doc,U8 *st);
+extern U0 DocEntryToggle(CDoc *doc);
+extern U0 DocFlagsToggle(CDoc *doc,I64 tog_flags);
+extern Bool PopUpCd();
+extern I64 AdamFile(U8 *filename,Bool warn_ext=TRUE);
+extern Bool KDDocPutKey(I64 ch,I64 scan_code);
+extern Bool KDDocPutS(U8 *st);
+extern U0 DocDump(CDoc *doc,I64 uS_delay=0);
+extern I64 DocWordWrapDel(CDoc *doc,CDocEntry *doc_e,	Bool full_refresh,Bool same_win,I64 left_margin,I64 right_margin,	CDocEntry **_best_doc_e,I64 *_best_col);
+extern U0 DocRecalcXY(CDoc *doc,CDocEntry *doc_e,	I64 k,I64 left,I64 width,I64 height,I64 left_margin,I64 right_margin,	I64 x0,I64 y0,I64 *_x,I64 *_y);
+extern CDocEntry *DocSplitTag(CDoc *doc,CDocEntry *doc_e,I64 i,I64 x,I64 y,I64 type_u8);
+extern CDocEntry *DocWordWrapAdd(CDoc *doc,CDocEntry *doc_e,	I64 *_k,I64 left,I64 right_margin,I64 x,I64 y);
+extern I64 DocTmpAttr(CDoc *doc,CDocEntry *doc_e,I64 cur_u8_attr);
+extern I64 DocCharDist(CDoc *doc,I64 x,I64 y);
+extern U0 DocDelToNum(CDoc *doc,I64 num);
+extern U0 DocDelToEntry(CDoc *doc,CDocEntry *clear_entry,Bool clear_holds);
+extern U0 DocBorderLstDraw(CDoc *doc);
+extern I64 PopUpTermRight(U8 *header);
+extern Bool DocTreeWriteJoin(CDoc *doc,U8 *path,Bool write,U8 *fmt,I64 argc,I64 *argv);
+extern Bool DocTreeAppendJoin(CDoc *doc,U8 *path,Bool write,U8 *fmt,I64 argc,I64 *argv);
+extern I64 PopUpLinkType(Bool include_anchor);
+extern Bool GetLink(I64 type,U8 **_tag,U8 **_link,Bool *_pop_up,	Bool *_quote,U8 **_html_link);
+extern U0 EdInsLink();
+extern I64 PopUpColorType();
+extern I64 PopUpPageSettingType();
+extern U0 EdInsColor();
+extern U0 EdInsPageSetting();
+extern I64 PopUpWidgetType();
+extern U0 EdInsText();
+extern U0 EdInsSong();
+extern U0 EdInsHtml();
+extern U0 EdInsMacroMenu(Bool is_macro);
+extern U0 EdInsBttn();
+extern U0 EdInsCursorMovement();
+extern U0 EdInsData();
+extern U0 EdInsCheckBox();
+extern U0 EdInsLst();
+extern U0 EdInsHexEd();
+extern U0 EdInsBin(I64 bin_num,I64 type);
+extern U0 EdInsTree();
+extern U0 EdInsWidgetWiz();
+extern I64 PopUpSpriteType();
+extern U8 *EdSpriteLink(Bool *_pop_up,U8 **_html_link);
+extern U8 *GrBitMap4ToBitMap8(U8 *dst,U8 *src,I64 src_size,I64 bkcolor);
+extern U8 *GrBitMap1ToBitMap8(U8 *dst,U8 *src,I64 src_size,I64 bkcolor);
+extern I64 GrPutS(CDC *dc=NULL,I64 x,I64 y,U8 *_s);
+extern I64 GrVPutS(CDC *dc=NULL,I64 x,I64 y,U8 *_s);
+extern I64 GrRayLenMinus(CDC *dc,I64 x,I64 y);
+extern I64 GrRayLen(CDC *dc,I64 *x1,I64 y,I64 z=0,I32 *db=NULL);
+extern I64 GrVLine(CDC *dc=NULL,I64 x,I64 y1,I64 y2,I64 z1=0,I64 z2=0);
+extern U0 CtrlAltZ(I64 sc);
+extern U0 GrInit1();
+extern U0 GrSetUpTables();
+extern U0 WinZBufFill(CTask *task);
+extern U0 GrInit2();
+extern U0 GrPaletteIndicesSet();
+extern I64 GrFloodFillRay(CDC *dc,I64 x,I64 y,I64 z,I32 *db);
+extern I64 GrFloodFillRay(CDC *dc,I64 x,I64 y,I64 z,I32 *db);
+extern I64 GrFillSemiCircle(CDC *dc=NULL,I64 cx,I64 cy,I64 z=0,I64 diameter,I64 n);
+extern Bool GrLinePlot(CDC *dc,I64 x,I64 y,I64 z);
+extern I64 GrLineFat3(CDC *dc=NULL,I64 x1,I64 y1,I64 z1,I64 x2,I64 y2,I64 z2,	I64 width,I64 start=0);
+extern U0 GrUpdateTaskODEs(CTask *task);
+extern U0 GrUpdateTaskWin(CTask *task);
+extern U0 GrUpdateTasks();
+extern U0 GrFixZoomScale();
+extern U0 GrZoomInScrn();
+extern U0 GrUpdateTextBG();
+extern U0 GrUpdateTextFG();
+extern U0 DCBlotColor8(CDC *dc,CDC *img);
+extern U0 GrUpdateTextModeText();
+extern U0 GrUpdateVGAGraphics();
+extern U0 GrUpdateScrn();
+extern U0 AvTabGen() ;
+extern U0 UpdateGROffs(I64 x,I64 y) ;
+extern U0 Scale(CDC *data,I64 sx,I64 sy,CDC *result,I64 xoff,I64 yoff,I64 core) ;
+extern U0 ScalerMP(I64 idx) ;
+extern U0 GrInit4();
+extern I64 PopUpSpriteBitMap(CColorROPU32 color,I64 width);
+extern U0 GrBitMapEdPrepPersistentDC(CDC *dc,I64 xx1,I64 yy1,CDC *img);
+extern U0 GrBitMapEdTrimToExtents(CDC **_img,I64 *_xx1,I64 *_yy1,	I64 *_xx2,I64 *_yy2,CColorROPU32 bkcolor);
+extern U0 GrBitMapEdAddOutline(CDC *img,I64 width,	CColorROPU32 color,CColorROPU32 bkcolor);
+extern U0 GrBitMapEdEtch(CDC *img,I64 width,CColorROPU32 bkcolor);
+extern I64 SpriteBitMapEd(CDoc *,CDocEntry *doc_e,CDC *dc,I64 *_xx1,I64 *_yy1,	I64 *_xx2,I64 *_yy2,CDC **_img,CColorROPU32 bkcolor);
+extern U0 SpriteElem2Code(CDoc *doc,CSprite *tmpg);
+extern CSprite *Code2SpriteElem(CCmpCtrl *cc,I64 type);
+extern CSprite *SpriteSetSettings(CDC *dc=NULL,CSprite *head,I64 elem_num,	I64 x=0,I64 y=0,CColorROPU32 *_color=NULL,I64 *_thick=NULL,	I64 *_xx=NULL,I64 *_yy=NULL);
+extern Bool SpritePolyPtPlot(CSprite *head,I64 x,I64 y,I64);
+extern CSprite *Sprite2SpriteQue(U8 *elems);
+extern U8 *SpriteQue2Sprite(CSprite *head,I64 *_size=NULL);
+extern U0 SpriteEdUpdate(CDoc *doc,CDocEntry *doc_ce,CSprite *head);
+extern U0 SpriteSetOrigin(CSprite *head,I64 dx,I64 dy,I64 dz);
+extern CSprite *SpriteTransformCircle(I64 *r,CSprite *tmpg);
+extern CSprite *SpriteTransformEllipse(I64 *r,CSprite *tmpg);
+extern CSprite *SpriteTransformRect(I64 *r,CSprite *tmpg,F64 );
+extern CSprite *SpriteTransformBitMap(I64 *r,CSprite *tmpg);
+extern U0 SpriteTransformQue(CSprite *head,I64 *r);
+extern I64 SpriteQueSelCnt(CSprite *head,Bool val=TRUE);
+extern I64 SpriteQueSelAll(CSprite *head,Bool val=TRUE);
+extern Bool SpriteEdText(CSprite **_head,I64 *_cur_elem_num);
+extern U0 GrInit3();
+extern class CEdSprite;
+extern I64 PopUpSpriteEd(CSprite **_head,I64 *_cur_elem_num);
+extern CEdSprite *EdSpriteNew(I64 type,CSprite *tmpg);
+extern U0 SpritePtQueNew(U8 *elems,I64 x,I64 y,CEdSprite *head);
+extern U0 SpriteCtrlPtsDraw(CDC *dc,CEdSprite *head);
+extern U0 SpriteCtrlPtsMove(CEdSprite *head,I64 dx,I64 dy);
+extern Bool SpriteSelUnselShiftPts(U8 *elems,I64 x,I64 y,I64 *_cur_elem_num,I64 mode);
+extern I64 SpriteEd(CDoc *doc,CDocEntry *doc_ce,I64 x,I64 y,	CSprite **_head,I64 *_cur_elem_num);
+extern I64 PopUpSpriteMain(CSprite **_head,I64 *_cur_elem_num,	CDoc *_doc,CDocEntry *_doc_e);
+extern Bool PopUpExtents(I64 *_x1,I64 *_x2,I64 *_y1,I64 *_y2);
+extern U0 SpriteScrnInit(CDC *dc,I64,I64);
+extern CSprite *SMLine(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern CSprite *SMArrow(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern CSprite *SMPlanarSymmetry(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2);
+extern CSprite *SMRect(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern CSprite *SMScrnBitMap(I64 eletype,CDC *dc,CDC *dc2,I64 x,I64 y,	I64 arg1,I64 arg2,CColorROPU32 bm_bkcolor);
+extern CSprite *SMCircle(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern CSprite *SMEllipse(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern CSprite *SMPolygon(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,I64 sides,	CColorROPU32 color);
+extern CSprite *SMPolyLineFamily(I64 eletype,CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,	CColorROPU32 color);
+extern CSprite *SMPolyPoint(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern U0 SMTextFamily(I64 eletype,CDoc *doc,CDocEntry *doc_ce,CSprite *head,CDC *dc,	I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color,I64 *_cur_elem_num,	I64 old_de_flags);
+extern I64 SMBitMap(I64 eletype,CDoc *doc,CDocEntry *doc_ce,CSprite *head,	CDC *dc,I64 xx,I64 yy,I64 arg1,I64 arg2,CColorROPU32 bm_bkcolor,	Bool sel,I64 xx1=0,I64 yy1=0,I64 xx2=0,I64 yy2=0,I64 *_cur_elem_num);
+extern U0 SMMesh(CDoc *doc,CDocEntry *doc_ce,CSprite *head,I64 *_cur_elem_num);
+extern U0 SMShiftableMesh(CDoc *doc,CDocEntry *doc_ce,CSprite *head,	I64 x,I64 y,I64 arg1,I64 arg2,I64 *_cur_elem_num);
+extern U0 SMTaskTitleSet(I64 eletype);
+extern I64 SpriteMainEd(CDoc *doc);
+extern U0 EdSpriteIns(CDoc *doc);
+extern U0 EdSpriteEd(CDoc *doc);
+extern class CMeshEdVertex;
+extern class CMeshEdTri;
+extern class CMeshFrame;
+extern CMeshEdVertex *MeshVertexNew(CMeshFrame *e,I64 x,I64 y,I64 z);
+extern CMeshEdTri *MeshTriNew(CMeshFrame *e,CColorROPU32 color,	CMeshEdVertex *v1,CMeshEdVertex *v2,CMeshEdVertex *v3);
+extern CMeshEdVertex *MeshVertexFindScrPt(CMeshFrame *e,I64 x,I64 y);
+extern CMeshEdVertex *MeshVertexFindNum(CMeshFrame *haystack_e,I64 needle_num);
+extern U0 MeshTriDel(CMeshFrame *e,CMeshEdTri *tmpt);
+extern U0 MeshVertexDel(CMeshFrame *e,CMeshEdVertex *tmpv);
+extern U0 MeshFence(CMeshFrame *e);
+extern U0 MeshPolygon(CMeshFrame *e,CMeshEdVertex *start,CMeshEdVertex *end,Bool rev);
+extern U0 MeshPrism(CMeshFrame *e);
+extern U0 MeshVertexSelAll(CMeshFrame *e,Bool val);
+extern U0 MeshTriSelAll(CMeshFrame *e,Bool val);
+extern U0 MeshVertexIgnoreSet(CMeshFrame *e,Bool val);
+extern U0 MeshP0Capture(CMeshFrame *e);
+extern U0 MeshP0Offset(CMeshFrame *e,I64 dx,I64 dy,I64 dz);
+extern U0 MeshVertexSelRect(CMeshFrame *e,I64 sel_mode,I64 x1,I64 x2,I64 y1,I64 y2);
+extern U0 MeshTriSelRect(CMeshFrame *e,I64 sel_mode,I64 x1,I64 x2,I64 y1,I64 y2);
+extern I64 MeshSelCnt(CMeshFrame *e);
+extern U0 MeshSwapAxes(CMeshFrame *e,I64 o1,I64 o2);
+extern U0 MeshInvertAxis(CMeshFrame *e,I64 o);
+extern U0 MeshTransformSel(CMeshFrame *e);
+extern U0 MeshColorTris(CMeshFrame *e);
+extern U0 MeshRevTris(CMeshFrame *e);
+extern U0 MeshRecalcCxCy(CTask *task,CMeshFrame *e);
+extern U0 MeshCurSnap(CMeshFrame *e);
+extern U0 MeshScaleZoom(CMeshFrame *e,F64 scale);
+extern I64 *MeshW2S(CMeshFrame *e,CTask *task);
+extern I64 *MeshS2W(CMeshFrame *e,CTask *task);
+extern I64 *MeshSetW2S(CMeshFrame *e,CTask *task);
+extern U0 MeshCursorW(CMeshFrame *e,CTask *task,I64 *_x,I64 *_y,I64 *_z);
+extern U0 MeshClipInit();
+extern U0 MeshClipRst();
+extern U0 MeshClipCopy(CMeshFrame *e);
+extern U0 MeshClipCut(CMeshFrame *e);
+extern U0 MeshClipDel(CMeshFrame *e);
+extern U0 MeshClipPaste(CMeshFrame *e);
+extern U0 MDrawIt(CTask *task,CDC *dc);
+extern U0 MeshInit(CMeshFrame *e,Bool flip_y);
+extern U0 MeshLoad(CMeshFrame *e,U8 *src);
+extern I64 MeshSize(CMeshFrame *e);
+extern I32 *MeshSave(CMeshFrame *e,I64 *_size=NULL);
+extern U0 MeshCleanUp(CMeshFrame *e);
+extern U0 MeshUpdateMenu(CMeshFrame *e);
+extern I32 *SpriteMeshEd(I32 *head=NULL,I64 *_size=NULL,Bool flip_y=FALSE);
+extern I64 SpriteElemQuedBaseSize(I64 type);
+extern I64 SpriteElemSize(CSprite *tmpg);
+extern I64 SpriteTypeMask(U8 *elems);
+extern U0 SpriteSelAll(U8 *elems,Bool val);
+extern CSprite *SpriteSideBar2SpriteQue(CDoc *doc,CSprite *head,I64 *_cur_elem_num);
+extern U0 SpriteSideBarPickNew(CDoc *doc,CSprite *head,I64 old_num);
+extern U0 SpriteSideBarTask2(CTask *grand_parent);
+extern U0 SpriteSideBarTask(CTask *parent,CSprite **_head,I64 *_cur_elem_num);
+extern U0 CtrlAltB(I64);
+extern U0 SysBadFree(I64 *ptr);
+extern U0 SysBadMAlloc(I64 *ptr);
+extern U8 *MemPagAlloc(I64 pags,CBlkPool *bp=NULL);
+extern U0 MemPagFree(CMemBlk *m,CBlkPool *bp=NULL);
+extern CMemBlk *MemPagTaskAlloc(I64 pags,CHeapCtrl *hc);
+extern U0 MemPagTaskFree(CMemBlk *m,CHeapCtrl *hc);
+extern class CLine;
+extern Bool DiffSub(CDoc *doc,I64 *_df_flags,I64 j1_lo,I64 j1_hi,I64 j2_lo,I64 j2_hi,
+	I64 cnt1,I64 cnt2,CDocEntry **doc_sorted1,CDocEntry **doc_sorted2,
+	CDocEntry **doc_unsorted1,CDocEntry **doc_unsorted2);
+extern U0 ACDPopUpDef(U8 *st,I64 num=-1,CTask *parent=NULL);
+extern CHashAC *ACHashAdd(U8 *w);
+extern U0 ACSingleFileAdd(U8 *buf);
+extern U0 ACMainFileLstTraverse(U8 *files_find_mask);
+extern U0 ACDDictWordsAdd(U8 *st);
+extern U0 ACDocRst(I64 left,I64 top);
+extern I64 ACSkipCrap(U8 *src,I64 len);
+extern I64 ACPriorWordInStr(U8 *src,U8 *dst,I64 len,I64 buf_size);
+extern U0 ACFillInAdd(CHashAC *tmpw);
+extern U0 ACPutChoices(CDoc *focus_l,CDocEntry *doc_e,CTask *focus_task,	Bool force_refresh);
+extern U0 ACTaskNormal(I64 sc,I64 last_sc,	CTask *focus_task,CTask *original_focus_task);
+extern U0 ACTaskCtrl(I64 sc,I64 last_sc,	CTask *focus_task,CTask *original_focus_task);
+extern U0 ACTaskAlt(I64 sc,I64 last_sc,	CTask *,CTask *original_focus_task);
+extern U0 ACTaskEndCB();
+extern U0 ACTask(I64);
+extern U0 BlkDevLockFwdingSet(CBlkDev *bd);
+extern I64 BlkDevAdd(CBlkDev *bd,I64 prt_num=I64_MIN,	Bool whole_drv,Bool make_free);
+extern Bool DrvEnable(U8 drv_let,Bool val);
+extern U0 BlkDevsInitAll();
+extern Bool BlkDevInit(CBlkDev *bd);
+extern U0 DVDImageWriteTask(CDualBuf *d);
+extern I64 FSetClus(CFile *f,I64 c,I64 blk,Bool read);
+extern U0 DskCacheInvalidate2(CDrive *dv);
+extern U0 RCache(CDrive *dv,U8 **_buf, I64 *_blk, I64 *_cnt);
+extern Bool CopySingleZ(U8 *f1,U8 *f2) //Just one file;
+extern U0 DrvFATBlkAlloc(CDrive *dv);
+extern U0 DrvFATBlkClean(CDrive *dv,I64 fat_sel=3);
+extern U0 DrvFATBlkSet(CDrive *dv,I64 c,I64 fat_sel=3);
+extern U0 DriveRep();
+extern U0 Fmt(I64 drv_let,Bool quick=TRUE,Bool confirm=TRUE,I64 type=FSt_FAT32);
+extern U0 CDate2Dos(U16 *t,U16 *d,CDate cdt);
+extern CDate Dos2CDate(U16 t,U16 d);
+extern U0 FAT32Fmt(U8 drv_let,Bool quick=TRUE);
+extern Bool FATNameTo(U8 *dst,U8 *src);
+extern I64 FATNameXSum(U8 *src);
+extern Bool FATFromName(U8 *dst,U8 *src);
+extern Bool DirLongNameFill(CDirEntry *tmpde,CFAT32DirEntryLong *de,I64 *xsum);
+extern Bool FAT32CDirFill(CDirEntry *tmpde,	CFAT32DirEntry *de,CDate _local_time_offset);
+extern Bool FAT32DirFill(CFAT32DirEntry *de,	CDirEntry *tmpde,I64 *_de_cnt,CDate _local_time_offset);
+extern U8 *FAT32FileRead(CDrive *dv,U8 *cur_dir,U8 *filename,I64 *_size,I64 *_attr);
+extern Bool FAT32Cd(U8 *name,I64 cur_dir_clus);
+extern I64 FAT32FilesDel(CDrive *dv,U8 *cur_dir,U8 *files_find_mask,I64 fuf_flags,		     Bool del_dir,Bool print_msg);
+extern I64 FAT32FileWrite(CDrive *dv,U8 *cur_dir,U8 *name,U8 *buf,I64 size,	CDate cdt,I64 attr);
+extern CDirEntry *FAT32FilesFind(U8 *files_find_mask,	I64 fuf_flags,CDirEntry *parent=NULL,I64 *_dir_size=NULL);
+extern Bool FAT32MkDir(CDrive *dv,U8 *cur_dir,U8 *name,I64 entry_cnt);
+extern U0 RedSeaFreeLstBuild(CDrive *dv);
+extern U8 *RedSeaFileRead(CDrive *dv,U8 *cur_dir,U8 *filename,I64 *_size,I64 *_attr);
+extern Bool RedSeaCd(U8 *name,I64 cur_dir_clus);
+extern I64 RedSeaFilesDel(CDrive *dv,U8 *cur_dir,U8 *files_find_mask,I64 fuf_flags,		     Bool del_dir,Bool print_msg);
+extern I64 RedSeaFileWrite(CDrive *dv,U8 *cur_dir,U8 *name,U8 *buf,I64 size,	CDate cdt,I64 attr);
+extern CDirEntry *RedSeaFilesFind(U8 *files_find_mask,I64 fuf_flags,	CDirEntry *parent=NULL);
+extern Bool RedSeaMkDir(CDrive *dv,U8 *cur_dir,U8 *name,I64 entry_cnt);
+extern U0 VirtInit(CDrive *dv);
+extern Bool VirtFileFind(CDrive *dv,U8 *cur_dir,U8 *name,	CDirEntry *_res,I64 fuf_flags=0);
+extern U8 *VirtFileRead(CDrive *dv,U8 *cur_dir,U8 *filename,I64 *_size,I64 *_attr);
+extern Bool VirtCd(U8 *name,U8 *cur_dir);
+extern I64 VirtFilesDel(CDrive *dv,U8 *cur_dir,U8 *files_find_mask,I64 fuf_flags,		     Bool del_dir,Bool print_msg);
+extern I64 VirtFileWrite(CDrive *dv,U8 *cur_dir,U8 *name,U8 *buf,I64 size,	CDate cdt,I64 attr);
+extern Bool VirtMkDir(CDrive *dv,U8 *cur_dir,U8 *name,I64 entry_cnt);
+extern CDocBin *DocBinFindNum(CDoc *haystack_doc,I64 needle_num);
+extern CDocBin *DocBinFindTag(CDoc *haystack_doc,U8 *needle_tag);
+extern I64 DocBinPtrRst(CDoc *doc,CDocEntry *doc_e);
+extern U0 EdCharDel(CDoc *doc);
+extern U0 ChkDollarBufSize(CDoc *doc);
+extern U0 EdLineDel(CDoc *doc);
+extern U0 EdReplaceTroubleOne(CDoc *doc,U8 *st_original,U8 *st_safe,I64 num,	Bool to_safe,Bool sel);
+extern U0 EdReplaceTroubleAll(CDoc *doc,Bool to_safe,Bool sel);
+extern I64 PopUpEdFmt();
+extern I64 EdRILex(CRILex *rx);
+extern U0 EdRIExp(CRILex *rx);
+extern U0 EdRIStmt(CRILex *rx,Bool indent);
+extern CQueVectU8 *EdRICode(CDoc *doc);
+extern U0 EdRemFunLeadingSpace(CDoc *doc);
+extern I64 EdRAGetU8(CDoc *doc);
+extern U0 EdRACollect(CDoc *doc,CRenum *head);
+extern U0 EdRenumAsm(CDoc *doc);
+extern U0 EdCodeTools2(CDoc *doc,I64 tool_action,Bool beep=TRUE);
+extern U0 EdPopUpChSC(I64 *_ch,I64 *_sc);
+extern U0 EdChSC(CDoc *doc);
+extern U8 *EdOverStrikeCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern U8 *EdAutoSaveCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern U8 *EdFilterCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern U8 *EdDollarCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern U8 *EdMoreCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern U8 *EdDollarTypeCB(CDoc *,CDocEntry *doc_e,CTask *mem_task);
+extern Bool DocCaptureUndo(CDoc *doc,Bool force=FALSE);
+extern U0 DocUndoRestore(CDoc *doc);
+extern I64 PopUpReplaceSkipAllCancel(U8 *header=NULL,U8 *footer=NULL);
+extern I64 EdFindReplace(CDoc *doc);
+extern U0 EdGoToLine(CDoc *doc);
+extern U0 DocFormFwd(CDoc *doc,Bool giveup=FALSE);
+extern U0 DocDataScan(CDoc *doc,CDocEntry *doc_e);
+extern U0 DocMenuEndTaskCB();
+extern U0 EdUndoFilter(CDoc *doc);
+extern U8 *DocGetStr2(I64 flags=0);
+extern I64 DitherColor2(U8 *header=NULL);
+extern U32 *DocHighlight(CDocEntry *doc_e,U8 *src,I64 len,I64 _tmp_u32_attr);
+extern U0 DocInit();
+extern Bool DocFileEd(I64 _type,U8 *filename,	U8 *needle_str,I64 *_num,I64 edf_dof_flags);
+extern Bool IsEditableText(CDocEntry *doc_e);
+extern CDocEntry *DocEntryNewBase(CDoc *doc,I64 type,I64 de_flags=0,	I64 x=0,I64 y=0,I64 page_line_num=0);
+extern CDocEntry *DocEntryNewTag(CDoc *doc,CDocEntry *doc_ce,U8 *tag);
+extern U0 DocUndoDel(CDoc *,CDocUndo *u);
+extern U0 DocUndoCntSet(CDoc *doc);
+extern U0 DocRemSoftNewLines(CDoc *doc=NULL,CDocEntry *doc_e=NULL);
+extern I64 EdLeftClickLink0(CDoc *doc,CDocEntry *doc_e) ;
+extern I64 PrsDocFlagSingle(CCmpCtrl *cc,I64 *_de_flags,U32 *_type,Bool turn_on);
+extern I64 PrsDocFlags(CCmpCtrl *cc,I64 *_de_flags,U32 *_type);
+extern CDocEntry *PrsDollarCmd(CDoc *doc,U8 *st);
+extern U0 DocEntryToggle(CDoc *doc);
+extern U0 DocFlagsToggle(CDoc *doc,I64 tog_flags);
+extern Bool PopUpCd();
+extern I64 AdamFile(U8 *filename,Bool warn_ext=TRUE);
+extern Bool KDDocPutKey(I64 ch,I64 scan_code);
+extern Bool KDDocPutS(U8 *st);
+extern U0 DocDump(CDoc *doc,I64 uS_delay=0);
+extern I64 DocWordWrapDel(CDoc *doc,CDocEntry *doc_e,	Bool full_refresh,Bool same_win,I64 left_margin,I64 right_margin,	CDocEntry **_best_doc_e,I64 *_best_col);
+extern U0 DocRecalcXY(CDoc *doc,CDocEntry *doc_e,	I64 k,I64 left,I64 width,I64 height,I64 left_margin,I64 right_margin,	I64 x0,I64 y0,I64 *_x,I64 *_y);
+extern CDocEntry *DocSplitTag(CDoc *doc,CDocEntry *doc_e,I64 i,I64 x,I64 y,I64 type_u8);
+extern CDocEntry *DocWordWrapAdd(CDoc *doc,CDocEntry *doc_e,	I64 *_k,I64 left,I64 right_margin,I64 x,I64 y);
+extern I64 DocTmpAttr(CDoc *doc,CDocEntry *doc_e,I64 cur_u8_attr);
+extern I64 DocCharDist(CDoc *doc,I64 x,I64 y);
+extern U0 DocDelToNum(CDoc *doc,I64 num);
+extern U0 DocDelToEntry(CDoc *doc,CDocEntry *clear_entry,Bool clear_holds);
+extern U0 DocBorderLstDraw(CDoc *doc);
+extern I64 PopUpTermRight(U8 *header);
+extern Bool DocTreeWriteJoin(CDoc *doc,U8 *path,Bool write,U8 *fmt,I64 argc,I64 *argv);
+extern Bool DocTreeAppendJoin(CDoc *doc,U8 *path,Bool write,U8 *fmt,I64 argc,I64 *argv);
+extern I64 PopUpLinkType(Bool include_anchor);
+extern Bool GetLink(I64 type,U8 **_tag,U8 **_link,Bool *_pop_up,	Bool *_quote,U8 **_html_link);
+extern U0 EdInsLink();
+extern I64 PopUpColorType();
+extern I64 PopUpPageSettingType();
+extern U0 EdInsColor();
+extern U0 EdInsPageSetting();
+extern I64 PopUpWidgetType();
+extern U0 EdInsText();
+extern U0 EdInsSong();
+extern U0 EdInsHtml();
+extern U0 EdInsMacroMenu(Bool is_macro);
+extern U0 EdInsBttn();
+extern U0 EdInsCursorMovement();
+extern U0 EdInsData();
+extern U0 EdInsCheckBox();
+extern U0 EdInsLst();
+extern U0 EdInsHexEd();
+extern U0 EdInsBin(I64 bin_num,I64 type);
+extern U0 EdInsTree();
+extern U0 EdInsWidgetWiz();
+extern I64 PopUpSpriteType();
+extern U8 *EdSpriteLink(Bool *_pop_up,U8 **_html_link);
+extern U8 *GrBitMap4ToBitMap8(U8 *dst,U8 *src,I64 src_size,I64 bkcolor);
+extern U8 *GrBitMap1ToBitMap8(U8 *dst,U8 *src,I64 src_size,I64 bkcolor);
+extern I64 GrPutS(CDC *dc=NULL,I64 x,I64 y,U8 *_s);
+extern I64 GrVPutS(CDC *dc=NULL,I64 x,I64 y,U8 *_s);
+extern I64 GrRayLenMinus(CDC *dc,I64 x,I64 y);
+extern I64 GrRayLen(CDC *dc,I64 *x1,I64 y,I64 z=0,I32 *db=NULL);
+extern I64 GrVLine(CDC *dc=NULL,I64 x,I64 y1,I64 y2,I64 z1=0,I64 z2=0);
+extern U0 CtrlAltZ(I64 sc);
+extern U0 GrInit1();
+extern U0 GrSetUpTables();
+extern U0 WinZBufFill(CTask *task);
+extern U0 GrInit2();
+extern U0 GrPaletteIndicesSet();
+extern I64 GrFloodFillRay(CDC *dc,I64 x,I64 y,I64 z,I32 *db);
+extern I64 GrFloodFillRay(CDC *dc,I64 x,I64 y,I64 z,I32 *db);
+extern I64 GrFillSemiCircle(CDC *dc=NULL,I64 cx,I64 cy,I64 z=0,I64 diameter,I64 n);
+extern Bool GrLinePlot(CDC *dc,I64 x,I64 y,I64 z);
+extern I64 GrLineFat3(CDC *dc=NULL,I64 x1,I64 y1,I64 z1,I64 x2,I64 y2,I64 z2,	I64 width,I64 start=0);
+extern U0 GrUpdateTaskODEs(CTask *task);
+extern U0 GrUpdateTaskWin(CTask *task);
+extern U0 GrUpdateTasks();
+extern U0 GrFixZoomScale();
+extern U0 GrZoomInScrn();
+extern U0 GrUpdateTextBG();
+extern U0 GrUpdateTextFG();
+extern U0 DCBlotColor8(CDC *dc,CDC *img);
+extern U0 GrUpdateTextModeText();
+extern U0 GrUpdateVGAGraphics();
+extern U0 GrUpdateScrn();
+extern U0 AvTabGen() ;
+extern U0 UpdateGROffs(I64 x,I64 y) ;
+extern U0 Scale(CDC *data,I64 sx,I64 sy,CDC *result,I64 xoff,I64 yoff,I64 core) ;
+extern U0 ScalerMP(I64 idx) ;
+extern U0 GrInit4();
+extern I64 PopUpSpriteBitMap(CColorROPU32 color,I64 width);
+extern U0 GrBitMapEdPrepPersistentDC(CDC *dc,I64 xx1,I64 yy1,CDC *img);
+extern U0 GrBitMapEdTrimToExtents(CDC **_img,I64 *_xx1,I64 *_yy1,	I64 *_xx2,I64 *_yy2,CColorROPU32 bkcolor);
+extern U0 GrBitMapEdAddOutline(CDC *img,I64 width,	CColorROPU32 color,CColorROPU32 bkcolor);
+extern U0 GrBitMapEdEtch(CDC *img,I64 width,CColorROPU32 bkcolor);
+extern I64 SpriteBitMapEd(CDoc *,CDocEntry *doc_e,CDC *dc,I64 *_xx1,I64 *_yy1,	I64 *_xx2,I64 *_yy2,CDC **_img,CColorROPU32 bkcolor);
+extern U0 SpriteElem2Code(CDoc *doc,CSprite *tmpg);
+extern CSprite *Code2SpriteElem(CCmpCtrl *cc,I64 type);
+extern CSprite *SpriteSetSettings(CDC *dc=NULL,CSprite *head,I64 elem_num,	I64 x=0,I64 y=0,CColorROPU32 *_color=NULL,I64 *_thick=NULL,	I64 *_xx=NULL,I64 *_yy=NULL);
+extern Bool SpritePolyPtPlot(CSprite *head,I64 x,I64 y,I64);
+extern CSprite *Sprite2SpriteQue(U8 *elems);
+extern U8 *SpriteQue2Sprite(CSprite *head,I64 *_size=NULL);
+extern U0 SpriteEdUpdate(CDoc *doc,CDocEntry *doc_ce,CSprite *head);
+extern U0 SpriteSetOrigin(CSprite *head,I64 dx,I64 dy,I64 dz);
+extern CSprite *SpriteTransformCircle(I64 *r,CSprite *tmpg);
+extern CSprite *SpriteTransformEllipse(I64 *r,CSprite *tmpg);
+extern CSprite *SpriteTransformRect(I64 *r,CSprite *tmpg,F64 );
+extern CSprite *SpriteTransformBitMap(I64 *r,CSprite *tmpg);
+extern U0 SpriteTransformQue(CSprite *head,I64 *r);
+extern I64 SpriteQueSelCnt(CSprite *head,Bool val=TRUE);
+extern I64 SpriteQueSelAll(CSprite *head,Bool val=TRUE);
+extern Bool SpriteEdText(CSprite **_head,I64 *_cur_elem_num);
+extern U0 GrInit3();
+extern I64 PopUpSpriteEd(CSprite **_head,I64 *_cur_elem_num);
+extern CEdSprite *EdSpriteNew(I64 type,CSprite *tmpg);
+extern U0 SpritePtQueNew(U8 *elems,I64 x,I64 y,CEdSprite *head);
+extern U0 SpriteCtrlPtsDraw(CDC *dc,CEdSprite *head);
+extern U0 SpriteCtrlPtsMove(CEdSprite *head,I64 dx,I64 dy);
+extern Bool SpriteSelUnselShiftPts(U8 *elems,I64 x,I64 y,I64 *_cur_elem_num,I64 mode);
+extern I64 SpriteEd(CDoc *doc,CDocEntry *doc_ce,I64 x,I64 y,	CSprite **_head,I64 *_cur_elem_num);
+extern I64 PopUpSpriteMain(CSprite **_head,I64 *_cur_elem_num,	CDoc *_doc,CDocEntry *_doc_e);
+extern Bool PopUpExtents(I64 *_x1,I64 *_x2,I64 *_y1,I64 *_y2);
+extern U0 SpriteScrnInit(CDC *dc,I64,I64);
+extern CSprite *SMLine(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern CSprite *SMArrow(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern CSprite *SMPlanarSymmetry(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2);
+extern CSprite *SMRect(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern CSprite *SMScrnBitMap(I64 eletype,CDC *dc,CDC *dc2,I64 x,I64 y,	I64 arg1,I64 arg2,CColorROPU32 bm_bkcolor);
+extern CSprite *SMCircle(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern CSprite *SMEllipse(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern CSprite *SMPolygon(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,I64 sides,	CColorROPU32 color);
+extern CSprite *SMPolyLineFamily(I64 eletype,CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,	CColorROPU32 color);
+extern CSprite *SMPolyPoint(CDC *dc,I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color);
+extern U0 SMTextFamily(I64 eletype,CDoc *doc,CDocEntry *doc_ce,CSprite *head,CDC *dc,	I64 x,I64 y,I64 arg1,I64 arg2,CColorROPU32 color,I64 *_cur_elem_num,	I64 old_de_flags);
+extern I64 SMBitMap(I64 eletype,CDoc *doc,CDocEntry *doc_ce,CSprite *head,	CDC *dc,I64 xx,I64 yy,I64 arg1,I64 arg2,CColorROPU32 bm_bkcolor,	Bool sel,I64 xx1=0,I64 yy1=0,I64 xx2=0,I64 yy2=0,I64 *_cur_elem_num);
+extern U0 SMMesh(CDoc *doc,CDocEntry *doc_ce,CSprite *head,I64 *_cur_elem_num);
+extern U0 SMShiftableMesh(CDoc *doc,CDocEntry *doc_ce,CSprite *head,	I64 x,I64 y,I64 arg1,I64 arg2,I64 *_cur_elem_num);
+extern U0 SMTaskTitleSet(I64 eletype);
+extern I64 SpriteMainEd(CDoc *doc);
+extern U0 EdSpriteIns(CDoc *doc);
+extern U0 EdSpriteEd(CDoc *doc);
+extern CMeshEdVertex *MeshVertexNew(CMeshFrame *e,I64 x,I64 y,I64 z);
+extern CMeshEdTri *MeshTriNew(CMeshFrame *e,CColorROPU32 color,	CMeshEdVertex *v1,CMeshEdVertex *v2,CMeshEdVertex *v3);
+extern CMeshEdVertex *MeshVertexFindScrPt(CMeshFrame *e,I64 x,I64 y);
+extern CMeshEdVertex *MeshVertexFindNum(CMeshFrame *haystack_e,I64 needle_num);
+extern U0 MeshTriDel(CMeshFrame *e,CMeshEdTri *tmpt);
+extern U0 MeshVertexDel(CMeshFrame *e,CMeshEdVertex *tmpv);
+extern U0 MeshFence(CMeshFrame *e);
+extern U0 MeshPolygon(CMeshFrame *e,CMeshEdVertex *start,CMeshEdVertex *end,Bool rev);
+extern U0 MeshPrism(CMeshFrame *e);
+extern U0 MeshVertexSelAll(CMeshFrame *e,Bool val);
+extern U0 MeshTriSelAll(CMeshFrame *e,Bool val);
+extern U0 MeshVertexIgnoreSet(CMeshFrame *e,Bool val);
+extern U0 MeshP0Capture(CMeshFrame *e);
+extern U0 MeshP0Offset(CMeshFrame *e,I64 dx,I64 dy,I64 dz);
+extern U0 MeshVertexSelRect(CMeshFrame *e,I64 sel_mode,I64 x1,I64 x2,I64 y1,I64 y2);
+extern U0 MeshTriSelRect(CMeshFrame *e,I64 sel_mode,I64 x1,I64 x2,I64 y1,I64 y2);
+extern I64 MeshSelCnt(CMeshFrame *e);
+extern U0 MeshSwapAxes(CMeshFrame *e,I64 o1,I64 o2);
+extern U0 MeshInvertAxis(CMeshFrame *e,I64 o);
+extern U0 MeshTransformSel(CMeshFrame *e);
+extern U0 MeshColorTris(CMeshFrame *e);
+extern U0 MeshRevTris(CMeshFrame *e);
+extern U0 MeshRecalcCxCy(CTask *task,CMeshFrame *e);
+extern U0 MeshCurSnap(CMeshFrame *e);
+extern U0 MeshScaleZoom(CMeshFrame *e,F64 scale);
+extern U0 MPDrawIt(CMeshFrame *e);
+extern I64 *MeshW2S(CMeshFrame *e,CTask *task);
+extern I64 *MeshS2W(CMeshFrame *e,CTask *task);
+extern I64 *MeshSetW2S(CMeshFrame *e,CTask *task);
+extern U0 MeshCursorW(CMeshFrame *e,CTask *task,I64 *_x,I64 *_y,I64 *_z);
+extern U0 MeshClipInit();
+extern U0 MeshClipRst();
+extern U0 MeshClipCopy(CMeshFrame *e);
+extern U0 MeshClipCut(CMeshFrame *e);
+extern U0 MeshClipDel(CMeshFrame *e);
+extern U0 MeshClipPaste(CMeshFrame *e);
+extern U0 MDrawIt(CTask *task,CDC *dc);
+extern U0 MeshInit(CMeshFrame *e,Bool flip_y);
+extern U0 MeshLoad(CMeshFrame *e,U8 *src);
+extern I64 MeshSize(CMeshFrame *e);
+extern I32 *MeshSave(CMeshFrame *e,I64 *_size=NULL);
+extern U0 MeshCleanUp(CMeshFrame *e);
+extern U0 MeshUpdateMenu(CMeshFrame *e);
+extern I32 *SpriteMeshEd(I32 *head=NULL,I64 *_size=NULL,Bool flip_y=FALSE);
+extern I64 SpriteElemQuedBaseSize(I64 type);
+extern I64 SpriteElemSize(CSprite *tmpg);
+extern I64 SpriteTypeMask(U8 *elems);
+extern U0 SpriteSelAll(U8 *elems,Bool val);
+extern CSprite *SpriteSideBar2SpriteQue(CDoc *doc,CSprite *head,I64 *_cur_elem_num);
+extern U0 SpriteSideBarPickNew(CDoc *doc,CSprite *head,I64 old_num);
+extern U0 SpriteSideBarTask2(CTask *grand_parent);
+extern U0 SpriteSideBarTask(CTask *parent,CSprite **_head,I64 *_cur_elem_num);
+extern U0 CtrlAltB(I64);
+extern U0 SysBadFree(I64 *ptr);
+extern U0 SysBadMAlloc(I64 *ptr);
+extern U8 *MemPagAlloc(I64 pags,CBlkPool *bp=NULL);
+extern U0 MemPagFree(CMemBlk *m,CBlkPool *bp=NULL);
+extern CMemBlk *MemPagTaskAlloc(I64 pags,CHeapCtrl *hc);
+extern U0 MemPagTaskFree(CMemBlk *m,CHeapCtrl *hc);
+extern U0 UpdateRegVarImg(CHashFun *tmpf,U8 *_b,CTask *task);
+extern U8 *DBlk(I64 blk,Bool write=FALSE);
+extern U8 *DClus(I64 c,Bool write=FALSE,I64 num=0);
+extern U8 *Dump(U8 *filename,Bool write=FALSE);
+extern I64 CopyTree2(CDirEntry *tmpde,I64 src_dir_len,I64 dst_dir_len,U8 *dst_dir);
+extern I64 DelTreeDirs(CDirEntry *tmpde1);
+extern I64 DelTreeFiles(CDirEntry *tmpde1);
+extern U0 TouchFile(U8 *filename,U8 *attr,CDate cdt=I64_MIN);
+extern U0 Touch(U8 *files_find_mask="*",U8 *attr="+?",	U8 *fu_flags=NULL,CDate cdt=I64_MIN);
+extern U0 ODERstPtrs(CMathODE *ode);
+extern U0 PrsAsmArg(CCmpCtrl *cc,CAsmArg *arg,Bool rel);
+extern I64 AsmMakeArgMask(CCmpCtrl *cc,CAsmArg *arg);
+extern U0 ICCmpAndBranch(CIntermediateCode *tmpi,Bool has_res,I64 rip,   I64 us,I64 is,I64 not_us,I64 not_is,U8 *buf,I64 rip2);
+extern U0 ICAndEqu(CIntermediateCode *tmpi,I64 rip2);
+extern U0 DbgInfoWrite(CHashTable *h,U8 *name) ;
+extern U0 CmpLoadDefines();
+extern U0 CmpFixUpJITAsm(CCmpCtrl *cc,CAOT *tmpaot);
+extern I64 PopUpDiffMenu();
+extern I64 DiffEntriesCompare(CDocEntry *doc_e1,CDocEntry *doc_e2);
+extern U0 DiffSel(CDoc *doc,I64 *_df_flags,I64 j1_lo,I64 j1_hi,	I64 j2_lo,I64 j2_hi,I64 cnt1,I64 cnt2,	CDocEntry **doc_unsorted1,CDocEntry **doc_unsorted2);
+extern Bool DiffBins(CDoc *doc1,CDoc *doc2);
+extern I64 DocOptLst(CDirEntry *tmpde,I64 fuf_flags);
+extern U0 EdLiteUpdate(CLine *head,CLine *cur_line,I64 cur_col,I64 line_start_col);
+extern Bool EdLite(U8 *filename,I64 num=1,I64 edf_dof_flags=0);
+extern Bool EdLiteFileLine(U8 *fl_file_line,I64 edf_dof_flags=0);
+extern U0 FixSet(U8 *filename,I64 line);
+extern Bool Fix(I64 edf_dof_flags=0);
+extern U0 DirFileDoc(CDoc *doc,CDirEntry *tmpde);
+extern class CFMUncollapsedLst;
+extern CFMUncollapsedLst *FMCollectUncollapsedLst(CDoc *doc);
+extern U0 FMMarkUncollapsed(CDoc *doc,CFMUncollapsedLst *tmpc,	U8 *cur_entry,U8 *next_entry);
+extern U0 FMDelUncollapsedLst(CFMUncollapsedLst *tmpc);
+extern U0 FMRename(CDoc *doc);
+extern U0 FMMkDir(CDoc *doc);
+extern U0 FMDelete(CDoc *doc);
+extern U0 FMChgDsk(CDoc *doc);
+extern U0 FMMountISO(CDoc *doc);
+extern U0 FMUnmount(CDoc *doc);
+extern U0 FMFmtDrv(CDoc *doc);
+extern U0 FMMakeISO(CDoc *doc);
+extern U0 FMBurnISO(CDoc *doc);
+extern U0 FMCopy(CDoc *doc);
+extern I64 PopUpFMRight(U8 *header=NULL,U8 *footer=NULL);
+extern U0 FMRightClick();
+extern U0 FMFinalScrnUpdate(CDC *dc);
+extern U0 LoadImps() ;
+extern U0 StartUpTasks();
+extern I64 Sys(U8 *,...) ;
+extern Bool IsRaw() ;
+extern U0 InitFX() ;
+extern U0 PutS(U8 *s);
+extern U0 TimeIns();
+extern Bool MyPutKey(I64 ch,I64 sc);
+extern Bool MyPutS(U8 *);
+extern Bool InSetMsPlot(I64 mS,I64 x,I64 y,I64 z);
+extern U0 FaultCB(U8 **rbp,U8 *fptr) ;
+extern CTask *GetDebuggedProcess() ;
+extern U0 DebuggerSpawn(CTask *debugee) ;
+extern U0 DebuggerLandWin(I64 sig,I64 *gps) ;
+extern U0 DebuggerLand(I64 sig,I64 *gps) ;
+extern I64 DayOfWeek(I64 i);
+extern U8 *Color2Str(U8 *buf,CColorROPU32 c);
+extern CColorROPU32 Str2ColorU32(U8 *st);
+extern U0 DefactoPutS(U8 *st) ;
+extern U0 TaskQueueInsert(CTask *task,CTask *pred=NULL);
+extern U0 TaskQueueRemove(CTask *task);
+extern U0 TaskQueueInsertChild(CTask *task);
+extern I64 TaskEnd();
+extern I64 ExeCmdLine(CCmpCtrl *cc);
+extern U0 UserStartUp();
+extern Bool KDInputFilterPutKey(I64 ch,I64 scan_code);
+extern Bool KDInputFilterPutS(U8 *st);
+extern U0 CtrlAltDel(I64);
+extern U0 CtrlAltC(I64);
+extern U0 CtrlAltF(I64);
+extern U0 CtrlAltM(I64);
+//extern U0 UCL2(I64) ;
+extern U0 CtrlAltT(I64);
+extern U0 CtrlAltX(I64);
+extern U0 CtrlAltN(I64);
+extern U0 CtrlAltP(I64);
+extern U0 KeyDevInit();
+extern I64 LexGetChar(CCmpCtrl *cc);
+extern CDoc *LexDocRead(U8 *abs_filename,I64 flags);
+extern U0 MsHardSpeedSet();
+extern U0 HMSSet4(I64 x,I64 y,I64 z,I64 lr) ;
+extern CDirEntry MGFind(CDirEntry *needle_entry,CDirEntry *haystack_lst);
+extern U0 Merge2(CDirEntry *tmpde1,CDirEntry *tmpde2,I64 *_fuf_flags,I64 *_df_flags);
+extern U0 OptPass4(CCmpCtrl *cc,COptReg *reg_offsets,I64 *_type);
+extern U0 PrsSizeOf(CCmpCtrl *cc);
+extern U0 PrsOffsetOf(CCmpCtrl *cc);
+extern U0 PrsStreamBlk(CCmpCtrl *cc);
+extern U0 PrsVarInit(CCmpCtrl *cc,U8 **_dst,CHashClass *tmpc,CArrayDim *tmpad,	U8 *data_addr_rip,U8 **_base,Bool data_heap,I64 pass);
+extern U0 PutS(U8 *str) ;
+extern U0 ScanFlags(U8 *_dst_flags,U8 *lst,U8 *src);
+extern U8 *StrPrintFlags(U8 *dst,U8 *lst,I64 flags);
+extern U0 GetOutOfDollar();
+extern I64 GetTicks() ;
+extern I64 DEPtrCompare(CDocEntry **e1,CDocEntry **e2);
+extern I64 DocWordsFile(CDoc *doc_out=NULL,U8 *filename,U32 *char_bmp);
+extern I64 Words(U8 *files_find_mask="*",U32 *char_bmp,	U8 *fu_flags=NULL);
+extern I64 LongLinesFile(U8 *filename,I64 cols);
+extern U0 SUFile(U8 *filename,I64 suf_flags,F64 indent_scale_factor);
+extern I64 TaskMemCnt(CTask *task=NULL) ;
+extern U0 TaskRepTask(CTask *task,I64 indent);
+extern U0 TipOfDay(U8 *tip_file="::/Doc/Tips.DD");
+extern U0 DrawProgressBars(CDC *dc);
+extern U0 DrawWinGrid(CDC *dc);
+extern U0 WinGrid(Bool val);
+extern U0 CtrlAltG(I64 sc);
+extern U0 ExtendedASCII();
+extern U0 CtrlAltA(I64);
+extern U0 DrawMs(CDC *dc);
+extern U0 WinFinalUpdate(CDC *dc);
+extern U0 WinMouseUpdate();
+extern I64 WinOnTopWindows();
+extern I64 WinQueIPMsgs(Bool que);
+extern U0 WinCalcIdles();
+extern I64 WinMgrSleep(Bool flush_msgs=FALSE);
+extern CDoc *WinCursorPosSet(CTask *task,I64 msx,I64 msy,Bool set_cursor=TRUE);
+extern Bool WinKeyNavMenu();
+extern U0 WinMgrTask(I64);
+extern U0 UpdateRegVarImg(CHashFun *tmpf,U8 *_b,CTask *task);
+extern U8 *DBlk(I64 blk,Bool write=FALSE);
+extern U8 *DClus(I64 c,Bool write=FALSE,I64 num=0);
+extern U8 *Dump(U8 *filename,Bool write=FALSE);
+extern I64 CopyTree2(CDirEntry *tmpde,I64 src_dir_len,I64 dst_dir_len,U8 *dst_dir);
+extern I64 DelTreeDirs(CDirEntry *tmpde1);
+extern I64 DelTreeFiles(CDirEntry *tmpde1);
+extern U0 TouchFile(U8 *filename,U8 *attr,CDate cdt=I64_MIN);
+extern U0 Touch(U8 *files_find_mask="*",U8 *attr="+?",	U8 *fu_flags=NULL,CDate cdt=I64_MIN);
+extern U0 ODERstPtrs(CMathODE *ode);
+extern U0 PrsAsmArg(CCmpCtrl *cc,CAsmArg *arg,Bool rel);
+extern I64 AsmMakeArgMask(CCmpCtrl *cc,CAsmArg *arg);
+extern U0 ICCmpAndBranch(CIntermediateCode *tmpi,Bool has_res,I64 rip,   I64 us,I64 is,I64 not_us,I64 not_is,U8 *buf,I64 rip2);
+extern U0 ICAndEqu(CIntermediateCode *tmpi,I64 rip2);
+extern U0 DbgInfoWrite(CHashTable *h,U8 *name) ;
+extern U0 CmpLoadDefines();
+extern U0 CmpFixUpJITAsm(CCmpCtrl *cc,CAOT *tmpaot);
+extern I64 PopUpDiffMenu();
+extern I64 DiffEntriesCompare(CDocEntry *doc_e1,CDocEntry *doc_e2);
+extern U0 DiffSel(CDoc *doc,I64 *_df_flags,I64 j1_lo,I64 j1_hi,	I64 j2_lo,I64 j2_hi,I64 cnt1,I64 cnt2,	CDocEntry **doc_unsorted1,CDocEntry **doc_unsorted2);
+extern I64 DocOptLst(CDirEntry *tmpde,I64 fuf_flags);
+extern U0 EdLiteUpdate(CLine *head,CLine *cur_line,I64 cur_col,I64 line_start_col);
+extern Bool EdLite(U8 *filename,I64 num=1,I64 edf_dof_flags=0);
+extern Bool EdLiteFileLine(U8 *fl_file_line,I64 edf_dof_flags=0);
+extern U0 FixSet(U8 *filename,I64 line);
+extern Bool Fix(I64 edf_dof_flags=0);
+extern U0 DirFileDoc(CDoc *doc,CDirEntry *tmpde);
+extern CFMUncollapsedLst *FMCollectUncollapsedLst(CDoc *doc);
+extern U0 FMMarkUncollapsed(CDoc *doc,CFMUncollapsedLst *tmpc,	U8 *cur_entry,U8 *next_entry);
+extern U0 FMDelUncollapsedLst(CFMUncollapsedLst *tmpc);
+extern U0 FMRename(CDoc *doc);
+extern U0 FMMkDir(CDoc *doc);
+extern U0 FMDelete(CDoc *doc);
+extern U0 FMChgDsk(CDoc *doc);
+extern U0 FMMountISO(CDoc *doc);
+extern U0 FMUnmount(CDoc *doc);
+extern U0 FMFmtDrv(CDoc *doc);
+extern U0 FMMakeISO(CDoc *doc);
+extern U0 FMBurnISO(CDoc *doc);
+extern U0 FMCopy(CDoc *doc);
+extern I64 PopUpFMRight(U8 *header=NULL,U8 *footer=NULL);
+extern U0 FMRightClick();
+extern U0 FMFinalScrnUpdate(CDC *dc);
+extern U0 LoadImps() ;
+extern U0 StartUpTasks();
+extern I64 Sys(U8 *,...) ;
+extern U0 TrimComment(U8 *str) ;
+extern Bool NextLine(CDoc *doc) ;
+extern U0 GenHeadersForFile(U8 *file) ;
+extern Bool IsRaw() ;
+extern U0 InitFX() ;
+extern U0 TimeIns();
+extern Bool MyPutKey(I64 ch,I64 sc);
+extern Bool MyPutS(U8 *);
+extern Bool InSetMsPlot(I64 mS,I64 x,I64 y,I64 z);
+extern U0 FaultCB(U8 **rbp,U8 *fptr) ;
+extern U0 GetDebuggedProcess() ;
+extern U0 DebuggerSpawn(CTask *debugee) ;
+extern U0 DebuggerLandWin(I64 sig,I64 *gps) ;
+extern U0 DebuggerLand(I64 sig,I64 *gps) ;
+extern I64 DayOfWeek(I64 i);
+extern U8 *Color2Str(U8 *buf,CColorROPU32 c);
+extern CColorROPU32 Str2ColorU32(U8 *st);
+extern U0 DefactoPutS(U8 *st) ;
+extern U0 TaskQueueInsert(CTask *task,CTask *pred=NULL);
+extern U0 TaskQueueRemove(CTask *task);
+extern U0 TaskQueueInsertChild(CTask *task);
+extern I64 TaskEnd();
+extern I64 ExeCmdLine(CCmpCtrl *cc);
+extern U0 UserStartUp();
+extern Bool KDInputFilterPutKey(I64 ch,I64 scan_code);
+extern Bool KDInputFilterPutS(U8 *st);
+extern U0 CtrlAltDel(I64);
+extern U0 CtrlAltC(I64);
+extern U0 CtrlAltF(I64);
+extern U0 CtrlAltM(I64);
+//extern U0 UCL2(I64) ;
+extern U0 CtrlAltT(I64);
+extern U0 CtrlAltX(I64);
+extern U0 CtrlAltN(I64);
+extern U0 CtrlAltP(I64);
+extern U0 KeyDevInit();
+extern I64 LexGetChar(CCmpCtrl *cc);
+extern CDoc *LexDocRead(U8 *abs_filename,I64 flags);
+extern U0 MsHardSpeedSet();
+extern U0 HMSSet4(I64 x,I64 y,I64 z,I64 lr) ;
+extern CDirEntry MGFind(CDirEntry *needle_entry,CDirEntry *haystack_lst);
+extern U0 Merge2(CDirEntry *tmpde1,CDirEntry *tmpde2,I64 *_fuf_flags,I64 *_df_flags);
+extern U0 OptPass4(CCmpCtrl *cc,COptReg *reg_offsets,I64 *_type);
+extern U0 PrsSizeOf(CCmpCtrl *cc);
+extern U0 PrsOffsetOf(CCmpCtrl *cc);
+extern U0 PrsStreamBlk(CCmpCtrl *cc);
+extern U0 PrsVarInit(CCmpCtrl *cc,U8 **_dst,CHashClass *tmpc,CArrayDim *tmpad,	U8 *data_addr_rip,U8 **_base,Bool data_heap,I64 pass);
+extern U0 PutS(U8 *s) ;
+extern U0 ScanFlags(U8 *_dst_flags,U8 *lst,U8 *src);
+extern U8 *StrPrintFlags(U8 *dst,U8 *lst,I64 flags);
+extern U0 GetOutOfDollar();
+extern I64 DEPtrCompare(CDocEntry **e1,CDocEntry **e2);
+extern I64 DocWordsFile(CDoc *doc_out=NULL,U8 *filename,U32 *char_bmp);
+extern I64 Words(U8 *files_find_mask="*",U32 *char_bmp,	U8 *fu_flags=NULL);
+extern I64 LongLinesFile(U8 *filename,I64 cols);
+extern U0 SUFile(U8 *filename,I64 suf_flags,F64 indent_scale_factor);
+extern I64 TaskMemCnt(CTask *task=NULL) ;
+extern U0 TaskRepTask(CTask *task,I64 indent);
+extern U0 TipOfDay(U8 *tip_file="::/Doc/Tips.DD");
+extern U0 DrawProgressBars(CDC *dc);
+extern U0 DrawWinGrid(CDC *dc);
+extern U0 WinGrid(Bool val);
+extern U0 CtrlAltG(I64 sc);
+extern U0 ExtendedASCII();
+extern U0 CtrlAltA(I64);
+extern U0 DrawMs(CDC *dc);
+extern U0 WinFinalUpdate(CDC *dc);
+extern U0 WinMouseUpdate();
+extern I64 WinOnTopWindows();
+extern I64 WinQueIPMsgs(Bool que);
+extern U0 WinCalcIdles();
+extern I64 WinMgrSleep(Bool flush_msgs=FALSE);
+extern CDoc *WinCursorPosSet(CTask *task,I64 msx,I64 msy,Bool set_cursor=TRUE);
+extern Bool WinKeyNavMenu();
+extern U0 WinMgrTask(I64);
+extern U0 CPURep(Bool full=FALSE);
+extern Bool ChkPtr(U8 *ptr);
+extern Bool ChkCodePtr(U8 *ptr);
+#help_index "Processor"
+public _intern IC_RDTSC I64 GetTSC();
+#help_index ""
+extern I64 FSize(CFile *);
+class CMeshEdVertex
+{
+  CMeshEdVertex *next,*last,*copy;
+
+  U0 start;
+  CD3I32 p; //World coordinates of the point.
+  U0 end;
+  CD3I32 p0,
+	pt; //Transformed coordinates.	(Scrn)
+  I32 num,flags;
+};
+
+
+class CMeshEdTri
+{
+  CMeshEdTri *next,*last;
+
+  U0 start;
+  CMeshTri mt;
+  U0 end;
+
+  I32 cpu_num,flags; //Draw different tris with different cores.
+  CMeshEdVertex *t[3];
+};
+
+class CMeshFrame
+{
+  I64 ms_z,thickness; //Mouse Z-coordinate
+  I64 ed_mode,cx,cy;
+  CColorROPU32 cur_color;
+  Bool grid_on,flip_y,sel_rect,vertex_on,closed,pad[3];
+  I64 mp_not_done_flags; //Used for multiprocessing signaling.
+  F64 view_scale;
+  CDC *dc;
+  I32 *depth_buf;
+  I64 *w2s,*s2w; //Scrn-to-world and world-to-scrn transform matrices.
+  I64 vertex_cnt,tri_cnt; //Set by MeshSize
+  CMeshEdVertex vertex_head,*cur_vertex,*chain_pred;
+  CMeshEdTri	tri_head,*cur_tri;
+  I64 x1,y1,x2,y2,cur_snap;
+};
+
+extern CMeshEdVertex	sys_clip_vertex_head;
+extern CMeshEdTri	sys_clip_tri_head;
+extern U8 blkdev_text_attr[9];
+extern U8 drv_text_attr[3];
+extern U8 *sys_pos_pows_lets,
+   *sys_neg_pows_lets,
+   *sys_pos_pows_lst,
+   *sys_neg_pows_lst;
+extern CDoc *sys_registry_doc;
+extern U8 *ctrl_L_footer;
+extern U8  *(*fp_getstr2)(I64 flags=0);
+extern CDoc *(*fp_doc_put)(CTask *task=NULL);
+extern U0 MakeAll(U8 *dst_loc);
+extern U0 FillU16Palindrome(CPalindromeU16 *dst,U16 w);
+extern U0 FillU32Palindrome(CPalindromeU32 *dst,I64 d);
+extern U0 RedSeaISO9660Stage1(U8 *iso_filename,U8 *stage2_filename);
+extern U0 RedSeaISO9660(U8 *iso_filename,U8 drv_let);
+extern I64 RedSeaISOPass1(CDirEntry *tmpde);
+extern I64 RedSeaISO(U8 *_iso_filename=NULL,U8 *_src_dir,U8 *_stage2_filename=NULL);
+extern U8 Mount2(U8 boot_drv_let,CDoc *_doc,Bool _caller_is_prtdsk);
+
+extern class CDyadStream;
+#ifdef IMPORT_BUILTINS
+import U0 MPSetProfilerInt(U8*,U8*,I64);
+import U0 _GrPaletteColorSet(I64i,I64i);
+import U0 __AwakeCore(U64);
+import U0 SetVolume(F64);
+import F64 GetVolume();
+import U0 VFsFTrunc(U8i*,I64i);
+import I64 VFsFOpenR(U8i*);
+import I64 VFsFOpenW(U8i*);
+import U0 VFsFClose(I64i fd);
+import Bool VFsFBlkRead(U8i* buf,I64i sz,I64i nmemb,I64i fd);
+import Bool VFsFBlkWrite(U8i* data,I64i sz,I64i nmemb,I64i fd);
+import Bool VFsFSeek(I64i sz,I64i fd);
+import U0 VFsSetPwd(U8i*);
+import U0 VFsSetDrv(U8i);
+import U8 VFsGetDrv();
+import Bool VFsFExists(U8i*);
+import Bool VFsIsDir(U8i*);
+import I64i VFsFSize(U8i*);
+import U8i *VFsFRead(U8i*,I64i*);
+import Bool VFsDirMake(U8i*);
+import U8i *VFsFWrite(U8i*,U8i*,I64i);
+import Bool VFsDel(U8i*);
+import U8i **VFsDir();
+import U8i __IsValidPtr(U8i *ptr);
+import U64i UnixNow();
+import U0i InterruptCore(I64i);
+import U8i *NewVirtualChunk(I64i,I64i low32);
+import U0 FreeVirtualChunk(U8 *,U64);
+import U0i DyadInit();
+import U0i DyadUpdate();
+import U0i DyadShutdown();
+import CDyadStream *DyadNewStream();
+import U0 DyadSetMaxConn(U64);
+import I64i DyadListen(CDyadStream *,I64i port,U8 *host=NULL);
+import I64i DyadConnect(CDyadStream *,U8i*,I64i port);
+import U0i DyadWrite(CDyadStream *,U8i*,I64i);
+import U0i DyadEnd(CDyadStream *);
+import U0i DyadClose(CDyadStream *);
+import U8i *DyadGetAddress(CDyadStream *);
+import I64 _DyadGetCallbackMode(U8 *);
+import U0i DyadSetCloseCallback(CDyadStream *,I64,U0i(*fptr)(CDyadStream *,U8i *),U8i *)
+import U0i DyadSetListenCallback(CDyadStream *,I64,U0i(*fptr)(CDyadStream *,U8i *),U8i *)
+import U0i DyadSetReadCallback(CDyadStream *,I64,U0i(*fptr)(CDyadStream *,U8i *,I64i,U8i *),U8i *);
+import U64 mp_cnt();
+import U0i Shutdown(I32i ec=0);
+import Bool __IsCmdLine();
+import Bool __FExists(U8i *);
+import I64i __CoreNum();
+import U0i __SpawnCore(U0i(*fp_ptr)());
+import I64i FUnixTime(U8i *);
+import U8i *GetClipboardText();
+import U0 SetClipboardText(U8i *);
+import U0i TOSPrint(U8i *,...);
+import U8 *__StrGet(U8 *pmt="");
+import U0 SoundFreq(U64 freq);
+import U0 __BootstrapForeachSymbol(U8 *fptr);
+import U0i DrawWindowUpdate(U8i *);
+import U0 DrawWindowNew();
+import U0 PCSpkInit();
+import U0i SetKBCallback(U8i *);
+import U0i SetMSCallback(U8i *fp);
+import U0i __Sleep(I64i mS);
+import U8i *__CmdLineBootText();
+import U0i UnblockSignals();
+import U0i MPIntsInit();
+import I64 MemCompare(U8 *ptr1,U8 *ptr2,I64 cnt); //Compare chunk of memory.
+import U8 *MemCopy(U8 *dst,U8 *src,I64 cnt); //Copy chunk of memory. Only goes fwd.
+import U8 *MemSet(U8 *dst,I64 val,I64 cnt); //Set chunk of U8s to value.
+import I64 *MemSetI64(I64 *dst,I64 val,I64 I64cnt); //Set chunk of I64s to value.
+import U16 *MemSetU16(U16 *dst,I64 val,I64 U16cnt); //Set chunk of U16s to value.
+import U32 *MemSetU32(U32 *dst,I64 val,I64 U32cnt); //Set chunk of U32s to value.
+import U8 *MemSetU8(U8 *dst,I64 val,I64 U8cnt); //Set chunk of U8s to value.
+import U0 StrCopy(U8 *dst,U8 *src); //Copy string.
+import I64 StrCompare(U8 *st1,U8 *st2); //Compare two strings.
+import I64 StrLen(U8 *st); //String length.
+import F64 Sqrt(F64);
+import F64 Abs(F64 d); //Absolute F64.
+import F64 Cos(F64 d); //Cosine.
+import F64 Sin(F64 d); //Sine.
+import F64 Sqr(F64 d); //Square of F64.
+import F64 ATan(F64 d); //Arc Tan (Inverse Tan).
+import F64 ASin(F64 s);//Arc Sin (Inverse Sin).
+import F64 ACos(F64 c);//Arc Cos (Inverse Cos).
+import F64 Tan(F64 d); //Tangent.
+import F64 Arg(F64 x,F64 y); //Polar coordinate angle.
+import F64 Ceil(F64 d); //Ceiling of F64.
+import F64 Ln(F64 d); //Logarithm.
+import F64 Log10(F64 d); //Log base 10.
+import F64 Log2(F64 d); //Log base 2.
+import F64 Pow(F64 base,F64 power); //F64 base to a power.
+import F64 Pow10(F64 d); //Ten to the dth power.
+import F64 Round(F64 d); //Round F64 to whole number.
+import F64 Trunc(F64 d); //Truncate F64.
+import F64 Exp(F64 d); //Exponential function.
+import F64 Floor(F64 d); //Floor of F64.
+import I64 HPET();
+#else
+extern U0 MPSetProfilerInt(U8*,U8*,I64);
+extern U0 _GrPaletteColorSet(I64i,I64i);
+extern U0 __AwakeCore(U64);
+extern U8i __IsValidPtr(U8i *ptr);
+extern U64i UnixNow();
+extern U0i UnblockSignals();
+extern U0i InterruptCore(I64i);
+extern U8i *NewVirtualChunk(I64i,I64i low32);
+extern U0 FreeVirtualChunk(U8 *,U64);
+extern U0 VFsFTrunc(U8i*,I64i);
+extern I64 VFsFOpenR(U8i*);
+extern I64 VFsFOpenW(U8i*);
+extern U0 VFsFClose(I64i fd);
+extern Bool VFsFBlkRead(U8i* buf,I64i sz,I64i nmemb,I64i fd);
+extern Bool VFsFBlkWrite(U8i* data,I64i sz,I64i nmemb,I64i fd);
+extern Bool VFsFSeek(I64i sz,I64i fd);
+extern U0 VFsSetPwd(U8i*);
+extern U0 VFsSetDrv(U8i);
+extern U8 VFsGetDrv();
+extern Bool VFsFExists(U8i*);
+extern Bool VFsIsDir(U8i*);
+extern I64i VFsFSize(U8i*);
+extern U8i *VFsFRead(U8i*,I64i*);
+extern Bool VFsDirMk(U8i*);
+extern U8i *VFsFWrite(U8i*,U8i*,I64i);
+extern Bool VFsDel(U8i*);
+extern U8i **VFsDir();
+extern U0i DyadInit();
+extern U0i DyadUpdate();
+extern U0i DyadShutdown();
+extern I64 _DyadGetCallbackMode(U8 *);
+extern U0i DyadSetCloseCallback(CDyadStream *,I64,U0i(*fptr)(CDyadStream *,U8i *),U8i *)
+extern U0i DyadSetListenCallback(CDyadStream *,I64,U0i(*fptr)(CDyadStream *,U8i *),U8i *)
+extern U0i DyadSetReadCallback(CDyadStream *,I64,U0i(*fptr)(CDyadStream *,U8i *,I64i,U8i *),U8i *);
+extern U0 DyadSetTimeout(CDyadStream *,F64);
+extern U0 DyadSetNoDelay(CDyadStream *,I64i);
+extern CDyadStream *DyadNewStream();
+extern U0 DyadSetMaxConn(U64);
+extern I64i DyadListen(CDyadStream *,I64i port,U8 *host=NULL);
+extern I64i DyadConnect(CDyadStream *,U8i*,I64i port);
+extern U0i DyadWrite(CDyadStream *,U8i*,I64i);
+extern U0i DyadEnd(CDyadStream *);
+extern U0i DyadClose(CDyadStream *);
+extern U8i *DyadGetAddress(CDyadStream *);
+extern U64 mp_cnt();
+extern U8i *__CmdLineBootText();
+extern U0i Shutdown(I32i ec=0);
+extern Bool __IsCmdLine();
+extern Bool __FExists(U8i *);
+extern I64i __CoreNum();
+extern U0i __SpawnCore(U0i(*fp_ptr)());
+extern I64i FUnixTime(U8i *);
+extern U8i *GetClipboardText();
+extern U0 SetClipboardText(U8i *);
+extern U0i TOSPrint(U8i *,...);
+extern U8 *__StrGet(U8 *pmt="");
+extern U0 __BootstrapForeachSymbol(U8 *fptr);
+extern U0i DrawWindowUpdate(U8i *);
+extern U0 DrawWindowNew();
+extern U0 PCSpkInit();
+extern U0i SetKBCallback(U8i *);
+extern U0i SetMSCallback(U8i *fp);
+public extern U0i __Sleep(I64i mS);
+extern U0 SoundFreq(U64 freq);
+public extern Bool FBlkRead(CFile *f,U8 *buf,I64 blk=FFB_NEXT_BLK,I64 cnt=1);
+public extern Bool FBlkWrite(CFile *f,U8 *buf,I64 blk=FFB_NEXT_BLK,I64 cnt=1);
+public extern U0 FClose(CFile *f);
+public extern U8i *FOpen(U8i *filename,U8i *flags,I64i cnt=0,U8i *mem_task=0);
+extern U0i MPIntsInit();
+public extern I64 MemCompare(
+	U8 *ptr1,U8 *ptr2,I64 cnt); //Compare chunk of memory.
+public extern U8 *MemCopy(
+	U8 *dst,U8 *src,I64 cnt); //Copy chunk of memory. Only goes fwd.
+public extern U8 *MemSet(
+	U8 *dst,I64 val,I64 cnt); //Set chunk of U8s to value.
+public extern I64 *MemSetI64(
+	I64 *dst,I64 val,I64 I64cnt); //Set chunk of I64s to value.
+public extern U16 *MemSetU16(
+	U16 *dst,I64 val,I64 U16cnt); //Set chunk of U16s to value.
+public extern U32 *MemSetU32(
+	U32 *dst,I64 val,I64 U32cnt); //Set chunk of U32s to value.
+public extern U8 *MemSetU8(
+	U8 *dst,I64 val,I64 U8cnt); //Set chunk of U8s to value.
+public extern U0 StrCopy(U8 *dst,U8 *src); //Copy string.
+public extern I64 StrCompare(U8 *st1,U8 *st2); //Compare two strings.
+public extern I64 StrLen(U8 *st); //String length.
+public extern F64 Sqrt(F64 d); //Square head of F64.
+public extern F64 Abs(F64 d); //Absolute F64.
+public extern F64 Cos(F64 d); //Cosine.
+public extern F64 Sin(F64 d); //Sine.
+public extern F64 Sqr(F64 d); //Square of F64.
+public extern F64 ATan(F64 d); //Arc Tan (Inverse Tan).
+public extern F64 ASin(F64 s);//Arc Sin (Inverse Sin).
+public extern F64 ACos(F64 c);//Arc Cos (Inverse Cos).
+public extern F64 Tan(F64 d); //Tangent.
+public extern F64 Arg(F64 x,F64 y); //Polar coordinate angle.
+public extern F64 Ceil(F64 d); //Ceiling of F64.
+public extern F64 Ln(F64 d); //Logarithm.
+public extern F64 Log10(F64 d); //Log base 10.
+public extern F64 Log2(F64 d); //Log base 2.
+public extern F64 Pow(F64 base,F64 power); //F64 base to a power.
+public extern F64 Pow10(F64 d); //Ten to the dth power.
+public extern F64 Round(F64 d); //Round F64 to whole number.
+public extern F64 Trunc(F64 d); //Truncate F64.
+public extern F64 Exp(F64 d); //Exponential function.
+public extern F64 Floor(F64 d); //Floor of F64.
+public extern I64 HPET();
+#endif
+#define DYAD_EVENT_LINE    #exe{StreamPrint("%d",_DyadGetCallbackMode("DYAD_EVENT_LINE"));}
+#define DYAD_EVENT_DATA    #exe{StreamPrint("%d",_DyadGetCallbackMode("DYAD_EVENT_DATA"));}
+#define DYAD_EVENT_CLOSE   #exe{StreamPrint("%d",_DyadGetCallbackMode("DYAD_EVENT_CLOSE"));}
+#define DYAD_EVENT_CONNECT #exe{StreamPrint("%d",_DyadGetCallbackMode("DYAD_EVENT_CONNECT"));}
+#define DYAD_EVENT_DESTROY #exe{StreamPrint("%d",_DyadGetCallbackMode("DYAD_EVENT_DESTROY"));}
+#define DYAD_EVENT_ERROR   #exe{StreamPrint("%d",_DyadGetCallbackMode("DYAD_EVENT_ERROR"));}
+#define DYAD_EVENT_READY   #exe{StreamPrint("%d",_DyadGetCallbackMode("DYAD_EVENT_READY"));}
+#define DYAD_EVENT_TICK    #exe{StreamPrint("%d",_DyadGetCallbackMode("DYAD_EVENT_TICK"));}
+#define DYAD_EVENT_TIMEOUT #exe{StreamPrint("%d",_DyadGetCallbackMode("DYAD_EVENT_TIMEOUT"));}
+#define DYAD_EVENT_ACCEPT  #exe{StreamPrint("%d",_DyadGetCallbackMode("DYAD_EVENT_ACCEPT"));}
+extern CCountsGlobals counts;
+extern CDebugGlobals debug;
+extern CDoc *sys_clip_doc;
+extern U0 (*fp_set_std_palette)();
+extern CKeyDevGlobals keydev;
+extern CTask *sys_macro_task;
+extern U0 (*fp_update_ctrls)(CTask *task);
+extern CCompGlobals cmp;
+public extern U0 ProfRep(I64 filter_cnt=1,Bool leave_it=OFF);
+public extern U0 Prof(I64 depth=10,I64 cpu_num=0);
+public extern Bool Help();
