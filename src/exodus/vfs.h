@@ -3,10 +3,10 @@
 #include <exodus/types.h>
 
 void VFsThrdInit(void);
-void VFsSetDrive(u8 d);
-u8 VFsGetDrive(void);
+void VFsSetDrv(u8 d);
+u8 VFsGetDrv(void);
 void VFsSetPwd(char const *pwd);
-bool VFsDirMake(char const *to);
+bool VFsDirMk(char const *to);
 bool VFsDel(char const *p);
 u64 VFsFUnixTime(char const *name);
 i64 VFsFSize(char const *name);

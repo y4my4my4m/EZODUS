@@ -750,3 +750,4 @@ public extern F64	tS(); //From SysTimerFreq.
 public extern Bool WinInside(I64 x, I64 y, CTask *task=NULL, I64 border=0);
 
 #help_index ""
+

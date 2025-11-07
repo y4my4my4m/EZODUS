@@ -298,7 +298,7 @@ static void STK_SetClipboardText(char **stk) {
   SetClipboard(stk[0]);
 }
 
-static char *STK___StrGet(char **stk) {
+static char *STK___GetStr(char **stk) {
   static char *boot_text;
   static bool init;
   if (!init) {
@@ -367,8 +367,8 @@ static u64 STK_VFsFWrite(char **stk) {
   return VFsFWrite(stk[0], (u8 const *)stk[1], (u64)stk[2]);
 }
 
-static u64 STK_VFsDirMake(char **stk) {
-  return VFsDirMake(stk[0]);
+static u64 STK_VFsDirMk(char **stk) {
+  return VFsDirMk(stk[0]);
 }
 
 static char **STK_VFsDir(argign void *stk) {
@@ -405,8 +405,8 @@ static u64 STK_VFsFSeek(i64 *stk) {
   return seekfd(stk[1], stk[0]);
 }
 
-static void STK_VFsSetDrive(u8 *stk) {
-  VFsSetDrive(stk[0]);
+static void STK_VFsSetDrv(u8 *stk) {
+  VFsSetDrv(stk[0]);
 }
 
 static void STK_SetVolume(f64 *stk) {
@@ -429,7 +429,7 @@ static void STK_Exit(int *stk) {
   terminate(stk[0]);
 }
 
-static u8 *STK_MemCopy(i64 *stk) {
+static u8 *STK_MemCpy(i64 *stk) {
   return memcpy((void *)stk[0], (void *)stk[1], stk[2]);
 }
 
@@ -437,7 +437,7 @@ static u8 *STK_MemSet(i64 *stk) {
   return memset((void *)stk[0], stk[1] & 0xFF, stk[2]);
 }
 
-static i64 STK_MemCompare(i64 *stk) {
+static i64 STK_MemCmp(i64 *stk) {
   return memcmp((void *)stk[0], (void *)stk[1], stk[2]);
 }
 
@@ -462,11 +462,11 @@ static u16 *STK_MemSetU16(i64 *restrict stk) {
   return to;
 }
 
-static i64 STK_StrCompare(char **stk) {
+static i64 STK_StrCmp(char **stk) {
   return strcmp(stk[0], stk[1]);
 }
 
-static void STK_StrCopy(char **stk) {
+static void STK_StrCpy(char **stk) {
   strcpy(stk[0], stk[1]);
 }
 
@@ -549,7 +549,7 @@ void BootstrapLoader(void) {
       S(NewVirtualChunk, 2),
       S(FreeVirtualChunk, 2),
       R("Shutdown", STK_Exit, 1),
-      S(__StrGet, 1),
+      S(__GetStr, 1),
       S(FUnixTime, 1),
       R("GetClipboardText", ClipboardText, 0),
       S(SetClipboardText, 1),
@@ -586,15 +586,15 @@ void BootstrapLoader(void) {
       S(DyadSetListenCallback, 4),
       S(DyadSetTimeout, 2),
       S(DyadSetNoDelay, 2),
-      S(MemCompare, 3),
-      S(MemCopy, 3),
+      S(MemCmp, 3),
+      S(MemCpy, 3),
       S(MemSet, 3),
       S(MemSetI64, 3),
       S(MemSetU32, 3),
       S(MemSetU16, 3),
       R("MemSetU8", STK_MemSet, 3),
-      S(StrCopy, 2),
-      S(StrCompare, 2),
+      S(StrCpy, 2),
+      S(StrCmp, 2),
       S(StrLen, 1),
       S(Sqr, 1),
       S(Sqrt, 1),
@@ -625,16 +625,16 @@ void BootstrapLoader(void) {
       S(VFsFWrite, 3),
       S(VFsDel, 1),
       S(VFsDir, 0),
-      S(VFsDirMake, 1),
+      S(VFsDirMk, 1),
       S(VFsFBlkRead, 4),
       S(VFsFBlkWrite, 4),
       S(VFsFOpenW, 1),
       S(VFsFOpenR, 1),
       S(VFsFClose, 1),
       S(VFsFSeek, 2),
-      S(VFsSetDrive, 1),
+      S(VFsSetDrv, 1),
       S(HPET, 0),
-      R("VFsGetDrive", VFsGetDrive, 0),
+      R("VFsGetDrv", VFsGetDrv, 0),
       S(SetVolume, 1),
       S(GetVolume, 0),
       S(_GrPaletteColorSet, 2),

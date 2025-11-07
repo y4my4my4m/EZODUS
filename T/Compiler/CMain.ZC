@@ -658,6 +658,12 @@ I64 Comp(U8 *filename, U8 *map_name=NULL, U8 *out_name=NULL, U8 mapfile_drive_le
 	return error_count;
 }
 
+// Backwards compatibility alias for old TempleOS naming
+I64 Cmp(U8 *filename, U8 *map_name=NULL, U8 *out_name=NULL, U8 mapfile_drive_let=0)
+{
+	return Comp(filename, map_name, out_name, mapfile_drive_let);
+}
+
 I64 ExePutS(U8 *buf, U8 *filename=NULL, I64 ccf_flags=0, CLexHashTableContext *htc=NULL)
 {//JIT Compile and execute text from a puts("").
 	I64			 res;

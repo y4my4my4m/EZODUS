@@ -157,6 +157,16 @@ class CIntermediateStruct
 #define IC_RSP_SET				0x74
 #define IC_RIP					0x75
 
+// Backwards compatibility aliases for old TempleOS naming
+#define IC_GET_RFLAGS			IC_RFLAGS_GET
+#define IC_SET_RFLAGS			IC_RFLAGS_SET
+#define IC_GET_RAX				IC_RAX_GET
+#define IC_SET_RAX				IC_RAX_SET
+#define IC_GET_RBP				IC_RBP_GET
+#define IC_SET_RBP				IC_RBP_SET
+#define IC_GET_RSP				IC_RSP_GET
+#define IC_SET_RSP				IC_RSP_SET
+
 #define IC_RDTSC				0x76
 
 #define IC_BT 					0x77
@@ -173,6 +183,12 @@ class CIntermediateStruct
 #define IC_QUEUE_INSERT 		0x81
 #define IC_QUEUE_INSERT_REV 	0x82
 #define IC_QUEUE_REMOVE 		0x83
+
+// Backwards compatibility aliases for old TempleOS naming
+#define IC_QUE_INIT				IC_QUEUE_INIT
+#define IC_QUE_INS				IC_QUEUE_INSERT
+#define IC_QUE_INS_REV			IC_QUEUE_INSERT_REV
+#define IC_QUE_REM				IC_QUEUE_REMOVE
 
 #define IC_STRLEN 				0x84
 

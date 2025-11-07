@@ -49,16 +49,16 @@ U0 GenHeadersForFile(U8 *file) {
     ptr=ln_txt;
     if(!('A'<=ToUpper(*ptr)<='Z')&&*ptr!='_') goto next;
     StrUtil(ln_txt,SUF_REM_TRAILING);
-    if(!StrNCmp(ln_txt,"public",StrLen("public"))) {
+    if(!StrNCompare(ln_txt,"public",StrLen("public"))) {
       ptr+=StrLen("public");
     }
     while(*ptr&&Bt(char_bmp_white_space,*ptr))
       ptr++;
-    if(!StrNCmp(ptr,"extern",6)) goto next;
-    if(!StrNCmp(ptr,"import",6)) goto next;
-    StrCpy(buf2,"");
+    if(!StrNCompare(ptr,"extern",6)) goto next;
+    if(!StrNCompare(ptr,"import",6)) goto next;
+    StrCopy(buf2,"");
     header_start=ptr;
-    if(!StrNCmp(ptr,"_extern",7)) {
+    if(!StrNCompare(ptr,"_extern",7)) {
 check_sys_sym:
       ptr+=7;
       while(Bt(char_bmp_white_space,*ptr))
@@ -73,8 +73,8 @@ check_sys_sym:
       if(!HashFind(buf,Fs->hash_table,HTT_EXPORT_SYS_SYM)) {
        goto next;
       }
-      StrCpy(buf2,buf);
-    } else if(!StrNCmp(ptr,"_import",7))
+      StrCopy(buf2,buf);
+    } else if(!StrNCompare(ptr,"_import",7))
       goto check_sys_sym;
     else {
       header_start2=ptr;
@@ -98,7 +98,7 @@ check_sys_sym:
       } else { //Found a non space/pointer star
         goto next;
       }
-    StrCpy(buf,"");
+    StrCopy(buf,"");
     while(*ptr&&Bt(char_bmp_alpha_numeric,*ptr)) {
       CatPrint(buf,"%c",*ptr++);
     }
@@ -147,4 +147,4 @@ DirEntryDel(ent);
 DocWrite(headers);
 DocDel(headers);
 HashTableDel(tab);
-Free(kernelb);
+Free(kernelb);

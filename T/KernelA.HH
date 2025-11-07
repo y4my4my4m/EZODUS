@@ -48,9 +48,8 @@ extern class CTask;
 #define F64_MIN 	(0xFFEFFFFFFFFFFFFF(F64))
 #define inf 		(0x7FF0000000000000(F64))
 #define � 			(0x7FF0000000000000(F64))
-// Backwards compatibility: use decimal for bootstrap compatibility
-#define pi			3.14159265358979323846
-#define � 			3.14159265358979323846
+#define pi			(0x400921FB54442D18(F64))
+#define � 			(0x400921FB54442D18(F64))
 #define exp_1 		(0x4005BF0A8B145769(F64)) //The number "e"
 #define log2_10 	(0x400A934F0979A371(F64))
 #define log2_e		(0x3FF71547652B82FE(F64))
@@ -122,8 +121,6 @@ public class CQueue
 {
 	CQueue	*next, *last;
 };
-// Backwards compatibility alias for old TempleOS naming
-#define CQue CQueue
 
 #help_index "Graphics/Data Types/D3I32;Math/Data Types/D3I32;Data Types/D3I32"
 public class CD3I32 //Three dimensional I32 pt
@@ -170,8 +167,6 @@ public class CQueueVectU8
 					 min_idx;
 	U8				 body[QUE_VECT_U8_COUNT];
 };
-// Backwards compatibility alias for old TempleOS naming
-#define CQueVectU8 CQueueVectU8
 
 #help_index "Data Types/Fifo"
 public class CFifoU8
@@ -970,9 +965,6 @@ public class CMemberList
 	CHashFun		*fun_ptr;
 };
 
-// Backwards compatibility alias for old TempleOS naming
-#define CMemberLst CMemberList
-
 class CExternUsage
 {
 	CExternUsage	*next;
@@ -1638,9 +1630,6 @@ public class CWinMgrGlobals
 	CWinMgrTimingGlobals	*t;
 	Bool					 show_menu, grab_scroll, grab_scroll_closed;
 };
-
-// Backwards compatibility alias for old TempleOS naming
-#define CWinMgrGlbls CWinMgrGlobals
 
 #help_index "AutoComplete"
 #define ACf_INIT_IN_PROGRESS		0
@@ -4763,9 +4752,8 @@ extern I64 PopUpColorLighting(U8 *header=NULL);
 extern I64 PopUpColorDither(U8 *header=NULL);
 extern Bool IsDotZ(U8 *filename);
 extern Bool IsDotC(U8 *filename);
-// Compression removed from ZealOS kernel - commented out for backwards compatibility
-//extern U8 *ExpandBuf(CArcCompress *arc,CTask*);
-//extern CArcCompress *CompressBuf(U8 *src,I64 size,CTask *mem_task=NULL);
+extern U8 *ExpandBuf(CArcCompress *arc,CTask*);
+extern CArcCompress *CompressBuf(U8 *src,I64 size,CTask *mem_task=NULL);
 extern U0 Print(U8 *fmt,...);
 public extern I64	QueCnt(CQue *head);
 public extern CQue	*QueCopy(CQue *head,CTask *mem_task=NULL);
@@ -5060,9 +5048,9 @@ public extern CDC *DCCopy(CDC *dc,CTask *task=NULL);
 public extern U0 DCMono(CDC *dc,
   I64 quest=TRANSPARENT,I64 true_color=0,I64 false_color=COLOR_MONO);
 public extern I64 DCColorChange(CDC *dc,I64 src_color,I64 dst_color=TRANSPARENT);
-public extern U8 *DCSave(CDC *dc,I64 *_size=NULL,I64 dcsf_flags=NONE);
+public extern U8 *DCSave(CDC *dc,I64 *_size=NULL,I64 dcsf_flags=DCSF_COMPRESSED);
 public extern CDC *DCLoad(U8 *src,I64 *_size=NULL,CTask *task=NULL);
-public extern I64 GRWrite(U8 *filename,CDC *dc,I64 dcsf_flags=NONE);
+public extern I64 GRWrite(U8 *filename,CDC *dc,I64 dcsf_flags=DCSF_COMPRESSED);
 public extern CDC *GRRead(U8 *filename,CTask *task=NULL);
 public extern U0 DocGR(CDoc *doc=NULL,U8 *filename);
 public extern CDC *DCScrnCapture(Bool include_zoom=TRUE,CTask *task=NULL);
@@ -5516,9 +5504,8 @@ extern Bool ArcFinishCompression(CArcCtrl *c);
 extern U0 ArcExpandBuf(CArcCtrl *c);
 extern CArcCtrl *ArcCtrlNew(Bool expand,I64 compression_type=CT_8_BIT);
 extern U0 ArcCtrlDel(CArcCtrl *c);
-// Compression removed from ZealOS kernel - commented out for backwards compatibility
-//extern U8 *ExpandBuf(CArcCompress *arc,CTask*);
-//extern CArcCompress *CompressBuf(U8 *src,I64 size,CTask *mem_task=NULL);
+extern U8 *ExpandBuf(CArcCompress *arc,CTask*);
+extern CArcCompress *CompressBuf(U8 *src,I64 size,CTask *mem_task=NULL);
 extern U0 CtrlsUpdate(CTask *task);
 extern Bool CtrlInsideRect(CCtrl *c,I64 x,I64 y);
 extern U0 DrawCtrls(CTask *task);

@@ -34,13 +34,13 @@ void VFsThrdInit(void) {
   thrd_drv = 'T';
 }
 
-void VFsSetDrive(u8 d) {
+void VFsSetDrv(u8 d) {
   if (veryunlikely(!Bt(char_bmp_alpha, d)))
     return;
   thrd_drv = toupper(d);
 }
 
-u8 VFsGetDrive(void) {
+u8 VFsGetDrv(void) {
   return thrd_drv;
 }
 
@@ -48,7 +48,7 @@ void VFsSetPwd(char const *pwd) {
   strcpy(thrd_pwd, pwd ?: "/");
 }
 
-bool VFsDirMake(char const *to) {
+bool VFsDirMk(char const *to) {
   char cleanup(_dtor) *p = VFsFNameAbs(to);
   return fexists(p) ? isdir(p) : dirmk(p);
 }

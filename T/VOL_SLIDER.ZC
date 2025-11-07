@@ -1,5 +1,5 @@
 
-//It's a volume slider that will run in the WallPaper.HC.Z
+//It's a volume slider that will run in the WallPaper.ZC.Z
 U0 DrawVolumeSlider(CDC *dc , CCtrl *vol) {
   CD3I32 triangle[4];
   I64 intified=GetVolume*100,width=vol->right-vol->left;
@@ -45,6 +45,6 @@ U0 AddVolumeSlider(CTask *to) {
   vol->win_task=to;
   vol->wheel_chg=&VolumeSliderScroll;
   vol->left_click=&VolumeSliderLeftClick;
-  QueIns(vol,to->last_ctrl);
+  QueueInsert(vol,to->last_ctrl);
   TaskDerivedValsUpdate(to);
 }

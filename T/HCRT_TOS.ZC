@@ -64,9 +64,9 @@ HeapCtrlInit(&ahd,Fs,1);
 Fs->data_heap=&ahd;
 Fs->code_heap=&ahc;
 SetGs(&cpu_structs[0]);
-QueInit(&Gs->next_dying);
+QueueInit(&Gs->next_dying);
 TaskInit(Fs,0);
-CTask *System_task=Fs;
+CTask *sys_task=Fs;
 #include "Kernel/KGlobals.ZC"
 #include "System/DolDoc/DocExterns.ZC"
 #include "Kernel/KUtils.ZC"

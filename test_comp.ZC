@@ -1,0 +1,2 @@
+Print("Testing if Comp() is available...\n");
+Print("Comp address: 0x%X\n", &Cmp);
