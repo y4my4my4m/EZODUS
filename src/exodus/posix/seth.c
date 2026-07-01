@@ -28,6 +28,7 @@
 
 #include <exodus/abi.h>
 #include <exodus/dbg.h>
+#include <exodus/backtrace.h>
 #include <exodus/ffi.h>
 #include <exodus/loader.h>
 #include <exodus/main.h>

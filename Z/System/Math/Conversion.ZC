@@ -1,0 +1,23 @@
+// EZODUS: TempleOS seed assembler lacks XMM in HolyC asm; use scalar C for bootstrap.
+U32 F64ToF32(F64 d)
+{
+	F32 f = d;
+	return f(U32);
+}
+
+F64 F32ToF64(U32 f)
+{
+	return f(F32);
+}
+
+F32 F32RadToDeg(F32 rad)
+{
+	F64 r = rad(F64) * F32_180_OVER_PI(F64);
+	return r(F32);
+}
+
+F32 F32DegToRad(F32 deg)
+{
+	F64 r = deg(F64) * F32_PI_OVER_180(F64);
+	return r(F32);
+}

@@ -1,0 +1,285 @@
+// EZODUS: minimal blkdev + host VFS until full MakeBlkDev.
+#define FSt_VIRT 8
+
+CDrive  _ezodus_drvs[DRIVES_NUM];
+CBlkDev _ezodus_blkdevs[BLKDEVS_NUM];
+U8      _ezodus_home_dir[] = "Z:/Home";
+U8      _ezodus_root_dir[] = "/";
+U8      _ezodus_tmp_name[] = "OpCodes.DD";
+Bool    _ezodus_vfs_init;
+
+Bool EzodusCurDirIsStatic(U8 *dir)
+{
+	return dir == _ezodus_root_dir || dir == _ezodus_home_dir + 2;
+}
+
+U0 EzodusCurDirSet(U8 *dir)
+{//EZODUS: cur_dir must always be heap-owned — never assign static strings.
+	if (!Fs || !dir)
+		return;
+	if (Fs->cur_dir && !EzodusCurDirIsStatic(Fs->cur_dir))
+		Free(Fs->cur_dir);
+	Fs->cur_dir = StrNew(dir, Fs);
+}
+
+U0 EzodusCurDirValidate(CTask *task=NULL)
+{//EZODUS: heap corruption can leave cur_dir pointing at code/garbage.
+	I64 i, len;
+	U8 *d;
+
+	if (!task)
+		task = Fs;
+	if (!task)
+		return;
+	d = task->cur_dir;
+	if (!d)
+	{
+		task->cur_dir = StrNew("/Home", task);
+		return;
+	}
+	if (d == _ezodus_root_dir || d == _ezodus_home_dir + 2)
+		return;
+	len = StrLen(d);
+	if (!len || len > 256 || d[0] != '/')
+	{
+		Free(d);
+		task->cur_dir = StrNew("/Home", task);
+		return;
+	}
+	for (i = 0; i < len; i++)
+		if (d[i] < 32 && d[i] != '\0')
+		{
+			Free(d);
+			task->cur_dir = StrNew("/Home", task);
+			return;
+		}
+}
+
+U0 EzodusVfsInit()
+{
+	I64 i;
+
+	if (_ezodus_vfs_init)
+		return;
+	MemSet(_ezodus_drvs, 0, sizeof(_ezodus_drvs));
+	MemSet(_ezodus_blkdevs, 0, sizeof(_ezodus_blkdevs));
+	blkdev.drvs		= _ezodus_drvs;
+	blkdev.blkdevs	= _ezodus_blkdevs;
+	for (i = 0; i < DRIVES_NUM; i++)
+		blkdev.let_to_drive[i] = &blkdev.drvs[i];
+	// EZODUS: always assign — uninitialized blkdev may hold garbage non-NULL pointers.
+	blkdev.home_dir		= _ezodus_home_dir;
+	blkdev.tmp_filename	= _ezodus_tmp_name;
+	blkdev.boot_drive_let = 'Z';
+	blkdev.drvs['Z' - 'A'].drv_let			= 'Z';
+	blkdev.drvs['Z' - 'A'].drive_signature	= DRIVE_SIGNATURE_VAL;
+	blkdev.drvs['Z' - 'A'].fs_type			= FSt_VIRT;
+	blkdev.blkdevs[0].bd_signature			= BD_SIGNATURE_VAL;
+	blkdev.blkdevs[0].type					= BDT_ISO_FILE_READ;
+	blkdev.drvs['Z' - 'A'].bd				= &blkdev.blkdevs[0];
+	if (Fs)
+		EzodusCurDirSet(_ezodus_root_dir);
+	_ezodus_vfs_init = TRUE;
+}
+
+public U8 Letter2Letter(U8 drv_let=0)
+{
+	if (!drv_let)
+	{
+		if (Fs && Fs->cur_dv && Fs->cur_dv->drive_signature == DRIVE_SIGNATURE_VAL)
+			return Fs->cur_dv->drv_let;
+		return 'Z';
+	}
+	if (drv_let == ':')
+	{
+		if (Fs && Fs->cur_dv && Fs->cur_dv->drive_signature == DRIVE_SIGNATURE_VAL)
+			return Fs->cur_dv->drv_let;
+		return blkdev.boot_drive_let;
+	}
+	if (drv_let == '~')
+		return *blkdev.home_dir;
+	return ToUpper(drv_let);
+}
+
+public U8 Drive2Letter(CDrive *drive=NULL)
+{
+	if (!drive)
+	{
+		if (Fs && Fs->cur_dv && Fs->cur_dv->drive_signature == DRIVE_SIGNATURE_VAL)
+			return Fs->cur_dv->drv_let;
+		return 'Z';
+	}
+	return drive->drv_let;
+}
+
+public CDrive *Letter2Drive(U8 drv_let=0, Bool except=TRUE)
+{
+	I64 i;
+
+	if (!_ezodus_vfs_init)
+		EzodusVfsInit();
+	if (!drv_let)
+		drv_let = Drive2Letter;
+	i = Letter2Letter(drv_let) - 'A';
+	if (!(0 <= i < DRIVES_NUM))
+	{
+		if (except)
+			throw('Drive');
+		return NULL;
+	}
+	return &blkdev.drvs[i];
+}
+
+public Bool Drive(U8 drv_let=0)
+{
+	CDrive *drive;
+
+	if (!_ezodus_vfs_init)
+		EzodusVfsInit();
+	drive = Letter2Drive(drv_let, FALSE);
+	if (!drive || drive->drive_signature != DRIVE_SIGNATURE_VAL)
+		return FALSE;
+	Fs->cur_dv = drive;
+	EzodusCurDirSet(_ezodus_root_dir);
+	return TRUE;
+}
+
+public U8 *FileRead(U8 *filename, I64 *_size=NULL, I64 *_attr=NULL)
+{
+	U8 *absname, *vfs_path, *res;
+	I64 size = 0;
+
+	if (!_ezodus_vfs_init)
+		EzodusVfsInit();
+	if (!Fs->cur_dv || Fs->cur_dv->drive_signature != DRIVE_SIGNATURE_VAL)
+		Fs->cur_dv = &blkdev.drvs['Z' - 'A'];
+	absname = FileNameAbs(filename);
+	if (!absname)
+		return NULL;
+	vfs_path = absname;
+	if (vfs_path[1] == ':')
+	{
+		VFsSetDrv(*vfs_path);
+		vfs_path += 2;
+	}
+	else
+		VFsSetDrv('Z');
+	if (Fs->cur_dir && *Fs->cur_dir)
+		VFsSetPwd(Fs->cur_dir);
+	else
+		VFsSetPwd("/");
+	res = VFsFRead(vfs_path, &size);
+	if (_size)
+		*_size = size;
+	if (_attr)
+		*_attr = 0;
+	Free(absname);
+	return res;
+}
+
+public I64 FileWrite(U8 *filename, U8 *fbuf, I64 size, CDate cdt=0, I64 attr=0)
+{
+	return 0;
+}
+
+public I64 ClusNumNext(CDrive *drive, I64 c, I64 count=1)
+{
+	return c + count;
+}
+
+public I64 Clus2Blk(CDrive *drive, I64 c)
+{
+	return c;
+}
+
+public I64 ClusRead(CDrive *drive, U8 *buf, I64 c, I64 count)
+{
+	return c;
+}
+
+public I64 ClusWrite(CDrive *drive, U8 *buf, I64 c, I64 count)
+{
+	return c;
+}
+
+public I64 BlkRead(CDrive *drive, U8 *buf, I64 blk, I64 count)
+{
+	return 0;
+}
+
+public I64 BlkWrite(CDrive *drive, U8 *buf, I64 blk, I64 count)
+{
+	return 0;
+}
+
+public Bool DriveCheck(CDrive *drive)
+{
+	return TRUE;
+}
+
+public Bool DriveLock(CDrive *drive)
+{
+	return FALSE;
+}
+
+public U0 DriveUnlock(CDrive *drive)
+{
+}
+
+public U0 DriveFATBlkSet(CDrive *drive, I64 c)
+{
+}
+
+public CDirContext *DirContextNew(U8 *_mask, Bool make_mask=FALSE, Bool make_dirs=FALSE, Bool no_mask=FALSE)
+{
+	return CAlloc(sizeof(CDirContext));
+}
+
+public U0 DirContextDel(CDirContext *dirc, Bool restore=TRUE)
+{
+	if (dirc)
+		Free(dirc);
+}
+
+public CBlkDev *DriveIsWritable(U8 drv_let=0, Bool except=FALSE)
+{
+	return NULL;
+}
+
+public U8 *FileMgr(I64 mode=0, CTask *mem_task=NULL)
+{
+	return NULL;
+}
+
+public Bool Copy(U8 *src_files_find_mask, U8 *dst_files_find_mask=".")
+{
+	return FALSE;
+}
+
+public Bool Move(U8 *f1, U8 *f2)
+{
+	return FALSE;
+}
+
+public I64 CopyTree(U8 *src_files_find_mask, U8 *dst_files_find_mask, Bool no_mask=TRUE)
+{
+	return 0;
+}
+
+public I64 DelTree(U8 *files_find_mask, U8 *fu_flags=NULL)
+{
+	return 0;
+}
+
+public U0 Touch(U8 *files_find_mask="*", U8 *attr="+?", U8 *fu_flags=NULL, CDate cdt=I64_MIN)
+{
+}
+
+public U0 MountFile(U8 *filename)
+{
+}
+
+public U8 Mount(Bool caller_is_prtdisk=FALSE)
+{
+	return 0;
+}

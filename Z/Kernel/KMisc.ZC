@@ -1,0 +1,242 @@
+U0 PortNop()
+{//EZODUS: no ISA bus in userspace host.
+}
+
+U0 IntCore0TimerHndlr(I64 mS)
+{//EZODUS: host PIT thread (InitIRQ0) calls this TempleOS-compat name.
+	lock counts.jiffies += mS;
+	counts.timer += mS * SYS_TIMER0_PERIOD + 1;
+}
+
+U0 IntCore0TimerHandler(CTask *task=NULL)
+{//Ring-0 asm entry; ezodus uses IntCore0TimerHndlr from host timer thread.
+	IntCore0TimerHndlr(1);
+}
+
+I64 SysTimerRead()
+{//EZODUS: jiffies/timer updated by host, no PIT port I/O.
+	return counts.timer;
+}
+
+I64 TimeCal()
+{//EZODUS: RDTSC only; skip PIT calibration.
+	if (!counts.time_stamp_calibrated)
+	{
+		if (!counts.time_stamp_freq_initial)
+			counts.time_stamp_freq_initial = TSCGet;
+		counts.time_stamp_freq = counts.time_stamp_freq_initial;
+		counts.time_stamp_kHz_freq = counts.time_stamp_freq / 1000;
+		counts.time_stamp_calibrated = TRUE;
+	}
+	return counts.time_stamp_freq;
+}
+
+F64 tS()
+{//Time since boot in seconds as a float.
+	return counts.jiffies / ToF64(JIFFY_FREQ);
+}
+
+Bool Blink(F64 Hz=2.5)
+{//Return TRUE, then FALSE, then TRUE at given frequency.
+	if (!Hz)
+		return 0;
+
+	return ToI64(counts.jiffies * 2 * Hz / JIFFY_FREQ) & 1;
+}
+
+U0 Busy(I64 ùS)
+{//Loosely timed.
+	I64 i;
+
+	for (i = 0; i < ùS; i++)
+		PortNop;
+}
+
+U0 SleepUntil(I64 wake_jiffy)
+{//Not for power-saving.  It is to make a program pause without hogging the CPU.
+	Bool old_idle = LBts(&Fs->task_flags, TASKf_IDLE);
+
+	Fs->wake_jiffy = wake_jiffy;
+	Yield;
+	LBEqual(&Fs->task_flags, TASKf_IDLE, old_idle);
+}
+
+U0 Sleep(I64 mS)
+{//Not for power-saving.  It is to make a program pause without hogging the CPU.
+	if (!mS)
+		Yield;
+	else
+		SleepUntil(counts.jiffies + mS * JIFFY_FREQ / 1000);
+}
+
+F64 Ona2Freq(I8 ona)
+{//Ona to freq. Ona=60 is 440.0Hz.
+	if (!ona)
+		return 0;
+	else
+		return 440.0 / 32 * 2.0 ` (ona / 12.0);
+}
+
+I8 Freq2Ona(F64 freq)
+{//Freq to Ona. 440.0Hz is Ona=60.
+	if (freq > 0)
+		return ClampI64(12 * Log2(32.0 / 440.0 * freq), 1, I8_MAX);
+	else
+		return 0;
+}
+
+U0 Sound(I8 ona=0)
+{//Play ona, a piano key num. 0 means rest. EZODUS: host SDL via SndFreq.
+	I64			 period;
+	CSoundData	*d;
+
+	if (!Bt(&sys_semas[SEMA_MUTE], 0) && !LBts(&sys_semas[SEMA_SOUND], 0))
+	{
+		if (!ona)
+			screencast.ona = ona;
+		else if (ona != screencast.ona)
+			screencast.ona = ona;
+		SndFreq(ToI64(Ona2Freq(ona)));
+		if (!IsDebugMode && screencast.record)
+		{
+			d = SysCAlloc(sizeof(CSoundData));
+			d->ona = ona;
+			d->tS = tS;
+			QueueInsert(d, screencast.sound_head.last);
+		}
+		LBtr(&sys_semas[SEMA_SOUND], 0);
+	}
+}
+
+Bool ScreenCast(Bool val=ON, Bool just_audio=FALSE, U8 *print_format="B:/Tmp/%X.GR")
+{//WinMgr saves GR files to a dir.
+	Bool old_val;
+
+	screencast.just_audio = just_audio;
+	if (val)
+	{
+		if (!(old_val = LBtr(&screencast.record, 0)))
+		{
+			Free(screencast.print_format);
+			screencast.print_format		= SysStrNew(print_format);
+			screencast.t0_now			= Now;
+			screencast.sound_head.tS	= screencast.t0_tS = tS;
+			screencast.sound_head.ona	= screencast.ona;
+			LBts(&screencast.record, 0);
+		}
+	}
+	else
+		old_val = LBtr(&screencast.record, 0);
+	Sound;
+
+	return old_val;
+}
+
+U0 SoundReset()
+{//Fix stuck sound.
+	if (Bt(&sys_semas[SEMA_SOUND], 0))
+	{
+		Sleep(1);
+		if (Bt(&sys_semas[SEMA_SOUND], 0))
+		{
+			Sleep(1);
+			LBtr(&sys_semas[SEMA_SOUND], 0);
+		}
+	}
+	Sound;
+}
+
+U0 Beep(I8 ona=62, Bool busy=FALSE)
+{//Make beep at given ona freq.
+	Sound(ona);
+	if (busy)
+		Busy(500000);
+	else
+		Sleep(500);
+	Sound;
+	if (busy)
+		Busy(200000);
+	else
+		Sleep(200);
+}
+
+Bool Mute(Bool val)
+{//Turn-off sound.
+	Bool res;
+
+	if (val)
+	{
+		PUSHFD
+		CLI
+		Sound;
+		res = LBts(&sys_semas[SEMA_MUTE], 0);
+		POPFD
+	}
+	else
+		res = LBtr(&sys_semas[SEMA_MUTE], 0);
+
+	return res;
+}
+
+Bool IsMute()
+{//Return is-mute flag.
+	return Bt(&sys_semas[SEMA_MUTE], 0);
+}
+
+Bool Silent(Bool val=ON)
+{//Turn-off StdOut console text. (Not sound.)
+	return LBEqual(&Fs->display_flags, DISPLAYf_SILENT, val);
+}
+
+Bool IsSilent()
+{//Return StdOut turned-off?
+	return Bt(&Fs->display_flags, DISPLAYf_SILENT);
+}
+
+Bool SysDebug(Bool val)
+{//Set SysDebug bit you can use while debugging.
+	return LBEqual(&sys_semas[SEMA_DEBUG], 0, val);
+}
+
+Bool IsSysDebug()
+{//Return SysDebug bit.
+	return Bt(&sys_semas[SEMA_DEBUG], 0);
+}
+
+Bool Raw(Bool val)
+{//Set to direct screen, BLACK & WHITE, non-windowed output mode.
+	if (!val)
+		LFBFlush;
+	return !LBEqual(&Fs->display_flags, DISPLAYf_NOT_RAW, !val);
+}
+
+Bool IsRaw()
+{//Are we in BLACK & WHITE raw screen mode?
+	return !Bt(&Fs->display_flags, DISPLAYf_NOT_RAW);
+}
+
+Bool SingleUser(Bool val)
+{//Set single-user mode.
+	return LBEqual(&sys_semas[SEMA_SINGLE_USER], 0, val);
+}
+
+Bool IsSingleUser()
+{//Return single-user mode.
+	return Bt(&sys_semas[SEMA_SINGLE_USER], 0);
+}
+
+Bool DebugMode(Bool val)
+{//Set debug-mode.
+	return LBEqual(&sys_semas[SEMA_DEBUG_MODE], 0, val);
+}
+
+Bool IsDebugMode()
+{//Return debug-mode.
+	return Bt(&sys_semas[SEMA_DEBUG_MODE], 0);
+}
+
+U0 ProgressBarsReset(U8 *path=NULL)
+{//Reset all progress bars to zero.
+	CallExtStr("ProgressBarsRegTf", path);
+	MemSet(sys_progresses, 0, sizeof(sys_progresses));
+}

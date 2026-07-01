@@ -1,0 +1,6 @@
+// EZODUS: userspace memory surface. Ring-0 page tables + physical mem excluded.
+#exe {Cd(__DIR__);};
+#include "MemPag.ZC"
+#include "MAllocFree.ZC"
+#include "HeapCtrl.ZC"
+#exe {Drv('Z'); Cd("/");};

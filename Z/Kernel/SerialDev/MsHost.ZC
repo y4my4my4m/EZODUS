@@ -1,0 +1,56 @@
+// EZODUS: SDL mouse → MouseSet (T/Kernel/MOUSE.HC HMSSet4 + SetMSCallback).
+
+I64 ms_host_mtx = 0;
+
+public U0 EzodusMsInit()
+{//Call after DrawWindowNew sets sys_framebuffer_* (not at module IET).
+	I64 w, h;
+
+	MouseInit();
+	mouse.show = TRUE;
+	MemSet(&mouse_hard, 0, sizeof(CMouseHardStateGlobals));
+	mouse_hard.enabled			= TRUE;
+	mouse_hard.installed		= TRUE;
+	mouse_hard.has_wheel		= TRUE;
+	mouse_hard.install_attempts	= 1;
+	mouse_hard.fifo				= FifoU8New(8);
+	mouse_hard.fifo2			= FifoU8New(0x1000);
+	mouse_hard.scale.x			= 0.5;
+	mouse_hard.scale.y			= 0.5;
+	mouse_hard.scale.z			= 1.0;
+	w = sys_framebuffer_width;
+	h = sys_framebuffer_height;
+	if (!w)
+		w = 640;
+	if (!h)
+		h = 480;
+	mouse_hard.prescale.x	= w / mouse_hard.scale.x / 2.0;
+	mouse_hard.prescale.y	= h / mouse_hard.scale.y / 2.0;
+	mouse_hard.pos.x		= w >> 1;
+	mouse_hard.pos.y		= h >> 1;
+	mouse_hard.raw_queue	= CAlloc(sizeof(CQueue));
+	QueueInit(mouse_hard.raw_queue);
+	MemCopy(&mouse_hard_last, &mouse_hard, sizeof(CMouseHardStateGlobals));
+}
+
+U0 HMSSet4(I64 x, I64 y, I64 z, I64 lr)
+{//SDL event thread → fficall; SetFs sys_task like KBCb.
+	while (LBts(&ms_host_mtx, 0))
+		PAUSE;
+	SetFs(sys_task);
+	SetGs(&cpu_structs[0]);
+	x = x * mouse.scale.x + mouse.offset.x;
+	y = y * mouse.scale.y + mouse.offset.y;
+	z = z * mouse.scale.z + mouse.offset.z;
+	MouseSet(x, y, z, lr >> 1, lr & 1);
+	LBtr(&ms_host_mtx, 0);
+}
+
+I64 KbdMouseEventTime()
+{
+	if (mouse_hard.timestamp > kbd.timestamp)
+		return mouse_hard.timestamp;
+	return kbd.timestamp;
+}
+
+SetMSCallback(&HMSSet4);

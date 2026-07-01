@@ -25,7 +25,7 @@
 
 static char bin_path[0x200], *boot_str;
 __attribute__((constructor)) static void init(void) {
-  strcpy(bin_path, "HCRT.BIN");
+  strcpy(bin_path, "HCRT.ZXE");
 }
 
 static struct arg_lit *help, *_60fps, *cli, *grab;
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
       hcrt = arg_file0("f", "hcrtfile", NULL, "Specify HolyC runtime"),
       drv = arg_file0("t", "root", NULL, "Specify boot folder"),
       clifiles = arg_filen(NULL, NULL, "<files>", 0, 100,
-                           ".HC files that run on startup, used with -c"),
+                           ".ZC files that run on startup, used with -c"),
       end = arg_end(10),
   };
   int errs = arg_parse(argc, argv, argtable);
@@ -78,7 +78,9 @@ int main(int argc, char **argv) {
     flushprint(stderr, "Can't find \"%s\"", drv->filename[0]);
     return 1;
   }
-  VFsMountDrive('Z', ".");
+  // EZODUS: Z: is the ZealOS tree/runtime root (default ./Z). T: stays the
+  // transitional TempleOS bootstrap-seed tree used only until HCRT.ZXE exists.
+  VFsMountDrive('Z', fexists("Z") ? "Z" : ".");
   vec_char_t boot = {0};
   if (_60fps->count)
     vec_pushstr(&boot, "SetFPS(60.);\n");

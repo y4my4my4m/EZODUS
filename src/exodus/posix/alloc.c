@@ -11,6 +11,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <stdio.h>
+
 #include <exodus/alloc.h>
 #include <exodus/misc.h>
 #include <exodus/shims.h>

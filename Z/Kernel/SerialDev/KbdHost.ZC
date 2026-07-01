@@ -1,0 +1,98 @@
+// EZODUS: same keyboard wiring as T/Kernel/KBMESSAGE.HC (SetKBCallback + KBCb).
+// SDL main thread → fficall(KBCb) → kbd.scan_code_fifo (see src/exodus/window.c).
+
+I64 kb_host_mtx = 0;
+
+U0 KBCb(I64 s)
+{//Called from SDL via SetKBCallback — must SetFs sys_task (ZealOS system task).
+	I64 c;
+
+	while (LBts(&kb_host_mtx, 0))
+		PAUSE;
+	SetFs(&_boot_task);
+	SetGs(&cpu_structs[0]);
+	kbd.last_down_scan_code = s;
+	kbd.scan_code = s;
+	if (s & SCF_KEY_UP)
+		Btr(&kbd.down_bitmap, s & 0x7f);
+	else
+		Bts(&kbd.down_bitmap, s & 0x7f);
+	FifoI64Ins(kbd.scan_code_fifo, s);
+	kbd.timestamp = counts.jiffies;
+	kbd.count++;
+	if (!(s & SCF_KEY_UP) && s & SCF_ALT && s & SCF_CTRL && keydev.fp_ctrl_alt_cbs)
+	{
+		c = ScanCode2Char(s & 0x7f);
+		if ('a' <= c && c <= 'z' && keydev.fp_ctrl_alt_cbs[c - 'a'])
+		{
+			// EZODUS: ctrl-alt handlers may Spawn/Yield — must not hold kb_host_mtx.
+			LBtr(&kb_host_mtx, 0);
+			(*keydev.fp_ctrl_alt_cbs[c - 'a'])(s);
+			return;
+		}
+	}
+	LBtr(&kb_host_mtx, 0);
+}
+
+U0 KbdHostInit()
+{
+	MemSet(&kbd, 0, sizeof(CKbdStateGlobals));
+	kbd.fifo			= FifoU8New(8);
+	kbd.fifo2			= FifoU8New(0x1000);
+	kbd.scan_code_fifo	= FifoI64New(0x1000);
+}
+
+KbdHostInit;
+SetKBCallback(&KBCb);
+
+I64 KbdMessagesQueue()
+{//WinMgr path — posts KEY_DOWN/UP to sys_focus_task (T: KbdMsgsQue).
+	I64	 i, n, arg1, arg2, message_code = MESSAGE_NULL;
+	I64	 pending[32];
+	CTask *task_focus;
+
+	if (!(task_focus = sys_focus_task))
+		return MESSAGE_NULL;
+	n = 0;
+	while (LBts(&kb_host_mtx, 0))
+		PAUSE;
+	while (n < 32 && FifoI64Remove(kbd.scan_code_fifo, &pending[n]))
+		n++;
+	LBtr(&kb_host_mtx, 0);
+	for (i = 0; i < n; i++)
+	{
+		arg2 = pending[i];
+		arg1 = ScanCode2Char(arg2);
+		if (arg2 & SCF_KEY_UP)
+		{
+			TaskMessage(task_focus, 0, MESSAGE_KEY_UP, arg1, arg2, 0);
+			message_code = MESSAGE_KEY_UP;
+		}
+		else
+		{
+			TaskMessage(task_focus, 0, MESSAGE_KEY_DOWN, arg1, arg2, 0);
+			message_code = MESSAGE_KEY_DOWN;
+		}
+	}
+	return message_code;
+}
+
+public U0 KbdPutKeyQueue()
+{//EZODUS stub: no User task / WinMgr yet — drain fifo → PutKey (T: User+KeyScan).
+	I64 arg2, arg1;
+
+	while (LBts(&kb_host_mtx, 0))
+		PAUSE;
+	while (FifoI64Remove(kbd.scan_code_fifo, &arg2))
+	{
+		LBtr(&kb_host_mtx, 0);
+		if (!(arg2 & SCF_KEY_UP))
+		{
+			arg1 = ScanCode2Char(arg2);
+			PutKey(arg1, arg2);
+		}
+		while (LBts(&kb_host_mtx, 0))
+			PAUSE;
+	}
+	LBtr(&kb_host_mtx, 0);
+}

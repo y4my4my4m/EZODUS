@@ -1,0 +1,14 @@
+// EZODUS: KMain.SysGlobalsInit assigns ext via CAlloc; KMain excluded from HCRT.
+asm {
+_EZODUS_EXT_TAB::
+	DU64	0, 0, 0, 0, 0;
+};
+
+U0 EzodusExtInit()
+{
+	TOSPrint("IET: EzodusExtInit\n");
+	ext = _EZODUS_EXT_TAB;
+	mem_boot_base = 0;
+}
+
+EzodusExtInit;

@@ -1,0 +1,9 @@
+#exe {Cd(__DIR__);};
+
+#help_index "Ctrls"
+#help_file "::/Doc/Ctrls"
+#include "CtrlsA.ZC"
+#include "CtrlsBttn.ZC"
+#include "CtrlsSlider.ZC"
+
+#exe {Drv('Z'); Cd("/");};

@@ -1,0 +1,13 @@
+// EZODUS: bootstrap stubs — full MultiProc needs APIC/SMP hw.
+public U0 CoreAPExecutiveTask()
+{
+	while (TRUE)
+		Yield;
+}
+
+// MPIntsInit: import U0i from host (ffi.c -> InitIRQ0). Do NOT stub here —
+// empty body shadowed host PIT, jiffies stuck, WinMgr SleepUntil never woke.
+
+public U0 __SpawnCore(U0 (*fp_ptr)())
+{
+}

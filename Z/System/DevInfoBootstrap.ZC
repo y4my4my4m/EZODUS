@@ -1,0 +1,29 @@
+// EZODUS: bootstrap stubs — full DevInfo needs PCI/SMBIOS hw.
+public U0 PCILookUpDevs()
+{
+}
+
+public CPCIDev *PCIDevFind(U16 class_code=NULL, U16 sub_code=NULL,
+												U16 vendor_id=NULL, U16 device_id=NULL,
+												U8 _bus=0xFF, U8 _dev=0xFF, U8 _fun=0xFF)
+{
+	return NULL;
+}
+
+public U0 PCIRep()
+{
+}
+
+public U0 MemBIOSRep()
+{
+}
+
+public CSMBIOSHeader *SMBIOSStructGet(I64 type=0xFFFFF, I64 handle=0xFFFFF, CSMBIOSHeader *head=NULL)
+{
+	return NULL;
+}
+
+public U8 *SMBIOSStr(CSMBIOSHeader *header, I64 str_num, U8 *default="None")
+{
+	return default;
+}

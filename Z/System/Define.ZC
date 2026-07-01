@@ -1,0 +1,51 @@
+#help_index "Define;Char/Define"
+
+U0 LoadDocDefines()
+{
+	CZXE *zxe;
+	U8 *os_name = sys_os_version_str;
+
+	if (!os_name)
+		os_name = "Ezodus ZealOS";
+	TOSPrint("LDD:1\n");
+	DefinePrint("DD_OS_NAME_VERSION", os_name);
+	TOSPrint("LDD:2\n");
+	// EZODUS: skip float DefinePrint — host StrPrintJoin %f path SIGSEGV during boot.
+	DefinePrint("DD_ZEALOS_AGE", "0.0");
+	TOSPrint("LDD:3\n");
+	DefinePrint("DD_TEMPLEOS_AGE", "0.0");
+	TOSPrint("LDD:4\n");
+
+	if (mem_boot_base && CheckPtr(mem_boot_base(U8 *)))
+	{
+		zxe = mem_boot_base - sizeof(CZXE);
+		DefinePrint("DD_KERNEL", "%08X", zxe);
+		zxe(I64) += zxe->file_size - 1;
+		DefinePrint("DD_KERNEL_END", "%08X", zxe);
+	}
+	else
+	{
+		DefinePrint("DD_KERNEL", "%08X", 0);
+		DefinePrint("DD_KERNEL_END", "%08X", 0);
+	}
+
+	//$LK,"DD_BOOT_HIGH_LOC_DVD",A="FF:::/System/Boot/BootDVD.ZC,DD_BOOT_HIGH_LOC_DVD"$
+
+$TR,"LineRep"$
+$ID,2$DefinePrint("DD_ZEALOS_LOC","99,737");
+$ID,-2$
+	DefinePrint("DD_MP_VECT", "%08X", 0);
+	DefinePrint("DD_MP_VECT_END", "%08X", 0);
+
+	DefinePrint("DD_SYS_FIXED_AREA_BASE", "%08X", SYS_FIXED_AREA);
+	DefinePrint("DD_SYS_FIXED_AREA_END", "%08X", SYS_FIXED_AREA + sizeof(CSysFixedArea) - 1);
+	DefinePrint("DD_MEM_HEAP_BASE", "%08X", mem_heap_base);
+	DefinePrint("DD_MEM_HEAP_LIMIT", "%08X", mem_heap_limit);
+	DefinePrint("DD_MEM_MIN_MEG", "%dMeg", MEM_MIN_MEG);
+	DefinePrint("DD_UNCACHED_ALIAS", "%010X", 0);
+	DefinePrint("DD_PHYSICAL_SPACE_END", "%010X", 0);
+	DefinePrint("DD_MAPPED_SPACE_END", "%010X", 0);
+	DefinePrint("DD_JIFFY_HZ", "%dHz", JIFFY_FREQ);
+}
+
+// EZODUS: runs from _InitUI after CInit.

@@ -69,3 +69,4 @@ Module.symvers
 *.swp
 *.orig
 *.rej
+.port-ref/

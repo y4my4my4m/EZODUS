@@ -1,0 +1,10 @@
+#exe {Cd(__DIR__);};
+
+#help_index "God"
+
+#include "GodBible.ZC"
+#include "HolySpirit.ZC"
+#include "GodSong.ZC"
+#include "GodDoodle.ZC"
+
+#exe {Drv('Z'); Cd("/");};

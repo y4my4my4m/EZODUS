@@ -1,0 +1,302 @@
+#help_index "Windows"
+
+class CWallPaperGlobals
+{
+	I64 	last_calc_idle_count, last_swap_counter[MP_PROCESSORS_NUM];
+	F64 	last_calc_idle_delta_time;
+	U8		top_line[STR_LEN];
+	I64		res_str_size;
+	U8		host_ch;
+	U8		bootm_ch;
+	U8		bootl_ch;
+	U8		boots_ch;
+};
+
+CWallPaperGlobals *wall;
+
+U0 WallPaperEzodusInit()
+{//EZODUS: defer module-level CAlloc -- heap/Fs not ready at IET.
+	wall = CAlloc(sizeof(CWallPaperGlobals));
+	wall->last_calc_idle_delta_time = 1.0;
+}
+
+class CTaskWallPaperData
+{
+	I64 	alloced_u8s, used_u8s;
+	U8		caller_stack[4096 - $$];
+};
+
+U0 WallPaper(CTask *_task)
+{
+	I64					 i, j, k, l = TEXT_ROWS - 1;
+	CTask				*task;
+	CTaskWallPaperData	*wpd;
+	CHashTable			*old_hash = Fs->hash_table;
+	CCPU				*c;
+	CDateStruct			 ds;
+	U8					*st;
+
+	_task->text_attr = DKGRAY << 4 + WHITE;
+	if (sys_data_bp && sys_code_bp)
+	{
+		TextPrint(Fs, 0, l--, DKGRAY << 4 + YELLOW,
+					"%010X/%010X %010X/%010X%12td%12td%12td",
+					sys_data_bp->used_u8s, sys_data_bp->alloced_u8s,
+					sys_code_bp->used_u8s, sys_code_bp->alloced_u8s,
+					cmp.compiled_lines, blkdev.read_count, blkdev.write_count);
+
+		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+					"______Data_Heap______ ______Code_Heap______ "
+					"___Lines___ ___Reads___ __Writes___");
+	}
+	else if (sys_code_bp)
+	{
+		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+					"%010X/%010X%12td%12td%12td",
+					sys_code_bp->used_u8s, sys_code_bp->alloced_u8s,
+					cmp.compiled_lines, blkdev.read_count, blkdev.write_count);
+
+		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+					"____CodeData_Heap____ "
+					"___Lines___ ___Reads___ ___Writes__");
+	}
+	else // EZODUS: host pthread has no ring-0 code block pool (sys_code_bp==NULL).
+	{
+		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+					"%12td%12td%12td",
+					cmp.compiled_lines, blkdev.read_count, blkdev.write_count);
+
+		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+					"___Lines___ ___Reads___ ___Writes__");
+	}
+	TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE, "ProgressBars:%016X %016X %016X %016X",
+				progress1, progress2, progress3, progress4);
+
+	for (i = 0; i < mp_count; i++)
+	{
+		c = &cpu_structs[i];
+		if (winmgr.t->calc_idle_count != wall->last_calc_idle_count)
+		{
+			wall->last_calc_idle_delta_time = winmgr.t->calc_idle_delta_time;
+			wall->last_swap_counter[i] = winmgr.t->last_swap_counter[i];
+			winmgr.t->last_swap_counter[i] = c->swap_counter;
+		}
+
+		task = c->executive_task;
+		do
+		{
+			wpd = &task->wallpaper_data;
+			if (!TaskValidate(task))
+				break;
+			if (!(winmgr.updates & 5))
+			{
+				if (c == Gs)
+					Fs->hash_table = task->hash_table;
+				else //precaution
+					Fs->hash_table = old_hash;
+
+				// EZODUS: TaskCaller/FunSegFind NULL on host pthread tasks.
+				if (sys_code_bp && mem_boot_base)
+				{
+					StrPrint(wpd->caller_stack, "    %p ", TaskCaller(task, 0));
+					for (j = 1; j < 16; j++)
+					{
+						if ((k = TaskCaller(task, j)) > 0)
+							CatPrint(wpd->caller_stack, "? %p ", k);
+					}
+				}
+				else
+					StrCopy(wpd->caller_stack, task->task_name);
+			}
+			TextPrint(Fs, 0, l--, DKGRAY << 4 + YELLOW, wpd->caller_stack);
+			j = UnusedStack(task);
+			if (j < 0)
+				Panic("Stack Overflow", task);
+			if (!(winmgr.updates & 15))
+			{
+				wpd->alloced_u8s = TaskMemAlloced(task);
+				wpd->used_u8s 	 = TaskMemUsed(task);
+			}
+			TextPrint(Fs, 0, l--, DKGRAY << 4 + BLACK,
+						"  %-18s #%08X %010X %010X/%010X %04X:%02tX:%08X",
+						task->task_name, task, j, wpd->used_u8s, wpd->alloced_u8s,
+						task->task_flags, task->display_flags, task->win_inhibit);
+			if (!TaskValidate(task))
+				break;
+			task = task->next_task;
+		}
+		while (task != c->executive_task);
+
+		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE, "CPU%02X %2tf%% ContextSwaps/s:%9,d", i,
+					100.0 * (1.0 - c->idle_factor), ToI64((winmgr.t->last_swap_counter[i]
+					- wall->last_swap_counter[i]) / wall->last_calc_idle_delta_time));
+	}
+	TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+				"  ___Description____ #__Task__ UnusedStack _UsedMem_/_AllocMem_ ______Flags_____");
+
+	if (!(winmgr.updates & 15) || !*wall->top_line)
+	{
+		Date2Struct(&ds, Now);
+		i = 0;
+		if (sys_code_bp)
+			i += sys_code_bp->alloced_u8s - sys_code_bp->used_u8s;
+		if (sys_data_bp)
+			i += sys_data_bp->alloced_u8s - sys_data_bp->used_u8s;
+		// EZODUS: skip %3tZ/ST_DAYS_OF_WEEK ? define lookup on WinMgr task crashes Print.
+		StrPrint(wall->top_line,
+					" ? %02d %02d/%02d/%02d %02d:%02d:%02d FPS:%2tf RAM:%010X CPU:",
+					ds.day_of_week, ds.mon, ds.day_of_mon, ds.year % 100,
+					ds.hour, ds.min, ds.sec, winmgr.fps, i);
+		
+	}
+	TextPrint(Fs, 0, 0, DKGRAY << 4 + WHITE, wall->top_line);
+
+	if (screencast.record)
+		TextPrint(Fs, 44 -4, 0, DKGRAY << 4 + RED, "*");
+
+	j = StrLen(wall->top_line);
+	k = 0;
+	for (i = 0; i < mp_count; i++)
+	{
+		c = &cpu_structs[i];
+		if (i & 1)
+			TextPrint(Fs, j + i * 2, 0, DKGRAY << 4 + WHITE, "%2tf", 100.0 * (1.0 - c->idle_factor));
+		else
+			TextPrint(Fs, j + i * 2, 0, DKGRAY << 4 + YELLOW, "%2tf", 100.0 * (1.0 - c->idle_factor));
+		k += 2;
+	}
+	j += k + 1;
+	TextPrint(Fs, j, 0, DKGRAY << 4 + WHITE, "BOOT:");
+	j += 5;
+	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->bootm_ch);
+	j += 1;
+	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->bootl_ch);
+	j += 1;
+	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->boots_ch);
+	j += 1;
+	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->host_ch);
+	j += 2;
+	st = "RES:";
+	TextPrint(Fs, j, 0, DKGRAY << 4 + WHITE, st);
+	j += 4;
+	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "%dx%d", sys_framebuffer_width, sys_framebuffer_height);
+	j += wall->res_str_size;
+	st = "OS:";
+	TextPrint(Fs, j, 0, DKGRAY << 4 + WHITE, st);
+	j += 3;
+	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "V%.02f.%d", sys_os_version, sys_os_version_sub);
+
+	st = ScanCode2KeyName(kbd.last_down_scan_code);
+	TextPrint(Fs, TEXT_COLS - 25, 0, DKGRAY << 4 + YELLOW, "%25ts", st);
+	Free(st);
+
+	Fs->hash_table = old_hash;
+	wall->last_calc_idle_count = winmgr.t->calc_idle_count;
+}
+
+$SP,"<1>",BI=1$
+
+
+
+
+$SP,"<2>",BI=2$
+
+
+
+U0 DrawTermBttn(CDC *dc, CCtrl *c)
+{
+	if (Blink)
+		Sprite3(dc, c->left, c->top, 0, $IB,"<1>",BI=1$);
+	else
+		Sprite3(dc, c->left, c->top, 0, $IB,"<2>",BI=2$);	
+}
+
+U0 LeftClickTermBttn(CCtrl *, I64, I64, Bool down)
+{
+	if (down)
+		User;
+}
+
+CCtrl *TermBttnNew()
+{
+	I64		 min_x, max_x, min_y, max_y;
+	CCtrl	*c = SysCAlloc(sizeof(CCtrl));
+
+	c->win_task		= sys_winmgr_task;
+	c->flags		= CTRLF_SHOW;
+	c->type			= CTRLT_GENERIC;
+	c->draw_it		= &DrawTermBttn;
+	c->left_click	= &LeftClickTermBttn;
+
+	SpriteExtents($IB,"<1>",BI=1$, &min_x, &max_x, &min_y, &max_y);
+//min must be zero
+	c->left		= sys_winmgr_task->pix_width - (max_x - min_x + 1);
+	c->right	= c->left + (max_x - min_x + 1) - 1;
+	c->top		= sys_winmgr_task->pix_height - (max_y - min_y + 1);
+	c->bottom	= c->top + (max_y - min_y + 1) - 1;
+
+	QueueInsert(c, sys_winmgr_task->last_ctrl);
+	TaskDerivedValsUpdate(sys_winmgr_task);
+
+	return c;
+}
+
+U0 WallPaperInit()
+{
+	CSMBIOSSystemInfo	*sys_info = SMBIOSStructGet(SMBIOSt_SYSTEM);
+	U8					*company = "None";
+
+	if (sys_info)
+		company = SMBIOSStr(sys_info, sys_info->manufacturer);
+
+	TermBttnNew;
+	gr.fp_wall_paper = &WallPaper;
+
+	if (!StrCompare(company, "VMware, Inc."))
+		wall->host_ch = 'W'; // vmWare
+	else if (!StrCompare(company, "innotek GmbH"))
+		wall->host_ch = 'V'; // Virtualbox
+	else if (!StrCompare(company, "QEMU"))
+		wall->host_ch = 'Q'; // Qemu
+	else
+		wall->host_ch = '?'; // Bare-Metal / Unknown VM
+
+	if (sys_is_uefi_booted)
+		wall->bootm_ch = 'U'; // UEFI
+	else
+		wall->bootm_ch = 'B'; // BIOS
+
+	switch (sys_bootloader_id)
+	{
+		case BL_ZEAL:
+			wall->bootl_ch = 'Z'; // PublicDomain Bootloader
+			break;
+		case BL_LIMINE:
+			wall->bootl_ch = 'L'; // Limine Bootloader
+			break;
+		default:
+			wall->bootl_ch = '!'; // Unknown Bootloader
+	}
+
+	switch (sys_boot_src.u8[0])
+	{
+		case BOOT_SRC_ROM:
+			wall->boots_ch = 'O'; // ROM
+			break;
+		case BOOT_SRC_RAM:
+			wall->boots_ch = 'R'; // RAM
+			break;
+		case BOOT_SRC_HARDDRIVE:
+			wall->boots_ch = 'H'; // HDD
+			break;
+		case BOOT_SRC_DVD:
+			wall->boots_ch = 'D'; // DVD
+			break;
+		default:
+			wall->boots_ch = "X"; // Unknown/missing case
+	}
+
+	// # of chars in resolution string in top bar
+	wall->res_str_size = ToI64(2 + Floor(1 + Log10(sys_framebuffer_width)) + Floor(1 + Log10(sys_framebuffer_height)));
+}
+        7              (      	      $            Term         9              (      	      $            Term  

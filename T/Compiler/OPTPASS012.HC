@@ -1163,6 +1163,7 @@ args.
       case IC_COS:
       case IC_TAN:
       case IC_ATAN:
+      case IC_POPCNT:
       case IC_BR_CARRY:
       case IC_BR_NOT_CARRY:
       case IC_BR_EQU_EQU ...IC_BR_LESS_EQU:

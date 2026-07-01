@@ -234,7 +234,8 @@ class CIntermediateStruct
 #define IC_COS			0xB6
 #define IC_TAN			0xB7
 #define IC_ATAN			0xB8
-#define IC_ICS_NUM		0xB9
+#define IC_POPCNT		0xB9
+#define IC_ICS_NUM		0xBA
 
 #define KW_INCLUDE	0
 #define KW_DEFINE	1

@@ -1,0 +1,33 @@
+// EZODUS: T/Kernel/KEND.HC — tables + define lists missing from ring-0 KMain path.
+U0 SysGlblsInit()
+{
+	I64 i, j;
+
+	if (!rev_bits_table)
+	{
+		rev_bits_table = CAlloc(256);
+		for (i = 0; i < 256; i++)
+			for (j = 0; j < 8; j++)
+				if (Bt(&i, 7 - j))
+					LBts(rev_bits_table + i, j);
+	}
+	if (!pow10_I64)
+	{
+		pow10_I64 = CAlloc(sizeof(F64) * (308 + 308 + 1));
+		for (i = -308; i < 309; i++)
+			pow10_I64[i + 309] = Pow(10., i);
+	}
+	if (!text.font)
+		text.font = sys_font_std;
+	if (!text.aux_font)
+		text.aux_font = sys_font_aux;
+	if (!text.cols)
+		text.cols = 640 / FONT_WIDTH;
+	if (!text.rows)
+		text.rows = 480 / FONT_HEIGHT;
+	if (!debug.fun_seg_cache)
+		debug.fun_seg_cache = CAlloc(FUN_SEG_CACHE_SIZE * sizeof(CFunSegCache));
+}
+
+SysGlblsInit;
+SysDefinesLoad;

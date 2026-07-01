@@ -1,0 +1,191 @@
+// EZODUS: host mouse core (subset of Kernel/SerialDev/Mouse.ZC — no PS/2/IRQ).
+
+U0 GridInit()
+{
+	mouse_grid.x		= mouse_grid.y			= mouse_grid.z			= 8;
+	mouse_grid.x_offset	= mouse_grid.y_offset	= mouse_grid.z_offset	= 0;
+	mouse_grid.x_speed	= mouse_grid.y_speed	= mouse_grid.z_speed	= 1;
+	mouse_grid.show		= mouse_grid.snap		= mouse_grid.coord		= FALSE;
+}
+
+U0 MouseUpdate(I64 x, I64 y, I64 z, Bool l, Bool r)
+{
+	mouse.presnap.x = ToI64(mouse.scale.x * x) + mouse.offset.x;
+	mouse.presnap.y = ToI64(mouse.scale.y * y) + mouse.offset.y;
+	mouse.presnap.z = ToI64(mouse.scale.z * z) + mouse.offset.z;
+	if (mouse_grid.snap)
+	{
+		mouse.pos.x = Trunc(mouse.presnap.x / mouse_grid.x) * mouse_grid.x + mouse_grid.x_offset;
+		mouse.pos.y = Trunc(mouse.presnap.y / mouse_grid.y) * mouse_grid.y + mouse_grid.y_offset;
+		mouse.pos.z = Trunc(mouse.presnap.z / mouse_grid.z) * mouse_grid.z + mouse_grid.z_offset;
+	}
+	else
+	{
+		mouse.pos.x = mouse.presnap.x;
+		mouse.pos.y = mouse.presnap.y;
+		mouse.pos.z = mouse.presnap.z;
+	}
+
+	mouse.pos.x = ClampI64(mouse.pos.x, 0, sys_framebuffer_width  - 1);
+	mouse.pos.y = ClampI64(mouse.pos.y, 0, sys_framebuffer_height - 1);
+	mouse.pos_text.x = mouse.pos.x / FONT_WIDTH;
+	if (mouse.pos_text.x >= text.cols)
+	{
+		mouse.pos_text.x = text.cols - 1;
+		mouse.pos.x		 = text.cols * FONT_WIDTH - 1;
+	}
+	mouse.pos_text.y = mouse.pos.y / FONT_HEIGHT;
+	if (mouse.pos_text.y >= text.rows)
+	{
+		mouse.pos_text.y = text.rows - 1;
+		mouse.pos.y		 = text.rows * FONT_HEIGHT - 1;
+	}
+	mouse.lb = l;
+	mouse.rb = r;
+	LBEqual(&kbd.scan_code, SCf_MS_L_DOWN, mouse.lb);
+	LBEqual(&kbd.scan_code, SCf_MS_R_DOWN, mouse.rb);
+}
+
+public U0 MouseRawReset()
+{
+	mouse_hard.raw_data.x = 0;
+	mouse_hard.raw_data.y = 0;
+	mouse_hard.raw_data.z = 0;
+	mouse_hard.raw_bttns[0] = FALSE;
+	mouse_hard.raw_bttns[1] = FALSE;
+	mouse_hard.raw_bttns[2] = FALSE;
+	mouse_hard.raw_bttns[3] = FALSE;
+	mouse_hard.raw_bttns[4] = FALSE;
+}
+
+U0 MouseSet(I64 x=I64_MAX, I64 y=I64_MAX, I64 z=I64_MAX, I64 l=I64_MAX, I64 r=I64_MAX)
+{
+	if (!(0 <= x < sys_framebuffer_width))
+		x = mouse.pos.x;
+	if (!(0 <= y < sys_framebuffer_height))
+		y = mouse.pos.y;
+	if (z == I64_MAX)
+		z = mouse.pos.z;
+
+	if (!(FALSE <= l <= TRUE))
+		l = mouse.lb;
+	if (!(FALSE <= r <= TRUE))
+		r = mouse.rb;
+
+	x = (x - mouse.offset.x) / mouse.scale.x;
+	y = (y - mouse.offset.y) / mouse.scale.y;
+	z = (z - mouse.offset.z) / mouse.scale.z;
+	MouseUpdate(x, y, z, l, r);
+	MouseHardSet(x, y, z, l, r);
+}
+
+U0 MouseInit()
+{
+	MemSet(&mouse, 0, sizeof(CMouseStateGlobals));
+	MemSet(&mouse_last, 0, sizeof(CMouseStateGlobals));
+	mouse.offset.x	 = mouse.offset.y	= mouse.offset.z	= 0;
+	mouse.scale.x	 = mouse.scale.y	= mouse.scale.z		= 1.0;
+	mouse.pos_text.x = mouse.pos_text.y = mouse.pos_text.z	= 0;
+	mouse.has_wheel	 = FALSE;
+	mouse.show		 = TRUE;
+	mouse.speed		 = 0;
+	mouse.timestamp	 = TSCGet;
+	mouse.dbl_time	 = 0.175;
+	GridInit;
+	MouseRawReset;
+}
+
+U0 MouseHardSpeedSet()
+{
+	I64 dd, tmp;
+
+	if ((dd = SqrI64(mouse_hard_last.pos.x - mouse_hard.pos.x) + SqrI64(mouse_hard_last.pos.y - mouse_hard.pos.y)) &&
+			(tmp = mouse_hard.timestamp - mouse_hard_last.timestamp))
+		mouse_hard.speed = Sqrt(dd) * counts.time_stamp_freq / tmp;
+	mouse_hard_last.timestamp = mouse_hard.timestamp;
+}
+
+U0 MouseHardSetPre()
+{
+	I64 old_timestamp = mouse_hard_last.timestamp;
+
+	MemCopy(&mouse_hard_last, &mouse_hard, sizeof(CMouseHardStateGlobals));
+	mouse_hard_last.timestamp = old_timestamp;
+}
+
+U0 MouseHardSetPost()
+{
+	I64 i;
+
+	mouse_hard.pos.x = mouse_hard.prescale.x * mouse_hard.scale.x * mouse_grid.x_speed;
+	mouse_hard.pos.y = mouse_hard.prescale.y * mouse_hard.scale.y * mouse_grid.y_speed;
+	mouse_hard.pos.z = mouse_hard.prescale.z * mouse_hard.scale.z * mouse_grid.z_speed;
+
+	i = Trunc(mouse.scale.x * mouse_hard.pos.x / mouse_grid.x) * mouse_grid.x + mouse.offset.x;
+	if (i < 0)
+		mouse.offset.x -= i;
+	else if (i >= sys_framebuffer_width)
+		mouse.offset.x += sys_framebuffer_width - 1 - i;
+
+	i = Trunc(mouse.scale.y * mouse_hard.pos.y / mouse_grid.y) * mouse_grid.y + mouse.offset.y;
+	if (i < 0)
+		mouse.offset.y -= i;
+	else if (i >= sys_framebuffer_height)
+		mouse.offset.y += sys_framebuffer_height - 1 - i;
+
+	if (mouse_hard.pos.x != mouse_hard_last.pos.x || mouse_hard.pos.y != mouse_hard_last.pos.y ||
+		mouse_hard.pos.z != mouse_hard_last.pos.z)
+	{
+		mouse_hard.event = TRUE;
+		MouseHardSpeedSet;
+	}
+	else
+		for (i = 0; i < 5; i++)
+			if (mouse_hard.bttns[i] != mouse_hard_last.bttns[i])
+			{
+				mouse_hard.event = TRUE;
+				break;
+			}
+}
+
+U0 MouseHardSet(I64 x, I64 y, I64 z, I64 l, I64 r)
+{
+	mouse_hard.timestamp = TSCGet;
+	MouseHardSetPre;
+	mouse_hard.prescale.x	= x / mouse_hard.scale.x / mouse_grid.x_speed;
+	mouse_hard.prescale.y	= y / mouse_hard.scale.y / mouse_grid.y_speed;
+	mouse_hard.prescale.z	= z / mouse_hard.scale.z / mouse_grid.z_speed;
+	mouse_hard.bttns[0]		= l;
+	mouse_hard.bttns[1]		= r;
+	MouseHardSetPost;
+}
+
+Bool MouseHardDriverInstall(I64 dummy=0)
+{
+	no_warn dummy;
+	return FALSE;
+}
+
+Bool MouseHardEnable(Bool val=TRUE)
+{
+	Bool old_val = mouse_hard.enabled;
+
+	mouse_hard.enabled = val;
+	return old_val;
+}
+
+public Bool MouseRaw(Bool val, CTask *task=NULL)
+{
+	no_warn val, task;
+	return FALSE;
+}
+
+CMouseRawQueue *MouseRawQueueFind(CTask *task)
+{
+	no_warn task;
+	return NULL;
+}
+
+U0 KbdMouseInit()
+{
+}

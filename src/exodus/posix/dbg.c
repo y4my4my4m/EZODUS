@@ -52,6 +52,9 @@ static void routine(int sig, argign siginfo_t *siginfo, void *_ctx) {
       REG(rflags),
   };
 #endif
+  fprintf(stderr, "EZFAULT sig=%d rip=%p (%s) addr=%p rsp=%p rsi=%p\n",
+          sig, (void *)regs[16], WhichFun((void *)regs[16]),
+          (void *)siginfo->si_addr, (void *)regs[4], (void *)regs[6]);
   BackTrace(regs[5] /*RBP*/, regs[15] /*RIP*/);
   static CSymbol *sym;
   if (!sym)

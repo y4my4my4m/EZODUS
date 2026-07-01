@@ -1,0 +1,4 @@
+#exe {Cd(__DIR__);};
+// EZODUS: full ZDisk/Mount/DiskCheck deferred — needs ATA/AHCI/PCI + VFS.
+// Kernel/BlkDev/DiskBootstrap.ZC supplies compile-time stubs.
+#exe {Drv('Z'); Cd("/");};

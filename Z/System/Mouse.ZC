@@ -1,0 +1,47 @@
+#help_index "Graphics/Misc;Mouse"
+
+public U0 DrawGrabMouse(CDC *dc, I64 x, I64 y, Bool closed)
+{//EZODUS: cursor sprites deferred — $SP/$IB module init caused IET_MAIN SIGILL.
+	no_warn closed;
+	if (dc)
+		dc->flags &= ~(DCF_TRANSFORMATION | DCF_SYMMETRY);
+}
+
+public U0 DrawStdMouse(CDC *dc, I64 x, I64 y)
+{
+	I64 i, w;
+	U8 *body, c;
+
+	no_warn dc;
+	if (!gr.dc2 || !gr.dc2->body)
+		return;
+	body = gr.dc2->body;
+	w = gr.dc2->width_internal;
+	if (!(0 <= x < GR_WIDTH && 0 <= y < GR_HEIGHT))
+		return;
+	for (i = -10; i <= 10; i++)
+	{
+		if (0 <= x + i < GR_WIDTH)
+		{
+			c = body[y * w + x + i];
+			if (c == 0)
+				body[y * w + x + i] = 15;
+			else
+				body[y * w + x + i] = 0;
+		}
+		if (0 <= y + i < GR_HEIGHT)
+		{
+			c = body[(y + i) * w + x];
+			if (c == 0)
+				body[(y + i) * w + x] = 15;
+			else
+				body[(y + i) * w + x] = 0;
+		}
+	}
+}
+
+U0 MouseGrInit()
+{
+	gr.fp_draw_grab_mouse	= &DrawGrabMouse;
+	gr.fp_draw_mouse		= &DrawStdMouse;
+}

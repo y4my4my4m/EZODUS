@@ -14,9 +14,9 @@ set(PROJECT_MINOR_VERSION 0)
 set(PROJECT_PATCH_LEVEL   1)
 set(VERSION_SIMPLE "${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_LEVEL}")
 
-project(exodus
+project(ezodus
   VERSION ${VERSION_SIMPLE}
-  DESCRIPTION "Executable Divine Operating System in Userspace"
+  DESCRIPTION "ZealOS in Userspace (EXODUS fork)"
   LANGUAGES C ASM)
 
 set(default_build_type "Release")
@@ -136,7 +136,7 @@ endif ()
 if (BUILD_HCRT)
   add_custom_target(HCRT
     ALL
-    COMMAND exodus -ct T -f HCRT_BOOTSTRAP.BIN BuildHCRT.HC
+    COMMAND ezodus -ct Z -f HCRT_BOOTSTRAP.ZXE BuildHCRT.ZC
     DEPENDS ${PROJECT_NAME}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 endif ()

@@ -1,0 +1,3 @@
+// EZODUS bootstrap: full ZealOS PUBLIC API map deferred.
+// Symbols resolve via compiled HCRT + Kernel*.HH LoadImps at runtime.
+// ACInit("PUBLIC.ZC;Kernel*.HH") uses Kernel headers for autocomplete.

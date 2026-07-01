@@ -1,0 +1,22 @@
+#exe {Cd(__DIR__);};
+#include "Math.ZC"
+#include "MathODE.ZC"
+
+#exe {
+	Option(OPTf_WARN_PAREN, ON);
+	Option(OPTf_WARN_DUP_TYPES, ON);
+	Option(OPTf_WARN_UNUSED_VAR, OFF);	// Assembly pulls args from the stack
+										// instead of using argument identifiers.
+};
+#include "Types.ZC"
+#include "Conversion.ZC"
+#include "F32.ZC"
+// EZODUS: Vec3/Vec4/Mat4 use XMM asm; seed cannot compile. Gr uses GrDC Mat4x4 instead.
+// #include "Vec4.ZC"
+// #include "Vec3.ZC"
+// #include "Mat4.ZC"
+
+#define HOLYMATH_COMPILED
+
+#exe {Option(OPTf_WARN_UNUSED_VAR, ON);};
+#exe {Drv('Z'); Cd("/");};

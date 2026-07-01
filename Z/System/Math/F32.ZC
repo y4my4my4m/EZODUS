@@ -1,0 +1,5 @@
+// EZODUS: ZealOS SSE CosF32 asm not supported by TempleOS seed; delegate to F64 Cos().
+F32 CosF32(F32 theta)
+{
+	return Cos(theta(F64))(F32);
+}

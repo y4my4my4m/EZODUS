@@ -48,7 +48,10 @@ vec_void_t LoadHCRT(char const *name) {
   readfd(fd, bfh_addr = NewVirtualChunk(sz, true), sz);
   closefd(fd);
   CBinFile *bfh = bfh_addr;
-  if (memcmp(bfh->bin_signature, "TOSB" /*BIN_SIGNATURE_VAL*/, 4)) {
+  /* ZealOS ZXE_SIGNATURE_VAL 'ZXE' -> bytes "ZXE\0".
+   * TempleOS BIN_SIGNATURE_VAL "TOSB" kept for reference/transition builds. */
+  if (memcmp(bfh->bin_signature, "ZXE", 4) &&
+      memcmp(bfh->bin_signature, "TOSB", 4)) {
     flushprint(stderr, "invalid file '%s'\n", name);
     terminate(1);
   }

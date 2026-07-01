@@ -1,0 +1,5 @@
+// Run by the (userspace) bootstrap seed to AOT-compile the ZealOS runtime.
+// Executes in the SEED compiler context, so uses seed (TempleOS) vocab: Drv/Cmp.
+#exe {Drv('Z');};
+Cmp("FULL_PACKAGE.ZC", "HCRT.DBG.Z", "Z:/HCRT.ZXE", 'Z');
+Shutdown;

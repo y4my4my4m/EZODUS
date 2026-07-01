@@ -1,0 +1,211 @@
+#define COMPONENT_COMPILER 1
+#define COMPONENT_GRAPHICS 1
+#define IMPORT_BUILTINS 1
+#define INIT_EVERYTHING 1
+#define FPTRS 1
+//#define GEN_HEADERS 1
+#define USE_DOLDOC 1
+#include "HCRT_TOS.ZC"
+#ifdef GEN_HEADERS
+#include"GenHeaders.ZC";
+CDoc *unfound=DocNew("unfound.DD");
+#endif
+static U0 BootstrapImportSymbol(U8 *name,U8 *ptr,U64 type) {
+  CHash *find=HashFind(name,Fs->hash_table,-1);
+  if (find && find->type&HTT_GLOBAL_VAR) {
+    find(CHashGlobalVar*)->data_addr=ptr;
+  } else if (find && find->type&HTT_FUN
+             &&!(find(CHashFun*)->flags & 1<<Ff_INTERNAL)) {
+    find(CHashFun*)->exe_addr=ptr;
+    Btr(&find(CHashFun*)->flags,Cf_EXTERN);
+  } else if (name[0]=='_' || !StrNCompare(name,"SYS",3) || !find) {
+    find=CAlloc(sizeof(CHashExport));
+    find->str=StrNew(name);
+    find->type=HTT_EXPORT_SYS_SYM;
+    find(CHashExport*)->val=ptr;
+    HashAdd(find,Fs->hash_table);
+#ifdef GEN_HEADERS
+    DocPrint(unfound,"%s\n",name);
+#endif
+  } else {
+#ifdef GEN_HEADERS
+    DocPrint(unfound,"%s\n",name);
+#endif
+  }
+}
+
+asm { // embed KERNEL*.HH to speedup boot
+  _KERNELA_BIN::
+  BINFILE "Kernel/KernelA.HH";
+  DU8 0;
+  _KERNELB_BIN::
+  BINFILE "Kernel/KernelB.HH";
+  DU8 0;
+};
+
+U0 UserStartUp()
+{
+	DocTermNew;
+	Fs->border_src = BDS_CONST; // EZODUS: BDS_CUR_DRIVE garbles prompt without border doc
+	Drive('Z');
+	EzodusCurDirSet(_ezodus_home_dir + 2);
+	DocPrint(Fs->put_doc, "ZealOS on Ezodus\n\nPublic Domain Operating System\n\n");
+	LBts(&Fs->display_flags, DISPLAYf_SHOW);
+	WinToTop;
+	WinZBufUpdate;
+	// Type("::/Doc/Start.DD"); // EZODUS: $WW$ forms in Start.DD crash DocForm hash on host
+	// Dir; // EZODUS: disk Dir deferred until VFS mount layer wired
+}
+
+U0 ServerStartUp()
+{
+	DocTermNew;
+	Fs->text_attr = BLUE << 4 + WHITE;
+	Fs->win_top = 2;
+	Fs->win_bottom = text.rows / 8;
+	WinDerivedValsUpdate(Fs);
+	CtrlsUpdate(Fs);
+	Fs->win_inhibit = WIG_TASK_DEFAULT - WIF_SELF_BORDER - WIF_SELF_GRAB_SCROLL - WIF_SELF_CTRLS;
+	LBts(&Fs->display_flags, DISPLAYf_CHILDREN_NOT_ON_TOP);
+	LBts(&Fs->display_flags, DISPLAYf_SHOW);
+	sys_focus_task = Fs;
+	WinZBufUpdate;
+}
+
+U0 LoadImps() {
+  try {
+    TOSPrint("LoadImps:sym\n");
+    __BootstrapForeachSymbol(&BootstrapImportSymbol);
+    TOSPrint("LoadImps:done\n");
+  } catch {
+    TOSPrint("BOOT ERROR:%c\n",Fs->except_ch);
+    Fs->catch_except=TRUE;
+  }
+}
+
+U0 StartUpTasks()
+{
+	CTask noreg *user;
+
+	// EZODUS: User() TaskWait blocks until idle; user stuck at StrGet → WinTileVert never runs.
+	user = Spawn(&UserCmdLine, NULL, "Terminal");
+	Refresh(2, TRUE);
+	WinToTop(user);
+	WinHorz(1, TEXT_COLS - 2, user);
+	// Leave bottom rows for WinMgr wallpaper task/CPU stats (real ZealOS layout).
+	WinVert(text.rows / 8 + 1, TEXT_ROWS - 9, user);
+	TaskDerivedValsUpdate(user);
+	WinZBufUpdate;
+	sys_focus_task = user;
+	"Boot Time:%7.3fs\n", tS;
+	if (mem_boot_base)
+		XTalk(user, "Cd; #include \"Once\";\n");
+	Silent;
+	if (mem_boot_base)
+		ACInit("/*;!*/Bible.TXT;!*/Clementine.TXT;!*/PCIDevices.DD;!*/HTML/*;!*/ChangeLog.DD");
+	Silent(OFF);
+
+	if (mem_boot_base && sys_boot_src.u16[0] != BOOT_SRC_RAM)
+		PopUp("ExeFile2(\"::/System/ZSplash.ZC\");");
+}
+
+U0 __InitCPUs() {
+  MPIntsInit;
+  I64 idx;
+  for (idx=Gs->num+1;idx<mp_count;++idx)
+    __SpawnCore(&CoreAPExecutiveTask);
+  for (idx=Gs->num+1;idx<mp_count;++idx)
+    while (!Bt(&mp_count_lock,idx))
+      PAUSE
+}
+
+U0 _InitUI() {
+  CTask *u;
+  TOSPrint("_InitUI:0\n");
+  SetFs(sys_task);
+  EzodusVfsInit;
+  TOSPrint("_InitUI:1 CInit\n");
+  CInit;
+  TOSPrint("_InitUI:2 KeyDev\n");
+  KeyDevInit;
+  WinEzodusInit;
+  GrEzodusInit;
+  WallPaperEzodusInit;
+  TOSPrint("_InitUI:3 Gr\n");
+  GrInit1;
+  MouseGrInit;
+  GrInit3;
+  GrInit4;
+  GrPaletteInit;
+  TOSPrint("_InitUI:4 Doc\n");
+  DocInit;
+  DocPutHooksInit;
+  LoadDocDefines;
+  TOSPrint("_InitUI:4b God\n");
+  GodEzodusInit;
+  try GodInit;
+  catch {}
+  MeshClipInit;
+  TOSPrint("_InitUI:5 MP\n");
+  MPIntsInit;
+  TOSPrint("_InitUI:5a MPInts\n");
+  // EZODUS: stub executive on sys_task until Spawn/CTask heap stable on host.
+  Gs->executive_task = Fs;
+  TOSPrint("_InitUI:5b ExecStub\n");
+  // Gs->executive_task=Spawn(&CoreAPExecutiveTask,NULL,"Executive",-1,sys_task);
+  __InitCPUs;
+  TOSPrint("_InitUI:5c CPUs\n");
+  TOSPrint("_InitUI:6 LoadImps\n");
+  LoadImps;
+  if (__IsCmdLine) {
+    Drive('Z');
+    PCSpkInit;
+    u=User;
+    DeathWait(&u);
+    Shutdown;
+  } else {
+    TOSPrint("_InitUI:7 GUI\n");
+    DrawWindowNew;
+    sys_framebuffer_width = GR_WIDTH;
+    sys_framebuffer_height = GR_HEIGHT;
+    sys_framebuffer_pitch = GR_WIDTH * 4;
+    sys_framebuffer_bpp = 32;
+    sys_framebuffer_pidth = GR_WIDTH;
+    text.cols = sys_framebuffer_width / FONT_WIDTH;
+    text.rows = sys_framebuffer_height / FONT_HEIGHT;
+    text.screen_size = sys_framebuffer_pidth * sys_framebuffer_height;
+    text.buffer_size = text.screen_size * 4;
+    text.fb_alias = NULL; // EZODUS: SDL only
+    EzodusMsInit;
+    GrInit2;
+    // System task gets its own terminal window, positioned like StartOS.ZC.
+    DocTermNew;
+    WinVert(2, text.rows / 8);
+    TOSPrint("_InitUI:8 WinMgr\n");
+    // Real ZealOS boot: the Window Manager is its own task that composites the
+    // screen (GrUpdateScreen) ~30x/s from WinMgrSleep. Multitasking works now,
+    // so spawn it instead of painting inline on the boot task.
+    sys_winmgr_task = Spawn(&WinMgrTask, NULL, "Window Manager");
+    Fs->win_inhibit = WIG_TASK_DEFAULT - WIF_SELF_BORDER - WIF_SELF_GRAB_SCROLL - WIF_SELF_CTRLS;
+    LBts(&Fs->display_flags, DISPLAYf_CHILDREN_NOT_ON_TOP);
+    LBts(&Fs->display_flags, DISPLAYf_SHOW);
+    RegInit;
+    LBts(&sys_run_level, RLf_REGISTRY);
+    TOSPrint("_InitUI:9 WallPaper\n");
+    WallPaperInit;
+    if (!gr.fp_wall_paper)
+      gr.fp_wall_paper = &WallPaper;
+    PaletteSetSlate;
+    Refresh; // EZODUS: like T/FULL_PACKAGE — wait for WinMgr first composites
+    PCSpkInit;
+    Drive('Z');
+    LBts(&sys_run_level, RLf_HOME);
+    try StartUpTasks;
+    catch { PutExcept(FALSE); }
+    TOSPrint("_InitUI:11 server loop\n");
+    // System task now enters server mode (see StartOS.ZC tail).
+    ServerTaskCont;
+  }
+}
+_InitUI;
+#include "PUBLIC.ZC";;

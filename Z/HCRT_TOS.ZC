@@ -1,0 +1,279 @@
+// EZODUS userspace boot orchestrator for ZealOS.
+// Mirrors exodus T/HCRT_TOS.HC but uses ZealOS file layout + names.
+// Compiles the WHOLE OS (kernel + JIT compiler + system) as one HolyC program.
+// There is no precompiled ring-0 kernel: the ezodus C runtime JITs everything.
+//
+// Ring-0/hardware files from Kernel.PRJ are intentionally EXCLUDED and replaced
+// by host FFI: KStart16/32/64 (boot asm), KInterrupts (IDT), PCIBIOS/PCI,
+// MultiProc (APIC SMP), SMBIOS, SerialDev, KMain (HW init).
+#exe {Cd(__DIR__);;};;
+#define FPTRS 1
+
+// ZealOS kernel files reference kernel_config in compile-time #exe blocks.
+// The stock KConfig.ZC is INTERACTIVE (CharGet/StrGet/Mount2) and cannot run
+// during userspace bootstrap, so define the struct + defines and a static,
+// non-interactive default config instead.
+#exe {
+	Option(OPTf_WARN_PAREN,		ON);
+	Option(OPTf_WARN_DUP_TYPES, ON);
+	#define CONFIG_MEM_INIT 		0
+	#define CONFIG_HEAP_INIT		1
+	#define CONFIG_VAR_INIT 		2
+	#define CONFIG_HOME_DIR 		3
+	#define CONFIG_NO_MP			4
+	#define CONFIG_MOUNT_AHCI_AUTO 	5
+	#define CONFIG_DEBUG_DISTRO 	6
+	#define CONFIG_OPTIONS_NUM		7
+	#define CONFIG_HELP				7
+	extern class CDoc;
+	class CKConfig
+	{
+		U8		*disk_cache_size_exp;
+		CDoc	*add_dev;
+		U8		*debug_distro_file, *debug_distro_start;
+		U8		*home_dir;
+		Bool	opts[CONFIG_OPTIONS_NUM];
+		U8		mem_init_val, heap_init_val, var_init_val, boot_drive_let, mount_ide_auto_hd_let, mount_ide_auto_cd_let;
+	};
+	CKConfig *kernel_config;
+	kernel_config = CAlloc(sizeof(CKConfig));
+	kernel_config->home_dir				= StrNew("::/Home");
+	kernel_config->disk_cache_size_exp	= StrNew("0x800000");
+	kernel_config->boot_drive_let		= 'Z';
+	kernel_config->opts[CONFIG_NO_MP]	= TRUE; //userspace: host provides MP via FFI
+	kernel_config->add_dev				= DocNew;
+};
+
+#include "Kernel/KernelA.HH"
+
+asm {
+	ALIGN 16,0; //MUST ALIGN SYS_FIXED_AREA TO 16 TO AVOID SEGFAULTS WITH FXSAVE
+};
+CSysFixedArea sys_fixed_area, *SYS_FIXED_AREA;
+SYS_FIXED_AREA = &sys_fixed_area;
+asm {
+SYS_EXTERN_TABLE::
+	DU64	0;
+};
+U0 InitFX()
+{// Capture a valid FPU/MXCSR state into SYS_FIXED_AREA.init_fpu_mmx (offset 0).
+ // TaskInit copies this into every new task's fpu_mmx; without it a freshly
+ // spawned task's first FXRSTOR loads garbage and the context restore fails.
+	I64 noreg ptr;
+	ptr = SYS_FIXED_AREA;
+	MOV	RAX, &ptr[RBP]
+	FXSAVE	U64 [RAX]
+}
+InitFX;
+CCPU cpu_structs[MP_PROCESSORS_NUM];
+U32 SYS_CTRL_ALT_FLAGS = 0;
+
+//[0xE8,0x100) is a UserReserved block in the TEB. The ezodus C runtime points
+//GS base at a host-side thread-local block; slot 0xE8 holds Fs (CTask*), 0xF0
+//holds Gs (CCPU*). Consult Compiler/OptPass789A.ZC IC_FS/IC_GS emission.
+asm {
+_GET_FS::
+	XOR	EAX,EAX
+	MOV	RAX,GS:0xE8[RAX]
+	RET
+_SET_FS::
+	PUSH	RBP
+	MOV	RBP,RSP
+	XOR	EAX,EAX
+	PUSH	RSI
+	MOV	RSI,SF_ARG1[RBP]
+	MOV	GS:0xE8[RAX],RSI
+	POP	RSI
+	POP	RBP
+	RET1	8
+_GET_GS::
+	XOR	EAX,EAX
+	MOV	RAX,GS:0xF0[RAX]
+	RET
+_SET_GS::
+	PUSH	RBP
+	MOV	RBP,RSP
+	XOR	EAX,EAX
+	PUSH	RSI
+	MOV	RSI,SF_ARG1[RBP]
+	MOV	GS:0xF0[RAX],RSI
+	POP	RSI
+	POP	RBP
+	RET1	8
+}
+_extern _GET_FS CTask *GetFs();
+_extern _SET_FS U0 SetFs(CTask *);
+_extern _GET_GS CCPU *GetGs();
+_extern _SET_GS U0 SetGs(CCPU *);
+
+Bool IsRaw()
+{
+	return __IsCmdLine;
+}
+
+// Forward decls: these are defined later in the include chain (HeapCtrl.ZC,
+// KTask.ZC) but the boot prologue calls them now.
+extern CHeapCtrl *HeapCtrlInit(CHeapCtrl *hc=NULL, CTask *task=NULL, CBlkPool *bp);
+extern I64 TaskInit(CTask *task, I64 stack_size);
+extern U0 EzodusPaintLoop();
+
+// Boot heaps. Static (not heap-alloced) so HeapCtrlDel guards &ahc.
+// 3rd arg is bp: NULL -> low32 (32-bit-reachable, for code heap), else anywhere.
+CHeapCtrl ahc, ahd;
+CTask _boot_task;
+// EZODUS: static CTask isn't guaranteed zeroed on host; garbage bpt_list/context
+// fields crash the scheduler's save/restore breakpoint walk. Clear it first.
+// (MemSet is _extern _MEMSET, not reliably bindable this early, so zero by hand.)
+{
+	I64 _zi;
+	U8 *_zp = &_boot_task;
+	for (_zi = 0; _zi < sizeof(CTask); _zi++)
+		_zp[_zi] = 0;
+}
+SetFs(&_boot_task);
+HeapCtrlInit(&ahc, &_boot_task, 0); //code heap (low32)
+HeapCtrlInit(&ahd, &_boot_task, 1); //data heap
+_boot_task.data_heap = &ahd;
+_boot_task.code_heap = &ahc;
+SetGs(&cpu_structs[0]);
+_boot_task.gs = &cpu_structs[0]; //EZODUS: Spawn copies parent->gs; WinToTop derefs task->gs->num.
+CTask *sys_task = &_boot_task;
+// mp_count/sys_code_bp init after KernelB.HH (declares those globals).
+// QueueInit is _intern (KernelB.HH); next_dying queue + TaskInit run after it.
+
+//──────────────────────────────────────────────────────────────────────────
+// Kernel body (ZealOS Kernel.PRJ order, ring-0/HW files removed).
+//──────────────────────────────────────────────────────────────────────────
+#include "Kernel/KMathA.ZC"
+#include "Kernel/KUtils.ZC"
+#exe {Option(OPTf_KEEP_PRIVATE, ON);};
+#include "Compiler/CompilerA.HH"
+#exe {Option(OPTf_EXTERNS_TO_IMPORTS, ON);};
+#include "Compiler/CompilerB.HH"
+#exe {Option(OPTf_EXTERNS_TO_IMPORTS, OFF);};
+#exe {Option(OPTf_KEEP_PRIVATE, OFF);};
+#include "Kernel/KernelB.HH"
+// Boot queue + task init now that _intern QueueInit is bound.
+QueueInit(&cpu_structs[0].next_dying);
+_boot_task.addr = &_boot_task;
+_boot_task.task_signature = TASK_SIGNATURE_VAL;
+TaskInit(&_boot_task, 0);
+mp_count = mp_count_initial = 1;
+sys_code_bp = NULL; // EZODUS: no ring-0 code blk pool on host pthread.
+mem_page_size = MEM_PAG_SIZE;
+#include "Kernel/KExterns.ZC"
+#include "Kernel/StrA.ZC"
+#include "Kernel/KGlobals.ZC"
+#include "Kernel/KExtBootstrap.ZC"
+#include "Kernel/KMathB.ZC"
+#include "Kernel/Sched.ZC"
+extern Bool BreakUnlock(CTask *task=NULL);
+#include "Kernel/Memory/MakeMemory.ZC"
+#include "Kernel/FontStd.ZC"
+#include "Kernel/FontAux.ZC"
+#include "Kernel/StrB.ZC"
+#include "Kernel/KHashA.ZC"
+#include "Kernel/KDataTypes.ZC"
+#include "Kernel/KHashB.ZC"
+#include "Kernel/KLoad.ZC"
+#include "Kernel/KDate.ZC"
+#include "Kernel/StrPrint.ZC"
+#include "Kernel/StrScan.ZC"
+#include "Kernel/KDefine.ZC"
+#include "Kernel/KEnd.ZC"
+#include "Kernel/Display.ZC"
+#include "Kernel/KMisc.ZC"
+#include "Kernel/KDebug.ZC"
+#include "Kernel/KExcept.ZC"
+#include "Kernel/SerialDev/EzodusMouseCore.ZC"
+#include "Kernel/QuickSort.ZC"
+#include "Kernel/KTask.ZC"
+#include "Kernel/KeyDev.ZC"
+#include "Kernel/SerialDev/Message.ZC"
+#include "Kernel/SerialDev/KbdNames.ZC"
+#include "Kernel/Job.ZC"
+#include "Kernel/SerialDev/KbdHost.ZC"
+#include "Kernel/SerialDev/MsHost.ZC"
+#include "Kernel/EdLite.ZC"
+// EZODUS: full MakeBlkDev deferred (ATA/AHCI hw). Compiler needs PutFileLink.
+#include "Kernel/BlkDev/DiskBootstrap.ZC"
+#include "Kernel/BlkDev/DiskStrA.ZC"
+#include "Kernel/BlkDev/DiskDirA.ZC"
+#include "Kernel/FunSeg.ZC"
+
+//──────────────────────────────────────────────────────────────────────────
+// JIT compiler (ZealOS Compiler.PRJ order). Needed: ezodus JITs HolyC at run.
+//──────────────────────────────────────────────────────────────────────────
+#include "Compiler/Templates.ZC"
+#include "Compiler/CExterns.ZC"
+CCompGlobals cmp;
+#include "Compiler/CInit.ZC"
+#include "Compiler/CExcept.ZC"
+#include "Compiler/LexLib.ZC"
+#include "Compiler/Lex.ZC"
+CUAsmGlobals uasm;
+#include "Compiler/CHash.ZC"
+#include "Compiler/UAsm.ZC"
+#include "Compiler/ParseLib.ZC"
+#include "Compiler/AsmInit.ZC"
+#include "Compiler/AsmLib.ZC"
+#include "Compiler/AsmResolve.ZC"
+#include "Compiler/Asm.ZC"
+#include "Compiler/OptLib.ZC"
+#include "Compiler/ParseExp.ZC"
+#include "Compiler/ParseVar.ZC"
+#include "Compiler/CMisc.ZC"
+#include "Compiler/CMain.ZC"
+#include "Compiler/ParseStatement.ZC"
+#include "Compiler/OptPass012.ZC"
+#include "Compiler/OptPass3.ZC"
+#include "Compiler/OptPass4.ZC"
+#include "Compiler/OptPass5.ZC"
+#include "Compiler/OptPass6.ZC"
+#include "Compiler/BackLib.ZC"
+#include "Compiler/BackFA.ZC"
+#include "Compiler/BackFB.ZC"
+#include "Compiler/BackA.ZC"
+#include "Compiler/BackB.ZC"
+#include "Compiler/BackC.ZC"
+#include "Compiler/OptPass789A.ZC"
+
+// EZODUS: KMain excluded — ring-0 Reboot unavailable; Training keymap still refs it.
+U0 Reboot(Bool format_ramdisks=FALSE)
+{
+	throw('Reboot');
+}
+
+//──────────────────────────────────────────────────────────────────────────
+// System layer (ZealOS System/MakeSystem order, HW files removed).
+//──────────────────────────────────────────────────────────────────────────
+#include "System/Externs.ZC"
+public CWinMgrGlobals winmgr = {0, 0, 0, WINMGR_FPS, 0, 0, NULL, FALSE, FALSE, FALSE};
+#include "System/Training.ZC"
+#include "System/Memory.ZC"
+#include "System/Math/MakeMath.ZC"
+#include "System/Gr/MakeGr.ZC"
+#include "System/Sound.ZC"
+#include "System/BlkDev/MakeZBlkDev.ZC"
+#include "System/Menu.ZC"
+#include "System/Win.ZC"
+#include "System/WinMgr.ZC"
+#include "System/Debug.ZC"
+#include "System/God/GodExterns.ZC"
+#include "System/DolDoc/MakeDoc.ZC"
+#include "System/Ctrls/MakeCtrls.ZC"
+#include "System/InFile.ZC"
+#include "System/Registry.ZC"
+#include "System/AutoComplete/MakeAC.ZC"
+#include "System/God/MakeGod.ZC"
+#include "System/Hash.ZC"
+#include "System/TaskSettings.ZC"
+#include "System/DevInfoBootstrap.ZC"
+asm {
+COREAP_16BIT_INIT::
+COREAP_16BIT_INIT_END::
+}
+#include "System/Define.ZC"
+#include "System/WallPaper.ZC"
+#include "Kernel/MultiProcBootstrap.ZC"
+#include "System/Mouse.ZC"

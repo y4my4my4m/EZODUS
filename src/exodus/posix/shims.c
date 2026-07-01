@@ -27,6 +27,7 @@
     #include <asm/prctl.h>
   #else // musl
     #define ARCH_SET_GS 0x1001
+    #define ARCH_SET_FS 0x1002
   #endif
 #endif
 
@@ -339,17 +340,16 @@ static void nofsgsbase(argign int sig) {
 }
 
 void preparetls(void) {
-  /* we store pointers (not the struct itself)
-   * to Fs on gs:0x28 and Gs on gs:0x50
-   * blame Microsoft for this */
-#define Fsgs (p = ((u8 *)malloc(0x10) - 0xe8))
+  /* HolyC Fs/Gs at GS:0xE8 and GS:0xF0 (HCRT_TOS _GET_FS). */
+#define TLBASE (p = ((u8 *)malloc(0x10) - 0xe8))
   void *p;
+  TLBASE;
 #ifdef __linux__
-  int ret = syscall(SYS_arch_prctl, ARCH_SET_GS, (u64)Fsgs);
+  int ret = syscall(SYS_arch_prctl, ARCH_SET_GS, (u64)p);
 #elif defined(__FreeBSD__)
-  int ret = amd64_set_gsbase(Fsgs);
+  int ret = amd64_set_gsbase(p);
 #endif
-  if (!ret) // man 2 arch_prctl / sys/amd64/amd64/sys_machdep.c
+  if (!ret)
     return;
   flushprint(
       stderr, ST_ERR_ST
