@@ -1,3 +1,2 @@
-// EZODUS bootstrap: full ZealOS PUBLIC API map deferred.
-// Symbols resolve via compiled HCRT + Kernel*.HH LoadImps at runtime.
-// ACInit("PUBLIC.ZC;Kernel*.HH") uses Kernel headers for autocomplete.
+// EZODUS: autocomplete word corpus built at boot via HomeSys ACInit().
+// Kernel/Compiler *.HH + System/Doc/Home trees — not a hand-maintained symbol map.

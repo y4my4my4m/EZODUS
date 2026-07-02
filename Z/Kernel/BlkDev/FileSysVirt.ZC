@@ -1,0 +1,176 @@
+// EZODUS: host VFS backend (see src/exodus/vfs.c). FSt_VIRT on Z: drive.
+
+Bool VirtCFileNameTo(U8 *dst, U8 *src)
+{
+	MemSet(dst, 0, CDIR_FILENAME_LEN);
+	if (!FileNameCheck(src))
+		return FALSE;
+	StrCopy(dst, src);
+	return TRUE;
+}
+
+U0 VirtInit(CDrive *drive)
+{
+	if (drive)
+		drive->fs_type = FSt_VIRT;
+}
+
+Bool VirtFileFind(CDrive *drive, U8 *cur_dir, U8 *name, CDirEntry *_res, I64 fuf_flags=0)
+{
+	U8 dname[CDIR_FILENAME_LEN];
+	Bool res = FALSE, unlock;
+
+	if (fuf_flags & ~FUG_FILE_FIND)
+		throw('FUF');
+	MemSet(_res, 0, sizeof(CDirEntry));
+	DriveCheck(drive);
+	if (drive->fs_type != FSt_VIRT)
+		PrintErr("Not Virt Drv\n");
+	else if (!VirtCFileNameTo(dname, name))
+		PrintErr("Invalid FileName: \"%s\".\n", name);
+	else
+	{
+		try
+		{
+			unlock = DriveLock(drive);
+			VFsSetDrv(drive->drv_let);
+			VFsSetPwd(cur_dir);
+			if (VFsFExists(dname))
+			{
+				StrCopy(_res->name, name);
+				res = TRUE;
+				if (VFsIsDir(dname))
+					_res->attr |= RS_ATTR_DIR;
+				if (fuf_flags & FUF_JUST_DIRS && !(_res->attr & RS_ATTR_DIR))
+					res = FALSE;
+				if (fuf_flags & FUF_JUST_FILES && _res->attr & RS_ATTR_DIR)
+					res = FALSE;
+				_res->size = VFsFSize(dname);
+				if (_res->size < 0)
+					_res->size = 0;
+				_res->datetime = Unix2CDate(FUnixTime(dname));
+			}
+			if (unlock)
+				DriveUnlock(drive);
+		}
+		catch
+			if (unlock)
+				DriveUnlock(drive);
+	}
+	return res;
+}
+
+U8 *VirtFileRead(CDrive *drive, U8 *cur_dir, U8 *filename, I64 *_size, I64 *_attr)
+{
+	U8			*buf = NULL;
+	CDirEntry	 de;
+
+	*_size = 0;
+	*_attr = 0;
+	DriveCheck(drive);
+	if (drive->fs_type != FSt_VIRT)
+		PrintErr("Not Virt Drv\n");
+	else
+	{
+		try
+		{
+			DriveLock(drive);
+			if (VirtFileFind(drive, cur_dir, filename, &de, FUF_JUST_FILES))
+			{
+				VFsSetDrv(drive->drv_let);
+				VFsSetPwd(cur_dir);
+				buf = VFsFRead(de.name, &de.size);
+				*_size = de.size;
+				*_attr = FileAttr(de.name, de.attr);
+			}
+			DriveUnlock(drive);
+		}
+		catch
+			DriveUnlock(drive);
+	}
+	return buf;
+}
+
+Bool VirtCd(U8 *name, U8 *cur_dir)
+{
+	CDirEntry de;
+
+	if (Fs->cur_dv->fs_type != FSt_VIRT)
+		PrintErr("Not Virt Drv\n");
+	else if (VirtFileFind(Fs->cur_dv, cur_dir, name, &de, FUF_JUST_DIRS))
+		return TRUE;
+	else
+		PrintErr("File not found: \"%s\".\n", name);
+	return FALSE;
+}
+
+Bool VirtMkDir(CDrive *drive, U8 *cur_dir, U8 *name, I64 entry_cnt)
+{
+	no_warn entry_cnt;
+	try
+	{
+		VFsSetDrv(drive->drv_let);
+		VFsSetPwd(cur_dir);
+		VFsDirMk(name);
+	}
+	catch {}
+	return TRUE;
+}
+
+CDirEntry *VirtFilesFind(U8 *files_find_mask, I64 fuf_flags, CDirEntry *parent=NULL)
+{
+	CDrive		*drive = Fs->cur_dv;
+	CDirEntry	*res = NULL, *tmpde;
+	U8			**dirs;
+	I64			 i;
+
+	if (fuf_flags & ~FUG_FILES_FIND)
+		throw('FUF');
+	try
+	{
+		DriveLock(drive);
+		VFsSetDrv(drive->drv_let);
+		VFsSetPwd(Fs->cur_dir);
+		dirs = VFsDir;
+		for (i = 0; dirs && dirs[i]; i++)
+		{
+			tmpde = CAlloc(sizeof(CDirEntry));
+			VirtFileFind(drive, Fs->cur_dir, dirs[i], tmpde, 0);
+			tmpde->parent = parent;
+			if (Bt(&fuf_flags, FUf_RECURSE) && tmpde->attr & RS_ATTR_DIR && *tmpde->name != '.')
+			{
+				tmpde->next = res;
+				res = tmpde;
+				tmpde->full_name = DirNameAbs(tmpde->name);
+				DriveUnlock(drive);
+				if (Cd(tmpde->name))
+				{
+					tmpde->sub = VirtFilesFind(files_find_mask, fuf_flags, tmpde);
+					Cd("..");
+				}
+				DriveLock(drive);
+				VFsSetDrv(drive->drv_let);
+				VFsSetPwd(Fs->cur_dir);
+			}
+			else
+			{
+				tmpde->full_name = FileNameAbs(tmpde->name);
+				if ((tmpde->attr & RS_ATTR_DIR || !Bt(&fuf_flags, FUf_JUST_DIRS)) &&
+						!(Bt(&fuf_flags, FUf_RECURSE) && *tmpde->name == '.' && tmpde->attr & RS_ATTR_DIR) &&
+						FilesFindMatch(tmpde->full_name, files_find_mask, fuf_flags))
+				{
+					tmpde->next = res;
+					res = tmpde;
+				}
+				else
+					DirEntryDel(tmpde);
+			}
+			Free(dirs[i]);
+		}
+		Free(dirs);
+		DriveUnlock(drive);
+	}
+	catch
+		DriveUnlock(drive);
+	return res;
+}

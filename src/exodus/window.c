@@ -3,6 +3,7 @@
 // Copyright 2024 1fishe2fishe
 // Refer to the LICENSE file for license info.
 // Any citation links are provided at the end of the file.
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,7 @@
 #include <exodus/ffi.h>
 #include <exodus/main.h>
 #include <exodus/misc.h>
+#include <exodus/seth.h>
 #include <exodus/shims.h>
 #include <exodus/sound.h>
 #include <exodus/types.h>
@@ -30,6 +32,92 @@ static struct {
   i32 margin_x, margin_y;
   bool ready;
 } win;
+
+enum {
+  WINDOW_UPDATE,
+  WINDOW_NEW,
+  AUDIO_INIT,
+  PALETTE_FLUSH,
+};
+
+/* HolyC runs off the SDL main thread; palette updates must be deferred here. */
+static u64 palette_bgr48[256];
+static _Atomic bool palette_flush_pending;
+static SDL_mutex *pal_mutex;
+static SDL_cond *pal_done_cond;
+static _Atomic bool pal_dirty;
+
+static u64 bgr24_to_bgr48(u32 c) {
+  u16 b = (u16)(c & 0xFF) * 0x101;
+  u16 g = (u16)((c >> 8) & 0xFF) * 0x101;
+  u16 r = (u16)((c >> 16) & 0xFF) * 0x101;
+  return (u64)r << 32 | (u64)g << 16 | (u64)b;
+}
+
+static void init_slate_palette(void) {
+  static const u32 slate[16] = {
+      0xE3E3E3, 0x4F84A6, 0x73A255, 0x297582, 0xB34F4B, 0x8A52C3,
+      0xB7822F, 0x444444, 0x6D6D6D, 0x94BFDE, 0xA1CE97, 0x6DB4BE,
+      0xE88E88, 0xCA94E8, 0xD4B475, 0x1F1F1F,
+  };
+
+  for (int i = 0; i < 16; ++i) {
+    u64 bgr48 = bgr24_to_bgr48(slate[i]);
+    for (int col = 0; col < 256 / 16; ++col)
+      palette_bgr48[i + col * 16] = bgr48;
+  }
+}
+
+static void bgr48_to_sdl_color(u64 bgr48, SDL_Color *c) {
+  union /* CBGR48 */ {
+    u64 i;
+    struct __attribute__((packed)) {
+      u16 b, g, r, pad;
+    };
+  } u = {.i = bgr48};
+  c->r = u.r / (double)0xffff * 0xff;
+  c->g = u.g / (double)0xffff * 0xff;
+  c->b = u.b / (double)0xffff * 0xff;
+  c->a = 0xff;
+}
+
+static void apply_palette_all(void) {
+  SDL_Color colors[256];
+
+  if (!win.palette)
+    return;
+  for (int i = 0; i < 256; ++i)
+    bgr48_to_sdl_color(palette_bgr48[i], colors + i);
+  SDL_SetPaletteColors(win.palette, colors, 0, 256);
+}
+
+static void queue_palette_flush(void) {
+  if (!Bt(&win.ready, 0) || !win.palette)
+    return;
+  atomic_store(&pal_dirty, true);
+  if (atomic_exchange(&palette_flush_pending, true))
+    return;
+  SDL_PushEvent(&(SDL_Event){
+      .user = {
+               .type = SDL_USEREVENT,
+               .code = PALETTE_FLUSH,
+               }
+  });
+}
+
+static void wait_palette_flush(void) {
+  if (!pal_mutex || !Bt(&win.ready, 0))
+    return;
+  SDL_LockMutex(pal_mutex);
+  for (int i = 0; atomic_load(&pal_dirty) && i < 200; ++i)
+    SDL_CondWaitTimeout(pal_done_cond, pal_mutex, 10);
+  SDL_UnlockMutex(pal_mutex);
+}
+
+void GrPaletteSync(void) {
+  queue_palette_flush();
+  wait_palette_flush();
+}
 
 enum {
   WIDTH = 640,
@@ -82,9 +170,12 @@ static void newwindow(void) {
                           SDL_HINT_OVERRIDE);
   win.screen_mutex = SDL_CreateMutex();
   win.screen_done_cond = SDL_CreateCond();
+  init_slate_palette();
+  pal_mutex = SDL_CreateMutex();
+  pal_done_cond = SDL_CreateCond();
   SDL_LockMutex(win.screen_mutex);
   win.window =
-      SDL_CreateWindow("EXODUS", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+      SDL_CreateWindow("EZODUS", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                        640, 480, SDL_WINDOW_RESIZABLE);
   win.surf = SDL_CreateRGBSurface(0, 640, 480, 8, 0, 0, 0, 0);
   win.palette = SDL_AllocPalette(256);
@@ -95,18 +186,13 @@ static void newwindow(void) {
   win.margin_y = win.margin_x = 0;
   win.sz_x = 640;
   win.sz_y = 480;
-  /* let TempleOS manage the cursor */
-  SDL_ShowCursor(SDL_DISABLE);
+  /* Ezodus: show host OS cursor — Zeal software cursor not visible on SDL yet */
+  SDL_ShowCursor(SDL_ENABLE);
   SDL_SetWindowKeyboardGrab(win.window, SdlGrab());
+  apply_palette_all();
   SDL_UnlockMutex(win.screen_mutex);
   LBts(&win.ready, 0);
 }
-
-enum {
-  WINDOW_UPDATE,
-  WINDOW_NEW,
-  AUDIO_INIT,
-};
 
 // clang-format off
 enum {
@@ -566,6 +652,13 @@ void EventLoop(void) {
       case AUDIO_INIT:
         InitSound();
         break;
+      case PALETTE_FLUSH:
+        apply_palette_all();
+        atomic_store(&pal_dirty, false);
+        atomic_store(&palette_flush_pending, false);
+        if (pal_done_cond)
+          SDL_CondBroadcast(pal_done_cond);
+        break;
       }
     }
   }
@@ -610,7 +703,7 @@ void DrawWindowNew(void) {
                }
   });
   while (!Bt(&win.ready, 0))
-    __builtin_ia32_pause();
+    SleepMillis(1);
 }
 
 void PCSpkInit(void) {
@@ -639,21 +732,7 @@ void SetMSCallback(void *fptr) {
 }
 
 void GrPaletteColorSet(u64 i, u64 _u) {
-  union /* CBGR48 */ {
-    u64 i;
-    struct __attribute__((packed)) {
-      u16 b, g, r, pad;
-    };
-  } u = {.i = _u};
-  /* 0xffff is 100% so 0x7fff/0xffff would be about .50
-   * this gets multiplied by 0xff to get 0x7f */
-  SDL_Color c = {
-      .r = u.r / (double)0xffff * 0xff,
-      .g = u.g / (double)0xffff * 0xff,
-      .b = u.b / (double)0xffff * 0xff,
-      .a = 0xff,
-  };
-  // set column
   for (int col = 0; col < 256 / 16; ++col)
-    SDL_SetPaletteColors(win.palette, &c, i + col * 16, 1);
+    palette_bgr48[i + col * 16] = _u;
+  queue_palette_flush();
 }

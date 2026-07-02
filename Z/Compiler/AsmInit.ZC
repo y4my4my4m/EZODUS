@@ -65,9 +65,34 @@ U0 AsmParseInsFlags(CCompCtrl *cc, CInst *tmpins)
 	}
 }
 
+U0 AsmInternalTypesLoad()
+{
+	I64				 i;
+	CInternalType		*tmpit;
+	CHashClass			*tmpc;
+
+	for (i = 0; i < INTERNAL_TYPES_NUM; i++)
+	{
+		tmpit = &internal_types_table[i];
+		tmpc = ParseClassNew;
+		tmpc->type = HTT_INTERNAL_TYPE;
+		tmpc->raw_type = tmpit->type;
+		Bts(&tmpc->flags, Cf_INTERNAL_TYPE);
+		tmpc->size = tmpit->size;
+		tmpc->str = SysStrNew(tmpit->name);
+		HashAdd(tmpc, cmp.asm_hash);
+		cmp.internal_types[tmpc->raw_type] = tmpc;
+	}
+	if (sys_task && sys_task->hash_table)
+		sys_task->hash_table->next = cmp.asm_hash;
+}
+
 U0 AsmHashLoad()
 {//See $LK,"::/Compiler/OpCodes.DD"$.
 	cmp.asm_hash = HashTableNew(1024);
+	// EZODUS: stub skips opcode table but compiler still needs internal_types for
+	// LexExpressionI64 in DolDoc dollar-cmd parse (DocBorderNew, Start.DD, etc.).
+	AsmInternalTypesLoad;
 	TOSPrint("AsmHL:stub\n");
 	return;
 	I64				 i, j, size, size_max;
@@ -253,17 +278,5 @@ U0 AsmHashLoad()
 	}
 	Free(tmpo_max);
 	CompCtrlDel(cc);
-	for (i = 0; i < INTERNAL_TYPES_NUM; i++)
-	{
-		tmpit = &internal_types_table[i];
-		tmpc = ParseClassNew;
-		tmpc->type = HTT_INTERNAL_TYPE;
-		tmpc->raw_type = tmpit->type;
-		Bts(&tmpc->flags, Cf_INTERNAL_TYPE);
-		tmpc->size = tmpit->size;
-		tmpc->str = SysStrNew(tmpit->name);
-		HashAdd(tmpc, cmp.asm_hash);
-		cmp.internal_types[tmpc->raw_type] = tmpc;
-	}
-	sys_task->hash_table->next = cmp.asm_hash;
+	AsmInternalTypesLoad;
 }

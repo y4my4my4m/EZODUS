@@ -6,8 +6,8 @@ I64 sys_message_flags[1] = {0};
 F64 registry_version;
 
 Bool RegHostDocBypass()
-{//EZODUS: DocTreeMake $$TR+$$ → ParseDollarCmd nil crash on host pthread.
-	return !mem_boot_base;
+{//EZODUS: skip ~/Registry.ZC DocTreeExe on host until RegExe/Lex stable.
+	return _ezodus_host;
 }
 
 Bool RegCache()

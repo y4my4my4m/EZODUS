@@ -902,6 +902,8 @@ wmt_start:
 								TaskMessage(task, 0, MESSAGE_KEY_DOWN, CH_SHIFT_ESC, 0, 0);
 							else
 								Kill(task, FALSE);
+							if (sys_focus_task == task)
+								sys_focus_task = sys_task;
 							old_mouse.lb = FALSE;
 							goto wmt_start;
 						}

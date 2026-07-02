@@ -127,7 +127,7 @@ public Bool DocEd(CDoc *doc, I64 dof_flags=0)
 		Fs->title_src = TTS_ED_FILENAME;
 		MemCopy(Fs->task_title, doc->filename.name, STR_LEN - 1);
 	}
-	doc_e = DocPrint(bdoc, "$$DA-TRM-P+BD+RD+CX+IV,LEN=STR_LEN-1,A=\"%%s\"$$");
+	doc_e = DocPrint(bdoc, "$$DA-TRM-P+BD+RD+CX+IV,LEN=143,A=\"%%s\"$$");
 	doc_e->data = &Fs->task_title;
 	DocDataFormat(bdoc, doc_e);
 

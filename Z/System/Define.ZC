@@ -15,6 +15,30 @@ U0 LoadDocDefines()
 	TOSPrint("LDD:3\n");
 	DefinePrint("DD_TEMPLEOS_AGE", "0.0");
 	TOSPrint("LDD:4\n");
+	// DocBorderNew LEN=STR_LEN-1 and $$BG+H,LTRED$$ need these for LexExpressionI64.
+	DefinePrint("STR_LEN", "144");
+	DefinePrint("BLACK", "0");
+	DefinePrint("BLUE", "1");
+	DefinePrint("GREEN", "2");
+	DefinePrint("CYAN", "3");
+	DefinePrint("RED", "4");
+	DefinePrint("PURPLE", "5");
+	DefinePrint("BROWN", "6");
+	DefinePrint("LTGRAY", "7");
+	DefinePrint("DKGRAY", "8");
+	DefinePrint("LTBLUE", "9");
+	DefinePrint("LTGREEN", "10");
+	DefinePrint("LTCYAN", "11");
+	DefinePrint("LTRED", "12");
+	DefinePrint("LTPURPLE", "13");
+	DefinePrint("YELLOW", "14");
+	DefinePrint("WHITE", "15");
+	DefinePrint("GR_WIDTH", "640");
+	DefinePrint("GR_HEIGHT", "480");
+	DefinePrint("FONT_WIDTH", "8");
+	DefinePrint("FONT_HEIGHT", "8");
+	DefinePrint("TEXT_COLS", "80");
+	DefinePrint("TEXT_ROWS", "60");
 
 	if (mem_boot_base && CheckPtr(mem_boot_base(U8 *)))
 	{
@@ -31,9 +55,8 @@ U0 LoadDocDefines()
 
 	//$LK,"DD_BOOT_HIGH_LOC_DVD",A="FF:::/System/Boot/BootDVD.ZC,DD_BOOT_HIGH_LOC_DVD"$
 
-$TR,"LineRep"$
-$ID,2$DefinePrint("DD_ZEALOS_LOC","99,737");
-$ID,-2$
+	// EZODUS: stock used $TR/$ID DolDoc cmds here; inside a HolyC function they LexErr on host.
+	DefinePrint("DD_ZEALOS_LOC", "99,737");
 	DefinePrint("DD_MP_VECT", "%08X", 0);
 	DefinePrint("DD_MP_VECT_END", "%08X", 0);
 

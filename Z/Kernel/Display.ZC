@@ -51,8 +51,10 @@ See also $LK,"GrUpdateScreen",A="MN:GrUpdateScreen"$().
 			RawPutChar(CH_SPACE);
 		while (text.raw_col % text.cols);
 	}
-	else if (Bt(char_bmp_displayable, ch))
+	else 	if (Bt(char_bmp_displayable, ch))
 	{
+		if (!text.fb_alias) // EZODUS: host uses SDL blit, no VBE fb_alias
+			return;
 		row = text.raw_col / text.cols % text.rows;
 		col = text.raw_col % text.cols;
 

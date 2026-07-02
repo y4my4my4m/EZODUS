@@ -43,34 +43,7 @@ asm { // embed KERNEL*.HH to speedup boot
   DU8 0;
 };
 
-U0 UserStartUp()
-{
-	DocTermNew;
-	Fs->border_src = BDS_CONST; // EZODUS: BDS_CUR_DRIVE garbles prompt without border doc
-	Drive('Z');
-	EzodusCurDirSet(_ezodus_home_dir + 2);
-	DocPrint(Fs->put_doc, "ZealOS on Ezodus\n\nPublic Domain Operating System\n\n");
-	LBts(&Fs->display_flags, DISPLAYf_SHOW);
-	WinToTop;
-	WinZBufUpdate;
-	// Type("::/Doc/Start.DD"); // EZODUS: $WW$ forms in Start.DD crash DocForm hash on host
-	// Dir; // EZODUS: disk Dir deferred until VFS mount layer wired
-}
-
-U0 ServerStartUp()
-{
-	DocTermNew;
-	Fs->text_attr = BLUE << 4 + WHITE;
-	Fs->win_top = 2;
-	Fs->win_bottom = text.rows / 8;
-	WinDerivedValsUpdate(Fs);
-	CtrlsUpdate(Fs);
-	Fs->win_inhibit = WIG_TASK_DEFAULT - WIF_SELF_BORDER - WIF_SELF_GRAB_SCROLL - WIF_SELF_CTRLS;
-	LBts(&Fs->display_flags, DISPLAYf_CHILDREN_NOT_ON_TOP);
-	LBts(&Fs->display_flags, DISPLAYf_SHOW);
-	sys_focus_task = Fs;
-	WinZBufUpdate;
-}
+#include "HomeSys.ZC"
 
 U0 LoadImps() {
   try {
@@ -81,32 +54,6 @@ U0 LoadImps() {
     TOSPrint("BOOT ERROR:%c\n",Fs->except_ch);
     Fs->catch_except=TRUE;
   }
-}
-
-U0 StartUpTasks()
-{
-	CTask noreg *user;
-
-	// EZODUS: User() TaskWait blocks until idle; user stuck at StrGet → WinTileVert never runs.
-	user = Spawn(&UserCmdLine, NULL, "Terminal");
-	Refresh(2, TRUE);
-	WinToTop(user);
-	WinHorz(1, TEXT_COLS - 2, user);
-	// Leave bottom rows for WinMgr wallpaper task/CPU stats (real ZealOS layout).
-	WinVert(text.rows / 8 + 1, TEXT_ROWS - 9, user);
-	TaskDerivedValsUpdate(user);
-	WinZBufUpdate;
-	sys_focus_task = user;
-	"Boot Time:%7.3fs\n", tS;
-	if (mem_boot_base)
-		XTalk(user, "Cd; #include \"Once\";\n");
-	Silent;
-	if (mem_boot_base)
-		ACInit("/*;!*/Bible.TXT;!*/Clementine.TXT;!*/PCIDevices.DD;!*/HTML/*;!*/ChangeLog.DD");
-	Silent(OFF);
-
-	if (mem_boot_base && sys_boot_src.u16[0] != BOOT_SRC_RAM)
-		PopUp("ExeFile2(\"::/System/ZSplash.ZC\");");
 }
 
 U0 __InitCPUs() {
@@ -142,9 +89,10 @@ U0 _InitUI() {
   DocPutHooksInit;
   LoadDocDefines;
   TOSPrint("_InitUI:4b God\n");
+  Drive('Z');
   GodEzodusInit;
-  try GodInit;
-  catch {}
+  // EZODUS: GodInit vocab load needs Virt FilesFind fix; defer.
+  // try GodInit("::/System/God/Vocab.DD"); catch {}
   MeshClipInit;
   TOSPrint("_InitUI:5 MP\n");
   MPIntsInit;

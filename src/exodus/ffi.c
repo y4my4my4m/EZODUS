@@ -266,8 +266,8 @@ static void STK___BootstrapForeachSymbol(void **stk) {
  * THUS WE NEED STK+2 TO GET THE VARARGS
  */
 static void STK_TOSPrint(i64 *stk) {
-  TOSPrint((char *)stk[0], /*stk[1]*/ 0, // WE DO NOT CHECK FOR ARG NUMS
-           stk + 2);
+  /* import U0i variadic: stk[0]=fmt, stk[1]=argc, stk[2..]=args. */
+  TOSPrint((char *)stk[0], stk[1], stk + 2);
 }
 
 static void STK_DrawWindowUpdate(u8 **stk) {
@@ -638,6 +638,7 @@ void BootstrapLoader(void) {
       S(SetVolume, 1),
       S(GetVolume, 0),
       S(_GrPaletteColorSet, 2),
+      R("_GrPaletteSync", GrPaletteSync, 0),
   };
   genthunks(ffis, Arrlen(ffis));
 }

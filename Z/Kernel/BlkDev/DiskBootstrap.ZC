@@ -140,7 +140,10 @@ public Bool Drive(U8 drv_let=0)
 	if (!drive || drive->drive_signature != DRIVE_SIGNATURE_VAL)
 		return FALSE;
 	Fs->cur_dv = drive;
-	EzodusCurDirSet(_ezodus_root_dir);
+	if (drive->fs_type == FSt_VIRT)
+		EzodusCurDirSet("/Home");
+	else
+		EzodusCurDirSet(_ezodus_root_dir);
 	return TRUE;
 }
 
@@ -217,6 +220,12 @@ public Bool DriveCheck(CDrive *drive)
 	return TRUE;
 }
 
+public I64 Name2DirClus(CDrive *drive, U8 *dirname)
+{//EZODUS: stub — only FSt_VIRT Cd/FileFind linked in monolith boot.
+	no_warn drive, dirname;
+	return 0;
+}
+
 public Bool DriveLock(CDrive *drive)
 {
 	return FALSE;
@@ -226,23 +235,14 @@ public U0 DriveUnlock(CDrive *drive)
 {
 }
 
-public U0 DriveFATBlkSet(CDrive *drive, I64 c)
-{
-}
-
-public CDirContext *DirContextNew(U8 *_mask, Bool make_mask=FALSE, Bool make_dirs=FALSE, Bool no_mask=FALSE)
-{
-	return CAlloc(sizeof(CDirContext));
-}
-
-public U0 DirContextDel(CDirContext *dirc, Bool restore=TRUE)
-{
-	if (dirc)
-		Free(dirc);
-}
+public CDirContext *DirContextNew(U8 *_mask, Bool make_mask=FALSE, Bool make_dirs=FALSE, Bool no_mask=FALSE);
+public U0 DirContextDel(CDirContext *dirc, Bool restore=TRUE);
 
 public CBlkDev *DriveIsWritable(U8 drv_let=0, Bool except=FALSE)
 {
+	no_warn drv_let;
+	if (except)
+		throw('Drive');
 	return NULL;
 }
 
@@ -282,4 +282,40 @@ public U0 MountFile(U8 *filename)
 public U8 Mount(Bool caller_is_prtdisk=FALSE)
 {
 	return 0;
+}
+
+// EZODUS: DiskDirB still references real-fs helpers; stub until MakeBlkDev linked.
+public Bool RedSeaCd(U8 *buf, I64 cur_dir_clus)
+{
+	no_warn buf, cur_dir_clus;
+	PrintErr("File System Not Supported\n");
+	return FALSE;
+}
+
+public Bool ISOCd(U8 *buf, I64 cur_dir_clus)
+{
+	no_warn buf, cur_dir_clus;
+	PrintErr("File System Not Supported\n");
+	return FALSE;
+}
+
+public Bool FAT32Cd(U8 *buf, I64 cur_dir_clus)
+{
+	no_warn buf, cur_dir_clus;
+	PrintErr("File System Not Supported\n");
+	return FALSE;
+}
+
+public Bool RedSeaMkDir(CDrive *drive, U8 *cur_dir, U8 *name, I64 entry_count)
+{
+	no_warn drive, cur_dir, name, entry_count;
+	PrintErr("File System Not Supported\n");
+	return FALSE;
+}
+
+public Bool FAT32MkDir(CDrive *drive, U8 *cur_dir, U8 *name, I64 entry_count)
+{
+	no_warn drive, cur_dir, name, entry_count;
+	PrintErr("File System Not Supported\n");
+	return FALSE;
 }

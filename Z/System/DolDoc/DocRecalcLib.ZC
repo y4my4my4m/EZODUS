@@ -142,7 +142,8 @@ public U0 DocClear(CDoc *doc=NULL, Bool clear_holds=FALSE)
 	{
 		if (IsRaw)
 		{
-			MemSet(text.fb_alias, BLACK32, text.buffer_size);
+			if (text.fb_alias)
+				MemSet(text.fb_alias, BLACK32, text.buffer_size);
 		}
 		return;
 	}

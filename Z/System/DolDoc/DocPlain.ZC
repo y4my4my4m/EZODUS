@@ -278,9 +278,32 @@ CDocEntry *ParseDollarCmd(CDoc *doc, U8 *st)
 	CCompCtrl		*cc = CompCtrlNew(st, CCF_DONT_FREE_BUF);
 	CHashTable		*old_hash_table_list = cc->htc.hash_table_list;
 
+	Free(cc->lex_include_stack->full_name);
+	cc->lex_include_stack->full_name = StrNew("DolDoc");
+
 	try
 	{
-		cc->htc.hash_table_list = NULL;
+		// EZODUS: keep Fs hash visible for STR_LEN etc. in LEN=/LE=/RE= attrs.
+		if (Fs && Fs->hash_table)
+		{
+			cc->htc.hash_table_list = Fs->hash_table;
+			cc->htc.global_hash_table = Fs->hash_table;
+		}
+		if (cmp.asm_hash)
+		{
+			CHashTable *ht = cc->htc.hash_table_list;
+
+			if (ht)
+			{
+				while (ht->next)
+					ht = ht->next;
+				if (ht != cmp.asm_hash)
+					ht->next = cmp.asm_hash;
+			}
+			else
+				cc->htc.hash_table_list = cmp.asm_hash;
+		}
+		cc->flags &= ~CCF_ASM_EXPRESSIONS;
 		if (Lex(cc) == TK_IDENT)
 		{
 			if (tmph = HashFind(cc->cur_str, doldoc.hash, DHT_DOC_CMD | DHT_COLOR))
@@ -303,9 +326,17 @@ CDocEntry *ParseDollarCmd(CDoc *doc, U8 *st)
 			doc_e->raw_type	=  RT_I64;
 			doc_e->len		=  DOCE_LEN_DEFAULT;
 			j=ParseDocFlags(cc, &doc_e->de_flags, &doc_e->type);
-			cc->htc.hash_table_list = old_hash_table_list;
+			// EZODUS: keep Fs hash for DOCEf_LEN/LE/RE LexExpressionI64 below.
 			switch [i]
 			{
+				// nobound switch: types 26–30 must precede DOCT_CHECK_BOX (31).
+				case DOCT_CURSOR_MOVEMENT:
+				case DOCT_ANCHOR:
+				case DOCT_LINK:
+				case DOCT_BTTN:
+				case DOCT_DATA:
+					break;
+
 				case DOCT_CHECK_BOX:
 					doc_e->raw_type = RT_I8;
 					break;
@@ -323,6 +354,15 @@ CDocEntry *ParseDollarCmd(CDoc *doc, U8 *st)
 						doc_e->hex_ed_width = LexExpressionI64(cc);
 					else
 						goto pd_err;
+					break;
+
+				// nobound switch: types 36–41 must precede DOCT_ERROR (42).
+				case DOCT_TREE:
+				case DOCT_SPRITE:
+				case DOCT_INS_BIN:
+				case DOCT_INS_BIN_SIZE:
+				case DOCT_SONG:
+				case DOCT_HTML_CODE:
 					break;
 
 				case DOCT_PAGE_LEN:
@@ -349,6 +389,11 @@ CDocEntry *ParseDollarCmd(CDoc *doc, U8 *st)
 					else
 						doc_e->attr = attr;
 					break;
+
+				case DOCT_LIST:
+				case DOCT_MACRO:
+				case DOCT_MENU_VAL:
+					break;
 #assert DOCT_ERROR == DOCT_TYPES_NUM - 1
 
 				case DOCT_ERROR:
@@ -358,10 +403,8 @@ CDocEntry *ParseDollarCmd(CDoc *doc, U8 *st)
 			processed_flags = 0;
 			while (TRUE)
 			{
-				cc->htc.hash_table_list = NULL;
 				while (cc->token == ',')
 					Lex(cc);
-				cc->htc.hash_table_list = old_hash_table_list;
 				j=ParseDocFlagSingle(cc, &doc_e->de_flags, &doc_e->type, TRUE);
 				if (!(de_flags = ~processed_flags & doc_e->de_flags & DOCEG_HAS_ARG))
 					break;
@@ -419,7 +462,7 @@ CDocEntry *ParseDollarCmd(CDoc *doc, U8 *st)
 					case DOCEf_LEN:
 						if (cc->token)
 						{
-							doc_e->len		=  LexExpression(cc);
+							doc_e->len		=  LexExpressionI64(cc);
 							doc_e->de_flags	&= ~DOCEF_DEFAULT_LEN;
 						}
 						else
@@ -471,7 +514,7 @@ CDocEntry *ParseDollarCmd(CDoc *doc, U8 *st)
 
 					case DOCEf_LEFT_EXP:
 						if (cc->token)
-							doc_e->left_exp = LexExpression(cc);
+							doc_e->left_exp = LexExpressionI64(cc);
 						else
 							goto pd_err;
 						break;
@@ -491,7 +534,7 @@ CDocEntry *ParseDollarCmd(CDoc *doc, U8 *st)
 
 					case DOCEf_RIGHT_EXP:
 						if (cc->token)
-							doc_e->right_exp = LexExpression(cc);
+							doc_e->right_exp = LexExpressionI64(cc);
 						else
 							goto pd_err;
 						break;
@@ -566,7 +609,7 @@ CDocEntry *ParseDollarCmd(CDoc *doc, U8 *st)
 
 					case DOCEf_USER_DATA:
 						if (cc->token)
-							doc_e->user_data = LexExpression(cc);
+							doc_e->user_data = LexExpressionI64(cc);
 						else
 							goto pd_err;
 						break;
@@ -589,6 +632,7 @@ pd_err:
 			DocDataScan(doc, doc_e);
 			DocDataFormat(doc, doc_e);
 		}
+		cc->htc.hash_table_list = old_hash_table_list;
 		CompCtrlDel(cc);
 	}
 	catch

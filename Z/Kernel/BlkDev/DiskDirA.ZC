@@ -251,9 +251,3 @@ U0 PutDirLink(U8 *dirname, U8 *full_name=NULL)
 		Free(st);
 	}
 }
-
-// EZODUS: bootstrap stub until full MakeBlkDev + FileSys* linked.
-public CDirEntry *FilesFind(U8 *files_find_mask, I64 fuf_flags=0)
-{
-	return NULL;
-}

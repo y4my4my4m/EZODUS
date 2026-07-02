@@ -10,5 +10,6 @@ void DrawWindowUpdate(u8 *px);
 void EventLoop(void);
 void PCSpkInit(void);
 void GrPaletteColorSet(u64 i, u64 _u);
+void GrPaletteSync(void);
 void SetKBCallback(void *fp);
 void SetMSCallback(void *fp);

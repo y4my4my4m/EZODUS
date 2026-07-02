@@ -166,12 +166,18 @@ static vec_char_t MStrPrint(char const *fmt, argign u64 argc, i64 *argv) {
     } break;
     case 's': {
       char *tmp = ((char **)argv)[arg];
+      if (!tmp || (u64)tmp < 0x1000)
+        tmp = "(bad)";
       u64 len = strlen(tmp);
       while (--aux >= 0)
         vec_pusharr(&ret, tmp, len);
     } break;
     case 'q': {
       char *str = ((char **)argv)[arg];
+      if (!str || (u64)str < 0x1000) {
+        vec_pusharr(&ret, "(bad)", 5);
+        break;
+      }
       i64 escsz = unescapestr(str, NULL);
       vec_reserve(&ret, escsz);
       unescapestr(str, ret.data + ret.length);

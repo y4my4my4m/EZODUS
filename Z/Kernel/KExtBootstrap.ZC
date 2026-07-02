@@ -9,6 +9,8 @@ U0 EzodusExtInit()
 	TOSPrint("IET: EzodusExtInit\n");
 	ext = _EZODUS_EXT_TAB;
 	mem_boot_base = 0;
+	sys_boot_src = BOOT_SRC_HARDDRIVE;
+	_ezodus_host = TRUE;
 }
 
 EzodusExtInit;

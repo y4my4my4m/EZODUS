@@ -964,7 +964,9 @@ Bool KDDocPutKey(I64 ch, I64 scan_code)
 	CDoc *doc;
 
 	if (doc = DocPut)
+	{
 		DocPutKey(doc, ch, scan_code);
-
+		return TRUE;
+	}
 	return FALSE;
 }

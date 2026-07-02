@@ -29,6 +29,8 @@ public U0 GrPaletteSet(CBGR24 *bgr24)
 
 	for (i = 0; i < COLORS_NUM; i++)
 		GrPaletteColorSet(i, bgr24[i]);
+	if (_ezodus_host)
+		_GrPaletteSync;
 	LFBFlush;
 }
 
@@ -99,4 +101,4 @@ public U0 PaletteSetCommander(Bool persistent=TRUE)
 	LFBFlush;
 }
 
-fp_set_std_palette = &PaletteSetStd;
+fp_set_std_palette = &PaletteSetSlate;

@@ -67,7 +67,11 @@ CHashAC *ACHashAdd(U8 *w)
 U0 ACSingleFileAdd(U8 *buf)
 {
 	I64 ch;
-	U8 *ptr = buf, *ptr2, *ptr3;
+	U8 *ptr, *ptr2, *ptr3;
+
+	if (!buf)
+		return;
+	ptr = buf;
 
 	while (TRUE)
 	{
@@ -116,10 +120,13 @@ U0 ACMainFileListTraverse(U8 *files_find_mask)
 		tmpde = tmpde1 = FilesFind(files_find_mask, FUF_RECURSE | FUF_JUST_TXT | FUF_JUST_FILES | FUF_CLUS_ORDER);
 		while (tmpde)
 		{
-			"%s\n", tmpde->full_name;
-			buf = FileRead(tmpde->full_name);
-			ACSingleFileAdd(buf);
-			Free(buf);
+			if (tmpde->full_name)
+			{
+				"%s\n", tmpde->full_name;
+				buf = FileRead(tmpde->full_name);
+				ACSingleFileAdd(buf);
+				Free(buf);
+			}
 			tmpde = tmpde->next;
 		}
 	}
@@ -138,8 +145,11 @@ public U0 ACInit(U8 *mask=NULL)
 	while (LBts(&ac.flags, ACf_INIT_IN_PROGRESS))
 		Yield;
 
-	HashTableDel(ac.hash_table);
+	if (ac.hash_table)
+		HashTableDel(ac.hash_table);
 	ac.hash_table = HashTableNew(2048, sys_task);
+	if (!ac.hash_table)
+		ac.hash_table = HashTableNew(256, sys_task);
 
 	ac.num_words = 0;
 	Free(ac.cur_word);
@@ -152,8 +162,12 @@ public U0 ACInit(U8 *mask=NULL)
 	RegDefault("AutoComplete", "ac.col = TEXT_COLS-34;ac.row = 10;");
 	RegExe("AutoComplete");
 	LBtr(&ac.flags, ACf_INIT_IN_PROGRESS);
+	if (!ac.hash_table)
+		return;
 	LBts(&sys_run_level, RLf_AUTOCOMPLETE);
-	AutoComplete(ON);
+	// EZODUS: ACTask DocTermNew + ACPutChoices crash on host until MSize/hash stable.
+	if (mem_boot_base)
+		AutoComplete(ON);
 }
 
 I64 AutoCompleteSize()

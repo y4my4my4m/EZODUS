@@ -21,6 +21,7 @@ U8		*sys_os_version_nice;
 
 CAutoCompleteDictGlobals acd;
 CAutoCompleteGlobals	 ac;
+Bool					 _ezodus_host;
 CBlkDevGlobals			 blkdev;
 CCountsGlobals			 counts = {1, 0, 2676302000, 2676302, 2676302000, FALSE};
 CDebugGlobals 			 debug;

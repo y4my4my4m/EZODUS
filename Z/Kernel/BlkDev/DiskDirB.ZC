@@ -65,6 +65,10 @@ Bool Cd(U8 *dirname=NULL, Bool make_dirs=FALSE)
 			cur_dir_clus = Name2DirClus(drive, new_cur_dir);
 			switch (drive->fs_type)
 			{
+				case FSt_VIRT:
+					res = VirtCd(buf, new_cur_dir);
+					break;
+
 				case FSt_REDSEA:
 					res = RedSeaCd(buf, cur_dir_clus);
 					break;
@@ -103,19 +107,26 @@ Bool Cd(U8 *dirname=NULL, Bool make_dirs=FALSE)
 
 Bool IsDir(U8 *dir_name)
 {//Is a str a valid, existing Dir?
-	U8			*mask = MStrPrint("%s/*", dir_name);
-	Bool		 res, old_silent = Silent;
-	CDirContext	*dirc;
+	CDirEntry de;
+	Bool res = FALSE;
 
-	if (dirc = DirContextNew(mask))
+	if (!dir_name || !*dir_name)
+		return FALSE;
+	if (Fs->cur_dv && Fs->cur_dv->fs_type == FSt_VIRT)
+		return VirtFileFind(Fs->cur_dv, Fs->cur_dir, dir_name, &de, FUF_JUST_DIRS);
 	{
-		DirContextDel(dirc);
-		res = TRUE;
+		U8			*mask = MStrPrint("%s/*", dir_name);
+		Bool		 old_silent = Silent;
+		CDirContext	*dirc;
+
+		if (dirc = DirContextNew(mask))
+		{
+			DirContextDel(dirc);
+			res = TRUE;
+		}
+		Free(mask);
+		Silent(old_silent);
 	}
-	else
-		res = FALSE;
-	Free(mask);
-	Silent(old_silent);
 	return res;
 }
 
@@ -204,6 +215,10 @@ Bool DirMake(U8 *filename, I64 entry_count=0)
 				name = MStrUtil(dirc->mask, SUF_REM_LEADING | SUF_REM_TRAILING | SUF_REM_CTRL_CHARS);
 				switch (dirc->drive->fs_type)
 				{
+					case FSt_VIRT:
+						res = VirtMkDir(dirc->drive, Fs->cur_dir, name, entry_count);
+						break;
+
 					case FSt_REDSEA:
 						res = RedSeaMkDir(dirc->drive, Fs->cur_dir, name, entry_count);
 						break;

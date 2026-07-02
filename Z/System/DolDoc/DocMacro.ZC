@@ -163,7 +163,7 @@ I64 PopUpMacroMenu()
 	U8			 buf[STR_LEN];
 	CJob		*tmpc;
 	CDoc		*doc = DocNew;
-	CDocEntry	*doc_e = DocPrint(doc, "$$DA-P,LEN=STR_LEN-1,A=\"Name:%%s\"$$");
+	CDocEntry	*doc_e = DocPrint(doc, "$$DA-P,LEN=143,A=\"Name:%%s\"$$");
 
 	doc_e->data = captured_macro_name;
 	DocDataFormat(doc, doc_e);

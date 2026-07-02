@@ -1,0 +1,8 @@
+$TR-UL,"System"$
+$ID,2$$TR,"SysMessageFlags"$
+$ID,2$sys_message_flags[0]=0;
+$ID,-2$$TR,"SysRegVer"$
+$ID,2$registry_version=2.000;
+$ID,-2$$TR,"AutoComplete"$
+$ID,2$ac.col=TEXT_COLS-34;ac.row=10;
+$ID,-2$

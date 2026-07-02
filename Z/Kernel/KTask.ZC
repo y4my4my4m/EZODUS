@@ -640,15 +640,58 @@ CTask *User(U8 *format=NULL, ...)
 
 U0 TaskDel(CTask *task)
 {//We delay freeing in case lingering pointer to reincarnated.
-	HeapCtrlDel(task->code_heap);
-	if (task->data_heap != task->code_heap)
-		HeapCtrlDel(task->data_heap);
-	Free(task);
+	CHeapCtrl *ch, *dh;
+
+	if (!task)
+		return;
+	ch = task->code_heap;
+	dh = task->data_heap;
+	if (ch && ch->hc_signature == HEAP_CTRL_SIGNATURE_VAL && ch != &ahc)
+		HeapCtrlDel(ch);
+	if (dh && dh != ch && dh->hc_signature == HEAP_CTRL_SIGNATURE_VAL && dh != &ahd)
+		HeapCtrlDel(dh);
+	if (task != sys_task)
+		Free(task);
 }
 
 I64 TaskEnd()
 {//Called with irqs off.
 	CTask *task = Fs, *tmpt, *tmpt1;
+
+	if (!TaskValidate(task))
+	{
+		if (TaskValidate(sys_task))
+			return sys_task;
+		return task;
+	}
+
+	// EZODUS: host monolith — minimal task teardown (no child/sibling queues).
+	if (_ezodus_host)
+	{
+		if (task == sys_task)
+			return task;
+		if (LBtr(&task->display_flags, DISPLAYf_SHOW))
+			LBts(&sys_semas[SEMA_UPDATE_WIN_Z_BUF], 0);
+		if (sys_focus_task == task)
+		{
+			sys_focus_task = sys_task;
+			if (fp_set_std_palette)
+				(*fp_set_std_palette)();
+			WinToTop(sys_task);
+		}
+		while (LBts(&task->server_ctrl.flags, JOBCf_LOCKED))
+			PAUSE;
+		JobQueueDel(&task->server_ctrl.next_waiting);
+		JobQueueDel(&task->server_ctrl.next_done);
+		LBtr(&task->server_ctrl.flags, JOBCf_LOCKED);
+		LBtr(&task->task_flags, TASKf_TASK_LOCK);
+		if (TaskValidate(task->next_task) && TaskValidate(task->last_task))
+			TaskQueueRemove(task);
+		task->task_signature = 0;
+		if (TaskValidate(sys_task))
+			return sys_task;
+		return task;
+	}
 
 	if (task == sys_task_being_screen_updated)
 	{
@@ -729,33 +772,13 @@ I64 TaskEnd()
 	LBtr(&task->server_ctrl.flags, JOBCf_LOCKED);
 	LBtr(&task->task_flags, TASKf_TASK_LOCK);
 
-	task->wake_jiffy = counts.jiffies + DYING_JIFFIES;
-	while (LBts(&Gs->cpu_flags, CPUf_DYING_TASK_QUE))
-		PAUSE
-	QueueInsert(task, Gs->last_dying);
-	LBtr(&Gs->cpu_flags, CPUf_DYING_TASK_QUE);
+	// EZODUS: CTaskDying defer-free overlays CTask.addr — free now while still valid.
+	if (task != sys_task)
+		TaskDel(task);
 
 	return tmpt;
 }
 
 U0 TaskKillDying()
-{//Delay freeing to prevent asking for trouble with quick reincarnations.
-//What if the user is doing this: $LK,"DoTreeCheckers",A="FF:::/Misc/OSTestSuite.ZC,DoTreeCheckers"$.
-	CTaskDying *task, *task1;
-
-	if (Gs->kill_jiffy < counts.jiffies)
-	{//Avoid doing as many lock operations.
-		while (LBts(&Gs->cpu_flags, CPUf_DYING_TASK_QUE))
-			PAUSE
-		task = Gs->next_dying;
-		while (task != &Gs->next_dying && task->wake_jiffy < counts.jiffies)
-		{
-			task1 = task->next;
-			QueueRemove(task);
-			TaskDel(((task)(U8 *) - offset(CTask.wake_jiffy))(CTask *));
-			task = task1;
-		}
-		LBtr(&Gs->cpu_flags, CPUf_DYING_TASK_QUE);
-		Gs->kill_jiffy = counts.jiffies + DYING_JIFFIES;
-	}
+{//EZODUS: host monolith — skip dying-task queue until real MP executive.
 }

@@ -94,18 +94,33 @@ U0 LexWarn(CCompCtrl *cc, U8 *str=NULL)
 
 U0 LexExcept(CCompCtrl *cc, U8 *str=NULL)
 {//Print error message and throw exception. EZODUS: TOSPrint only (no Raw/PutS).
+	Bool name_ok;
+	U8 *fn;
+
 	if (str)
 		TOSPrint("LexErr:%s\n", str);
-	if (!IsRaw)
+	if (!IsRaw && str)
 		TOSPrint("LexErrTask:%08X %s\n", Fs, str);
 	if (cc && cc->lex_include_stack)
 	{
 		if (cc->flags & (CCF_CMD_LINE | CCF_PROMPT))
 			TOSPrint("LexErrAt:CmdLine,%d\n", cc->lex_include_stack->line_num);
-		else if (cc->lex_include_stack->full_name)
-			TOSPrint("LexErrAt:%s,%d\n", cc->lex_include_stack->full_name, cc->lex_include_stack->line_num);
 		else
-			TOSPrint("LexErrAt:?,?\n");
+		{
+			fn = cc->lex_include_stack->full_name;
+			name_ok = FALSE;
+			if (fn && fn[0] >= 32 && fn[0] < 127)
+			{
+				if (!StrCompare(fn, "DolDoc"))
+					name_ok = TRUE;
+				else if (StrFind("/", fn) || StrFind(":", fn))
+					name_ok = TRUE;
+			}
+			if (name_ok)
+				TOSPrint("LexErrAt:%s,%d\n", fn, cc->lex_include_stack->line_num);
+			else
+				TOSPrint("LexErrAt:?,?\n");
+		}
 	}
 	cc->error_count++;
 	throw('Compiler');

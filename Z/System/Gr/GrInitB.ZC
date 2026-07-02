@@ -208,6 +208,7 @@ U0 GrInit2()
 	gr.screen_image	= DCNew(GR_WIDTH, GR_HEIGHT); //4-bit
 	gr.zoomed_dc	= DCNew(GR_WIDTH, GR_HEIGHT); //4-bit
 	gr.zoomed_dc->flags |= DCF_SCREEN_BITMAP;
+	GrSetUpTables;
 }
 
 // EZODUS: GrInit2 runs from _InitUI after DrawWindowNew sets framebuffer dims.

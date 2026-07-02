@@ -194,21 +194,10 @@ U0 WallPaper(CTask *_task)
 	wall->last_calc_idle_count = winmgr.t->calc_idle_count;
 }
 
-$SP,"<1>",BI=1$
-
-
-
-
-$SP,"<2>",BI=2$
-
-
-
 U0 DrawTermBttn(CDC *dc, CCtrl *c)
 {
-	if (Blink)
-		Sprite3(dc, c->left, c->top, 0, $IB,"<1>",BI=1$);
-	else
-		Sprite3(dc, c->left, c->top, 0, $IB,"<2>",BI=2$);	
+	// EZODUS: avoid runtime $IB,BI=1$ sprite Lex on host.
+	GrPrint(dc, c->left, c->top, "<T>");
 }
 
 U0 LeftClickTermBttn(CCtrl *, I64, I64, Bool down)
@@ -219,7 +208,6 @@ U0 LeftClickTermBttn(CCtrl *, I64, I64, Bool down)
 
 CCtrl *TermBttnNew()
 {
-	I64		 min_x, max_x, min_y, max_y;
 	CCtrl	*c = SysCAlloc(sizeof(CCtrl));
 
 	c->win_task		= sys_winmgr_task;
@@ -228,12 +216,11 @@ CCtrl *TermBttnNew()
 	c->draw_it		= &DrawTermBttn;
 	c->left_click	= &LeftClickTermBttn;
 
-	SpriteExtents($IB,"<1>",BI=1$, &min_x, &max_x, &min_y, &max_y);
-//min must be zero
-	c->left		= sys_winmgr_task->pix_width - (max_x - min_x + 1);
-	c->right	= c->left + (max_x - min_x + 1) - 1;
-	c->top		= sys_winmgr_task->pix_height - (max_y - min_y + 1);
-	c->bottom	= c->top + (max_y - min_y + 1) - 1;
+	// EZODUS: skip $IB,"<1>",BI=1$ sprite parse — BI undefined on host Lex.
+	c->left		= sys_winmgr_task->pix_width - 32;
+	c->right	= c->left + 31;
+	c->top		= sys_winmgr_task->pix_height - 16;
+	c->bottom	= c->top + 15;
 
 	QueueInsert(c, sys_winmgr_task->last_ctrl);
 	TaskDerivedValsUpdate(sys_winmgr_task);

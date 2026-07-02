@@ -162,14 +162,12 @@ U8 *CmdLinePrompt()
 	EzodusCurDirValidate(Fs);
 	if (st = DirCur)
 	{
-		res = MStrPrint("%s>", st);
+		DocPrint(Fs->put_doc, "%s>", st);
 		Free(st);
 	}
 	else
-		res = MStrPrint(">");
-	"" res;
+		DocPrint(Fs->put_doc, ">");
 	st = (*fp_getstr2)(SGF_SHIFT_ESC_EXIT);
-	Free(res);
 	LBtr(&Fs->task_flags, TASKf_CMD_LINE_PROMPT);
 
 	i = StrLen(st);

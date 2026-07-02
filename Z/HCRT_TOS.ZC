@@ -199,6 +199,10 @@ extern Bool BreakUnlock(CTask *task=NULL);
 #include "Kernel/BlkDev/DiskBootstrap.ZC"
 #include "Kernel/BlkDev/DiskStrA.ZC"
 #include "Kernel/BlkDev/DiskDirA.ZC"
+#include "Kernel/BlkDev/FileSysVirt.ZC"
+#include "Kernel/BlkDev/DiskDirContext.ZC"
+#include "Kernel/BlkDev/DiskFindVirt.ZC"
+#include "Kernel/BlkDev/DiskDirB.ZC"
 #include "Kernel/FunSeg.ZC"
 
 //──────────────────────────────────────────────────────────────────────────

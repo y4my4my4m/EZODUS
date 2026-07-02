@@ -162,7 +162,10 @@ public U0 DCReset(CDC *dc)
 	Mat4x4IdentEqu(dc->r);
 	dc->r_norm			= GR_SCALE;
 	dc->flags		   &= ~(DCF_SYMMETRY | DCF_TRANSFORMATION | DCF_JUST_MIRROR);
-	MemCopy(dc->palette, gr32_palette_std, sizeof(CBGR24) * COLORS_NUM);
+	if (_ezodus_host)
+		GrPaletteGet(dc->palette);
+	else
+		MemCopy(dc->palette, gr32_palette_std, sizeof(CBGR24) * COLORS_NUM);
 }
 
 public U0 DCExtentsInit(CDC *dc=NULL)
