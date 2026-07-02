@@ -264,34 +264,38 @@ U0 WheelChangeWinScroll(CCtrl *c, I64 delta)
 U0 WinScrollsInit(CTask *task)
 {
 	CCtrl *c;
+	CTask noreg *t = task;
 
-	if (!CtrlFindUnique(task, CTRLT_WIN_HSCROLL))
+	if (!TaskValidate(t))
+		return;
+
+	if (!CtrlFindUnique(t, CTRLT_WIN_HSCROLL))
 	{
-		c = CAlloc(sizeof(CCtrl), task);
-		c->win_task				= task;
+		c = CAlloc(sizeof(CCtrl), t);
+		c->win_task				= t;
 		c->flags				= CTRLF_SHOW | CTRLF_BORDER | CTRLF_CAPTURE_LEFT_MS;
 		c->type					= CTRLT_WIN_HSCROLL;
-		c->state				= &task->horz_scroll(U8);
+		c->state				= &t->horz_scroll(U8);
 		c->update_derived_vals	= &WinDerivedScrollValsUpdate;
 		c->draw_it				= &DrawWinScroll;
 		c->left_click			= &LeftClickHWinScroll;
-		QueueInsert(c, task->last_ctrl);
+		QueueInsert(c, t->last_ctrl);
 	}
 
-	if (!CtrlFindUnique(task, CTRLT_WIN_VSCROLL))
+	if (!CtrlFindUnique(t, CTRLT_WIN_VSCROLL))
 	{
-		c = CAlloc(sizeof(CCtrl), task);
-		c->win_task=task;
+		c = CAlloc(sizeof(CCtrl), t);
+		c->win_task=t;
 		c->flags				= CTRLF_SHOW | CTRLF_BORDER | CTRLF_CAPTURE_LEFT_MS;
 		c->type					= CTRLT_WIN_VSCROLL;
-		c->state				= &task->vert_scroll(U8);
+		c->state				= &t->vert_scroll(U8);
 		c->update_derived_vals	= &WinDerivedScrollValsUpdate;
 		c->draw_it				= &DrawWinScroll;
 		c->left_click			= &LeftClickVWinScroll;
 		c->wheel_chg			= &WheelChangeWinScroll;
-		QueueInsert(c, task->last_ctrl);
+		QueueInsert(c, t->last_ctrl);
 	}
-	TaskDerivedValsUpdate(task);
+	TaskDerivedValsUpdate(t);
 }
 #define VIEWANGLES_SPACING	22
 //#define VIEWANGLES_RANGE	48

@@ -149,13 +149,17 @@ public Bool Drive(U8 drv_let=0)
 
 public U8 *FileRead(U8 *filename, I64 *_size=NULL, I64 *_attr=NULL)
 {
+	CTask noreg *t = Fs;
 	U8 *absname, *vfs_path, *res;
 	I64 size = 0;
 
 	if (!_ezodus_vfs_init)
 		EzodusVfsInit();
-	if (!Fs->cur_dv || Fs->cur_dv->drive_signature != DRIVE_SIGNATURE_VAL)
-		Fs->cur_dv = &blkdev.drvs['Z' - 'A'];
+	if (!t || !t->cur_dv || t->cur_dv->drive_signature != DRIVE_SIGNATURE_VAL)
+	{
+		if (t)
+			t->cur_dv = &blkdev.drvs['Z' - 'A'];
+	}
 	absname = FileNameAbs(filename);
 	if (!absname)
 		return NULL;
@@ -167,8 +171,11 @@ public U8 *FileRead(U8 *filename, I64 *_size=NULL, I64 *_attr=NULL)
 	}
 	else
 		VFsSetDrv('Z');
-	if (Fs->cur_dir && *Fs->cur_dir)
-		VFsSetPwd(Fs->cur_dir);
+	// FileNameAbs yields drive-absolute paths like /Home/foo.ZC — do not prepend cur_dir.
+	if (*vfs_path == '/')
+		VFsSetPwd("/");
+	else if (t->cur_dir && *t->cur_dir)
+		VFsSetPwd(t->cur_dir);
 	else
 		VFsSetPwd("/");
 	res = VFsFRead(vfs_path, &size);

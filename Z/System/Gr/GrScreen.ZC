@@ -22,44 +22,56 @@ U0 GrUpdateTaskWin(CTask *task)
 { //Draw a win. Only Core0 tasks have a win.
 	CDC		*dc;
 	CD3I64	 saved_scroll;
+	CTask	*clip;
+	// EZODUS: `task` param is register-backed; clobbered across TextRect/Doc calls.
+	CTask noreg *t = task;
 
-	sys_task_being_screen_updated = task;
+	if (!TaskValidate(t))
+		return;
+	if (TaskValidate(Fs))
+		clip = Fs;
+	else
+		clip = sys_winmgr_task;
+	if (!TaskValidate(clip))
+		return;
+
+	sys_task_being_screen_updated = t;
 	try
 	{
-		if (!Bt(&task->display_flags, DISPLAYf_NO_BORDER))
-			TextBorder(Fs,	task->win_left, task->win_right, task->win_top, task->win_bottom,
-							task->border_attr, task == sys_focus_task);
+		if (!Bt(&t->display_flags, DISPLAYf_NO_BORDER))
+			TextBorder(clip, t->win_left, t->win_right, t->win_top, t->win_bottom,
+							t->border_attr, t == sys_focus_task);
 
-		TextRect(task->win_left, task->win_right, task->win_top, task->win_bottom, task->text_attr << 8);
-		if (task == sys_winmgr_task)
+		TextRect(t->win_left, t->win_right, t->win_top, t->win_bottom, t->text_attr << 8);
+		if (t == sys_winmgr_task)
 		{
 			if (gr.fp_wall_paper)
-				(*gr.fp_wall_paper)(task);
+				(*gr.fp_wall_paper)(t);
 		}
-		if (!(task->win_inhibit & WIF_SELF_DOC))
-			DocUpdateTaskDocs(task);
-		if (TaskValidate(task))
+		else if (!(t->win_inhibit & WIF_SELF_DOC))
+			DocUpdateTaskDocs(t);
+		if (TaskValidate(t))
 		{
-			if (task->draw_it)
+			if (t->draw_it)
 			{
-				dc = DCAlias(gr.dc2, task);
-				(*task->draw_it)(task, dc);
+				dc = DCAlias(gr.dc2, t);
+				(*t->draw_it)(t, dc);
 				DCDel(dc);
 			}
-			if (TaskValidate(task))
+			if (TaskValidate(t))
 			{
-				WinScrollNull(task, &saved_scroll);
-				DrawCtrls(task);
-				WinScrollRestore(task, &saved_scroll);
+				WinScrollNull(t, &saved_scroll);
+				DrawCtrls(t);
+				WinScrollRestore(t, &saved_scroll);
 			}
 		}
 	}
 	catch
 	{
 		PutExcept(FALSE);
-		if (task != Fs && TaskValidate(task))
+		if (t != Fs && TaskValidate(t))
 		{
-			LBtr(&task->display_flags, DISPLAYf_SHOW);
+			LBtr(&t->display_flags, DISPLAYf_SHOW);
 			"Exception in WinMgr: Update Task Win\n";
 			PutExcept;
 			Sleep(3000);
@@ -73,22 +85,26 @@ U0 GrUpdateTasks()
 {//Only called by WinMgr
 	I64		 i;
 	CTask	*task, *task1;
+	CTask noreg *t;
 
 	try
 	{
 		winmgr.ode_time = 0;
+		if (!sys_winmgr_task || !TaskValidate(sys_winmgr_task))
+			return;
 		if (Bt(&sys_semas[SEMA_UPDATE_WIN_Z_BUF], 0))
 			WinZBufUpdate;
 		task1 = task = sys_winmgr_task;
 		do
 		{ //Loop through Core0 tasks.
-			if (!TaskValidate(task))
+			t = task;
+			if (!TaskValidate(t))
 				break;
-			if (Bt(&task->display_flags, DISPLAYf_SHOW) && Bt(gr.win_uncovered_bitmap, task->win_z_num))
-				GrUpdateTaskWin(task);
-			if (!TaskValidate(task))
+			if (Bt(&t->display_flags, DISPLAYf_SHOW) && Bt(gr.win_uncovered_bitmap, t->win_z_num))
+				GrUpdateTaskWin(t);
+			if (!TaskValidate(t))
 				break;
-			task = task->next_task;
+			task = t->next_task;
 		}
 		while (task != task1);
 
@@ -97,12 +113,13 @@ U0 GrUpdateTasks()
 			task1 = task = cpu_structs[i].executive_task;
 			do
 			{
-				if (!TaskValidate(task))
+				t = task;
+				if (!TaskValidate(t))
 					break;
-				GrUpdateTaskODEs(task);
-				if (!TaskValidate(task))
+				GrUpdateTaskODEs(t);
+				if (!TaskValidate(t))
 					break;
-				task = task->next_task;
+				task = t->next_task;
 			}
 			while (task != task1);
 		}
@@ -422,12 +439,27 @@ U0 GrUpdateScreen32()
 		MemCopy(text.fb_alias, text.raw_screen, text.buffer_size);
 }
 
+U0 EzodusFirstPaint()
+{//EZODUS: full composite — wallpaper, sys strip, task windows.
+	try
+		GrUpdateScreen;
+	catch
+		PutExcept(FALSE);
+}
+
 U0 GrUpdateScreen()
 {//Called by the Window Manager $LK,"HERE",A="FF:::/System/WinMgr.ZC,GrUpdateScreen"$, 30 times a second.
 	CDC *dc;
 
 	if (text.is_fb_busy)
 		return;
+	if (!TaskValidate(Fs))
+	{
+		if (TaskValidate(sys_winmgr_task))
+			SetFs(sys_winmgr_task);
+		else
+			return;
+	}
 
 	GrUpdateTextBG;
 	GrUpdateTextFG;

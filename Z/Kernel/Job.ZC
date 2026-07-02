@@ -253,16 +253,18 @@ I64 JobResGet(CJob *request=NULL)
 U0 TaskWait(CTask *task=NULL, Bool cmd_line_prompt=FALSE)
 {//Wait for idle.
 	CTask *task1;
+	CTask noreg *t;
 	CJob  *tmpc1;
 
 	if (!task)
 		task = Fs;
-	if (TaskValidate(task))
+	t = task;
+	if (TaskValidate(t))
 	{
 		// EZODUS: no PUSHFD/CLI on host pthread.
 		while (TRUE)
 		{
-			task1 = task->last_input_filter_task;
+			task1 = t->last_input_filter_task;
 			tmpc1 = &task1->server_ctrl.next_waiting;
 			if (task1 == Fs || !TaskValidate(task1) ||
 					tmpc1 == tmpc1->next && Bt(&task1->task_flags, TASKf_IDLE) &&
@@ -528,21 +530,36 @@ U0 SysErr(U8 *format, ...)
 
 U0 XTalk(CTask *task, U8 *format, ...)
 {//Sends text to other task. See $LK,"::/Misc/OSTestSuite.ZC"$.
-	U8 *buf = StrPrintJoin(NULL, format, argc, argv), *st = SysStrNew(buf), *st2 = MStrPrint("\"%%s\",%d;Free(%d);", st, st);
+	U8 *buf = StrPrintJoin(NULL, format, argc, argv);
 
-	TaskText(task, NULL, st2, 0);
-	Free(st2);
+	if (_ezodus_host)
+		TaskText(task, NULL, buf, 1 << JOBf_HIGHEST_PRIORITY);
+	else
+	{
+		U8 *st = SysStrNew(buf), *st2 = MStrPrint("\"%%s\",%d;Free(%d);", st, st);
+		TaskText(task, NULL, st2, 0);
+		Free(st2);
+	}
 	Free(buf);
 }
 
 U0 XTalkWait(CTask *task, U8 *format, ...)
 {//Send text to other task and wait for it to idle.
-	U8 *buf = StrPrintJoin(NULL, format, argc, argv), *st = SysStrNew(buf), *st2 = MStrPrint("\"%%s\",%d;Free(%d);", st, st);
+	U8 *buf = StrPrintJoin(NULL, format, argc, argv);
 
-	TaskText(task, NULL, st2, 0);
-	Free(st2);
+	if (_ezodus_host)
+	{
+		TaskText(task, NULL, buf, 1 << JOBf_HIGHEST_PRIORITY);
+		TaskWait(task);
+	}
+	else
+	{
+		U8 *st = SysStrNew(buf), *st2 = MStrPrint("\"%%s\",%d;Free(%d);", st, st);
+		TaskText(task, NULL, st2, 0);
+		Free(st2);
+		TaskWait(task);
+	}
 	Free(buf);
-	TaskWait(task);
 }
 
 U0 InStr(U8 *format, ...)
@@ -566,9 +583,17 @@ U0 InFile(U8 *filename)
 
 U0 In(U8 *format, ...)
 {//Send text to own input buffer. See $LK,"::/Demo/AcctExample/TOS/TOSDistro.ZC"$.
-	U8 *buf = StrPrintJoin(NULL, format, argc, argv), *st = SysStrNew(buf);
+	U8 *buf = StrPrintJoin(NULL, format, argc, argv);
 
-	InStr("\"%%s\",%d;Free(%d);", st, st);
+	// EZODUS: In() normally JIT-compiles "macro",ptr;Free(ptr) which needs PutChars
+	// in the task hash — user tasks on host don't have it. Execute macro directly.
+	if (_ezodus_host)
+		TaskText(Fs, NULL, buf, 1 << JOBf_HIGHEST_PRIORITY);
+	else
+	{
+		U8 *st = SysStrNew(buf);
+		InStr("\"%%s\",%d;Free(%d);", st, st);
+	}
 	Free(buf);
 }
 

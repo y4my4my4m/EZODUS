@@ -1,5 +1,8 @@
 #help_index "Windows;Task/Delay"
 
+extern CCtrl *TermBttnNew();
+extern U0 EzodusFirstPaint();
+
 public U0 EzodusWinMgrInit()
 {//One-time gfx setup when WinMgrTask stubbed onto sys_task.
 	if (!gr.dc2)
@@ -106,8 +109,10 @@ I64 WinQueueIPMessages(Bool que)
 	static CD3I64	 single_mouse = {0, 0, 0};
 	F64				 time = tS;
 	I64				 message_code = 0, arg1, arg2, single_arg1, single_arg2;
-	CTask			*task_focus = sys_focus_task;
+	CTask noreg		*task_focus = sys_focus_task;
 
+	if (!TaskValidate(task_focus))
+		task_focus = NULL;
 	if (task_focus && !winmgr.grab_scroll)
 	{
 		arg1 = mouse.pos.x - task_focus->pix_left - task_focus->scroll_x;
@@ -288,6 +293,8 @@ U0 WinCalcIdles()
 	CCPU					*c;
 	CWinMgrTimingGlobals	*t = winmgr.t;
 
+	if (!t)
+		return;
 	if ((t->calc_idle_delta_time = (calc_idle_time = tS) - t->last_calc_idle_time) > .25)
 	{
 		// EZODUS: no PUSHFD/CLI on host pthread.
@@ -367,7 +374,17 @@ I64 WinMgrSleep(Bool flush_messages = FALSE)
 			winmgr.ideal_refresh_tS += WINMGR_PERIOD;
 		timeout_val = counts.jiffies + (winmgr.ideal_refresh_tS - tS) * JIFFY_FREQ;
 		LBts(&sys_semas[SEMA_REFRESH_IN_PROGRESS], 0);
-		GrUpdateScreen;
+		try
+		{
+			EzodusFirstPaint;
+		}
+		catch
+		{
+			if (_ezodus_host)
+				PutExcept(FALSE);
+			else
+				throw;
+		}
 		LBtr(&sys_semas[SEMA_REFRESH_IN_PROGRESS], 0);
 		if (screencast.record  && !screencast.just_audio)
 		{
@@ -565,6 +582,7 @@ Bool WinMgrTaskCloseOk(CTask *task)
 U0 WinMgrTask(I64)
 {
 	CTask		*task = Fs;
+	CTask noreg *tt;
 	CDoc		*doc;
 	CDocEntry	*doc_e;
 	I64			 x, y, z, message_code, my_mouse_z = 0, left, top, old_flags = RFlagsGet;
@@ -582,6 +600,7 @@ U0 WinMgrTask(I64)
 		GrSetUpTables;
 		screencast.dc2_alias = DCAlias(gr.dc2);
 		WinZBufUpdate;
+		// TermBttnNew deferred until after first Refresh (host queue timing).
 	}
 	catch
 	{
@@ -598,42 +617,47 @@ wmt_start:
 				TaskKillDying;
 			WinMgrSleep;
 
-			task = Fs->last_task;
+			tt = Fs->last_task;
 			while (TRUE)
 			{
-				if (!TaskValidate(task))
+				if (!TaskValidate(tt))
 				{
 					RFlagsSet(old_flags);
 					goto wmt_start;
 				}
-				TaskDerivedValsUpdate(task, FALSE);
-				task = task->last_task;
+				TaskDerivedValsUpdate(tt, FALSE);
+				tt = tt->last_task;
 				RFlagsSet(old_flags);
-				if (task == Fs)
+				if (tt == Fs)
 					break;
 			}
 			TaskDerivedValsUpdate(Fs, FALSE);
 
-			task = Fs->last_task;
+			tt = Fs->last_task;
 			while (TRUE)
 			{
-				if (!TaskValidate(task))
+				if (!TaskValidate(tt))
 				{
 					RFlagsSet(old_flags);
 					goto wmt_start;
 				}
-				if (WinInside(mouse.pos.x, mouse.pos.y, task, FONT_WIDTH))
+				if (WinInside(mouse.pos.x, mouse.pos.y, tt, FONT_WIDTH))
 				{
 					RFlagsSet(old_flags);
 					break;
 				}
-				if (task == Fs) { //Shouldn't happen
+				if (tt == Fs) { //Shouldn't happen
 					RFlagsSet(old_flags);
 					goto wmt_start;
 				}
-				task = task->last_task;
+				tt = tt->last_task;
 				RFlagsSet(old_flags);
 			}
+
+			task = tt;
+
+			if (!task || !TaskValidate(task))
+				task = Fs;
 
 			if (Bt(&task->display_flags, DISPLAYf_NO_BORDER))
 				has_border = FALSE;

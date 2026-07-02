@@ -20,6 +20,10 @@ U8 *FileRead(U8 *filename, I64 *_size=NULL, I64 *_attr=NULL)
 		{
 			switch (dirc->drive->fs_type)
 			{
+				case FSt_VIRT:
+					res = VirtFileRead(dirc->drive, Fs->cur_dir, dirc->mask, &size, &attr);
+					break;
+
 				case FSt_REDSEA:
 					res = RedSeaFileRead(dirc->drive, Fs->cur_dir, dirc->mask, &size, &attr);
 					break;
@@ -48,6 +52,10 @@ U8 *FileRead(U8 *filename, I64 *_size=NULL, I64 *_attr=NULL)
 				Cd("..");
 				switch (Fs->cur_dv->fs_type)
 				{
+					case FSt_VIRT:
+						res = VirtFileRead(dirc->drive, Fs->cur_dir, dirc->mask, &size, &attr);
+						break;
+
 					case FSt_REDSEA:
 						res = RedSeaFileRead(dirc->drive, Fs->cur_dir, dirc->mask, &size, &attr);
 						break;

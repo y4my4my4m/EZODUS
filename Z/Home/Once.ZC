@@ -42,13 +42,14 @@ U0 Tmp()
 			break;
 		case BOOT_SRC_HARDDRIVE:
 		case BOOT_SRC_RAM:
-			if (!_ezodus_host)
-			{
-				"\n$$PURPLE$$$$TX+CX,\"Tips of the Day\"$$$$FG$$\n";
-				TipOfDay;Yield;
-				TipOfDay;
-				Type("::/Doc/Customize.DD");
-			}
+			"\n$$PURPLE$$$$TX+CX,\"Tips of the Day\"$$$$FG$$\n";
+			try TipOfDay;
+			catch {}
+			Yield;
+			try TipOfDay;
+			catch {}
+			try Type("::/Doc/Customize.DD");
+			catch {}
 			break;
 	}
 }

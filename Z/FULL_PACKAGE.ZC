@@ -67,7 +67,21 @@ U0 __InitCPUs() {
 }
 
 U0 _InitUI() {
-  CTask *u;
+  CTask noreg *wmt;
+  if (__IsCmdLine) {
+    // -c compile/scripts: stay on adam_task (HCRT compiler hash). SetFs(sys_task)
+    // before ExePrint makes Cmp/Comp invisible → LexErr on BuildHCRT.
+    TOSPrint("_InitUI:cli\n");
+    EzodusVfsInit;
+    Drive('Z');
+    LoadImps;
+    try ExePrint("%s;\n", __CmdLineBootText);
+    catch {
+      PutExcept(FALSE);
+      Shutdown;
+    }
+    return;
+  }
   TOSPrint("_InitUI:0\n");
   SetFs(sys_task);
   EzodusVfsInit;
@@ -105,13 +119,7 @@ U0 _InitUI() {
   TOSPrint("_InitUI:5c CPUs\n");
   TOSPrint("_InitUI:6 LoadImps\n");
   LoadImps;
-  if (__IsCmdLine) {
-    Drive('Z');
-    PCSpkInit;
-    u=User;
-    DeathWait(&u);
-    Shutdown;
-  } else {
+  {
     TOSPrint("_InitUI:7 GUI\n");
     DrawWindowNew;
     sys_framebuffer_width = GR_WIDTH;
@@ -135,11 +143,17 @@ U0 _InitUI() {
     Fs->win_right = text.cols - 2;
     Fs->win_top++;
     TaskDerivedValsUpdate(Fs, FALSE);
+    LBts(&Fs->win_inhibit, WIf_SELF_FOCUS);
     TOSPrint("_InitUI:8 WinMgr\n");
     // Real ZealOS boot: the Window Manager is its own task that composites the
     // screen (GrUpdateScreen) ~30x/s from WinMgrSleep. Multitasking works now,
     // so spawn it instead of painting inline on the boot task.
-    sys_winmgr_task = Spawn(&WinMgrTask, NULL, "Window Manager");
+    wmt = Spawn(&WinMgrTask, NULL, "Window Manager");
+    if (!wmt || !TaskValidate(wmt))
+      throw('WinMgr');
+    sys_winmgr_task = wmt;
+    sys_focus_task = wmt;
+    WinZBufUpdate;
     Fs->win_inhibit = WIG_TASK_DEFAULT - WIF_SELF_BORDER - WIF_SELF_GRAB_SCROLL - WIF_SELF_CTRLS;
     LBts(&Fs->display_flags, DISPLAYf_CHILDREN_NOT_ON_TOP);
     LBts(&Fs->display_flags, DISPLAYf_SHOW);
@@ -147,11 +161,18 @@ U0 _InitUI() {
     LBts(&sys_run_level, RLf_REGISTRY);
     TOSPrint("_InitUI:9 WallPaper\n");
     WallPaperInit;
-    if (!gr.fp_wall_paper)
-      gr.fp_wall_paper = &WallPaper;
+    TOSPrint("_InitUI:9b WallPaper done\n");
     PaletteSetSlate;
-    Refresh; // EZODUS: like T/FULL_PACKAGE — wait for WinMgr first composites
+    gr.fp_wall_paper = &WallPaper;
+    TOSPrint("_InitUI:10 Refresh\n");
+    while (!Bt(&sys_run_level, RLf_WINMGR))
+      Yield;
+    Refresh(1, FALSE);
+    TOSPrint("_InitUI:10b winmgr ready\n");
+    TermBttnNew;
+    TOSPrint("_InitUI:10c spk\n");
     PCSpkInit;
+    TOSPrint("_InitUI:10d drive\n");
     Drive('Z');
     LBts(&sys_run_level, RLf_HOME);
     if (!sys_os_version_str)
@@ -160,10 +181,10 @@ U0 _InitUI() {
       sys_os_version_nice = MStrPrint("%s\t%D %T\n", sys_os_version_str, sys_compile_time, sys_compile_time);
       sys_os_version_full = MStrPrint("%s-%d.%d\n", sys_os_version_str, sys_compile_time.date, sys_compile_time.time);
     }
+    TOSPrint("_InitUI:10e startup\n");
     try StartUpTasks;
     catch { PutExcept(FALSE); }
     TOSPrint("_InitUI:11 server loop\n");
-    // System task now enters server mode (see StartOS.ZC tail).
     ServerTaskCont;
   }
 }

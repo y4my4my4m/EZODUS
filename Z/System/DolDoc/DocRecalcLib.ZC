@@ -51,11 +51,16 @@ U0 DocDelToEntry(CDoc *doc, CDocEntry *clear_entry, Bool clear_holds)
 U0 DocBorderListDraw(CDoc *doc)
 {
 	CTask	*win_task = doc->win_task;
-	I64		 i, y = -1, attr = win_task->border_attr << 8;
+	I64		 i, y = -1, attr;
 	U64		 ch;
 	CDoc	*tmpl = doc;
 	CD3I64	 saved_scroll;
 
+	if (!win_task)
+		win_task = Fs;
+	if (!win_task || !TaskValidate(win_task))
+		return;
+	attr = win_task->border_attr << 8;
 	while (tmpl && tmpl->doc_signature == DOC_SIGNATURE_VAL)
 	{
 		y += (Bsr(tmpl->desc) + 7) >> 3 + 1; //StrLen+1
@@ -225,23 +230,27 @@ U0 DocUpdateTaskDocs(CTask *task)
 {//This is called from $LK,"GrUpdateTaskWin",A="MN:GrUpdateTaskWin"$() by the winmgr at 60fps.
 	CDoc *doc;
 	CD3I64 saved_scroll;
+	CTask noreg *t = task;
 
-	if (task->border_src == BDS_CUR_DRIVE && task->cur_dv)
-		task->border_attr = DriveTextAttrGet(Drive2Letter(task->cur_dv));
-	if (task->title_src == TTS_TASK_NAME)
-		StrCopy(task->task_title, task->task_name);
-	if ((doc = DocDisplay(task)) && !(doc->flags & DOCF_DONT_SHOW))
+	if (!TaskValidate(t))
+		return;
+
+	if (t->border_src == BDS_CUR_DRIVE && t->cur_dv)
+		t->border_attr = DriveTextAttrGet(Drive2Letter(t->cur_dv));
+	if (t->title_src == TTS_TASK_NAME)
+		StrCopy(t->task_title, t->task_name);
+	if ((doc = DocDisplay(t)) && !(doc->flags & DOCF_DONT_SHOW))
 	{
-		if (task->border_src == BDS_ED_FILENAME_DRIVE)
-			task->border_attr = DriveTextAttrGet(*doc->filename.name);
-		if (task->title_src == TTS_ED_FILENAME)
-			MemCopy(task->task_title, doc->filename.name, STR_LEN - 1);
+		if (t->border_src == BDS_ED_FILENAME_DRIVE)
+			t->border_attr = DriveTextAttrGet(*doc->filename.name);
+		if (t->title_src == TTS_ED_FILENAME)
+			MemCopy(t->task_title, doc->filename.name, STR_LEN - 1);
 		DocRecalc(doc, RECALCt_TO_SCREEN | RECALCF_HAS_CURSOR);
 	}
-	if ((doc = DocBorder(task)) && !(doc->flags & DOCF_DONT_SHOW))
+	if ((doc = DocBorder(t)) && !(doc->flags & DOCF_DONT_SHOW))
 	{
-		WinScrollNull(task, &saved_scroll);
+		WinScrollNull(t, &saved_scroll);
 		DocRecalc(doc, RECALCt_TO_SCREEN);
-		WinScrollRestore(task, &saved_scroll);
+		WinScrollRestore(t, &saved_scroll);
 	}
 }

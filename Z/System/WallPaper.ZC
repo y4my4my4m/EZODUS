@@ -29,47 +29,57 @@ class CTaskWallPaperData
 U0 WallPaper(CTask *_task)
 {
 	I64					 i, j, k, l = TEXT_ROWS - 1;
-	CTask				*task;
+	CTask noreg			*wm;
+	CTask noreg			*tt;
 	CTaskWallPaperData	*wpd;
-	CHashTable			*old_hash = Fs->hash_table;
+	CHashTable			*old_hash;
 	CCPU				*c;
 	CDateStruct			 ds;
 	U8					*st;
 
-	_task->text_attr = DKGRAY << 4 + WHITE;
+	if (!wall)
+		return;
+	if (!winmgr.t)
+		return;
+	if (!TaskValidate(_task))
+		return;
+	wm = _task;
+
+	old_hash = wm->hash_table;
+	wm->text_attr = DKGRAY << 4 + WHITE;
 	if (sys_data_bp && sys_code_bp)
 	{
-		TextPrint(Fs, 0, l--, DKGRAY << 4 + YELLOW,
+		TextPrint(wm, 0, l--, DKGRAY << 4 + YELLOW,
 					"%010X/%010X %010X/%010X%12td%12td%12td",
 					sys_data_bp->used_u8s, sys_data_bp->alloced_u8s,
 					sys_code_bp->used_u8s, sys_code_bp->alloced_u8s,
 					cmp.compiled_lines, blkdev.read_count, blkdev.write_count);
 
-		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+		TextPrint(wm, 0, l--, DKGRAY << 4 + WHITE,
 					"______Data_Heap______ ______Code_Heap______ "
 					"___Lines___ ___Reads___ __Writes___");
 	}
 	else if (sys_code_bp)
 	{
-		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+		TextPrint(wm, 0, l--, DKGRAY << 4 + WHITE,
 					"%010X/%010X%12td%12td%12td",
 					sys_code_bp->used_u8s, sys_code_bp->alloced_u8s,
 					cmp.compiled_lines, blkdev.read_count, blkdev.write_count);
 
-		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+		TextPrint(wm, 0, l--, DKGRAY << 4 + WHITE,
 					"____CodeData_Heap____ "
 					"___Lines___ ___Reads___ ___Writes__");
 	}
 	else // EZODUS: host pthread has no ring-0 code block pool (sys_code_bp==NULL).
 	{
-		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+		TextPrint(wm, 0, l--, DKGRAY << 4 + WHITE,
 					"%12td%12td%12td",
 					cmp.compiled_lines, blkdev.read_count, blkdev.write_count);
 
-		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+		TextPrint(wm, 0, l--, DKGRAY << 4 + WHITE,
 					"___Lines___ ___Reads___ ___Writes__");
 	}
-	TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE, "ProgressBars:%016X %016X %016X %016X",
+	TextPrint(wm, 0, l--, DKGRAY << 4 + WHITE, "ProgressBars:%016X %016X %016X %016X",
 				progress1, progress2, progress3, progress4);
 
 	for (i = 0; i < mp_count; i++)
@@ -82,56 +92,56 @@ U0 WallPaper(CTask *_task)
 			winmgr.t->last_swap_counter[i] = c->swap_counter;
 		}
 
-		task = c->executive_task;
+		tt = c->executive_task;
 		do
 		{
-			wpd = &task->wallpaper_data;
-			if (!TaskValidate(task))
+			if (!TaskValidate(tt))
 				break;
+			wpd = &tt->wallpaper_data;
 			if (!(winmgr.updates & 5))
 			{
 				if (c == Gs)
-					Fs->hash_table = task->hash_table;
+					wm->hash_table = tt->hash_table;
 				else //precaution
-					Fs->hash_table = old_hash;
+					wm->hash_table = old_hash;
 
 				// EZODUS: TaskCaller/FunSegFind NULL on host pthread tasks.
 				if (sys_code_bp && mem_boot_base)
 				{
-					StrPrint(wpd->caller_stack, "    %p ", TaskCaller(task, 0));
+					StrPrint(wpd->caller_stack, "    %p ", TaskCaller(tt, 0));
 					for (j = 1; j < 16; j++)
 					{
-						if ((k = TaskCaller(task, j)) > 0)
+						if ((k = TaskCaller(tt, j)) > 0)
 							CatPrint(wpd->caller_stack, "? %p ", k);
 					}
 				}
 				else
-					StrCopy(wpd->caller_stack, task->task_name);
+					StrCopy(wpd->caller_stack, tt->task_name);
 			}
-			TextPrint(Fs, 0, l--, DKGRAY << 4 + YELLOW, wpd->caller_stack);
-			j = UnusedStack(task);
+			TextPrint(wm, 0, l--, DKGRAY << 4 + YELLOW, wpd->caller_stack);
+			j = UnusedStack(tt);
 			if (j < 0)
-				Panic("Stack Overflow", task);
+				Panic("Stack Overflow", tt);
 			if (!(winmgr.updates & 15))
 			{
-				wpd->alloced_u8s = TaskMemAlloced(task);
-				wpd->used_u8s 	 = TaskMemUsed(task);
+				wpd->alloced_u8s = TaskMemAlloced(tt);
+				wpd->used_u8s 	 = TaskMemUsed(tt);
 			}
-			TextPrint(Fs, 0, l--, DKGRAY << 4 + BLACK,
+			TextPrint(wm, 0, l--, DKGRAY << 4 + BLACK,
 						"  %-18s #%08X %010X %010X/%010X %04X:%02tX:%08X",
-						task->task_name, task, j, wpd->used_u8s, wpd->alloced_u8s,
-						task->task_flags, task->display_flags, task->win_inhibit);
-			if (!TaskValidate(task))
+						tt->task_name, tt, j, wpd->used_u8s, wpd->alloced_u8s,
+						tt->task_flags, tt->display_flags, tt->win_inhibit);
+			if (!TaskValidate(tt))
 				break;
-			task = task->next_task;
+			tt = tt->next_task;
 		}
-		while (task != c->executive_task);
+		while (tt != c->executive_task);
 
-		TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE, "CPU%02X %2tf%% ContextSwaps/s:%9,d", i,
+		TextPrint(wm, 0, l--, DKGRAY << 4 + WHITE, "CPU%02X %2tf%% ContextSwaps/s:%9,d", i,
 					100.0 * (1.0 - c->idle_factor), ToI64((winmgr.t->last_swap_counter[i]
 					- wall->last_swap_counter[i]) / wall->last_calc_idle_delta_time));
 	}
-	TextPrint(Fs, 0, l--, DKGRAY << 4 + WHITE,
+	TextPrint(wm, 0, l--, DKGRAY << 4 + WHITE,
 				"  ___Description____ #__Task__ UnusedStack _UsedMem_/_AllocMem_ ______Flags_____");
 
 	if (!(winmgr.updates & 15) || !*wall->top_line)
@@ -162,10 +172,10 @@ U0 WallPaper(CTask *_task)
 					ds.hour, ds.min, ds.sec, winmgr.fps, i);
 	}
 	}
-	TextPrint(Fs, 0, 0, DKGRAY << 4 + WHITE, wall->top_line);
+	TextPrint(wm, 0, 0, DKGRAY << 4 + WHITE, wall->top_line);
 
 	if (screencast.record)
-		TextPrint(Fs, 44 -4, 0, DKGRAY << 4 + RED, "*");
+		TextPrint(wm, 44 -4, 0, DKGRAY << 4 + RED, "*");
 
 	j = StrLen(wall->top_line);
 	k = 0;
@@ -173,43 +183,55 @@ U0 WallPaper(CTask *_task)
 	{
 		c = &cpu_structs[i];
 		if (i & 1)
-			TextPrint(Fs, j + i * 2, 0, DKGRAY << 4 + WHITE, "%2tf", 100.0 * (1.0 - c->idle_factor));
+			TextPrint(wm, j + i * 2, 0, DKGRAY << 4 + WHITE, "%2tf", 100.0 * (1.0 - c->idle_factor));
 		else
-			TextPrint(Fs, j + i * 2, 0, DKGRAY << 4 + YELLOW, "%2tf", 100.0 * (1.0 - c->idle_factor));
+			TextPrint(wm, j + i * 2, 0, DKGRAY << 4 + YELLOW, "%2tf", 100.0 * (1.0 - c->idle_factor));
 		k += 2;
 	}
 	j += k + 1;
-	TextPrint(Fs, j, 0, DKGRAY << 4 + WHITE, "BOOT:");
+	TextPrint(wm, j, 0, DKGRAY << 4 + WHITE, "BOOT:");
 	j += 5;
-	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->bootm_ch);
+	TextPrint(wm, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->bootm_ch);
 	j += 1;
-	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->bootl_ch);
+	TextPrint(wm, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->bootl_ch);
 	j += 1;
-	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->boots_ch);
+	TextPrint(wm, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->boots_ch);
 	j += 1;
-	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->host_ch);
+	TextPrint(wm, j, 0, DKGRAY << 4 + LTGREEN, "%c", wall->host_ch);
 	j += 2;
 	st = "RES:";
-	TextPrint(Fs, j, 0, DKGRAY << 4 + WHITE, st);
+	TextPrint(wm, j, 0, DKGRAY << 4 + WHITE, st);
 	j += 4;
-	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "%dx%d", sys_framebuffer_width, sys_framebuffer_height);
+	TextPrint(wm, j, 0, DKGRAY << 4 + LTGREEN, "%dx%d", sys_framebuffer_width, sys_framebuffer_height);
 	j += wall->res_str_size;
 	st = "OS:";
-	TextPrint(Fs, j, 0, DKGRAY << 4 + WHITE, st);
+	TextPrint(wm, j, 0, DKGRAY << 4 + WHITE, st);
 	j += 3;
-	TextPrint(Fs, j, 0, DKGRAY << 4 + LTGREEN, "V%.02f.%d", sys_os_version, sys_os_version_sub);
+	TextPrint(wm, j, 0, DKGRAY << 4 + LTGREEN, "V%.02f.%d", sys_os_version, sys_os_version_sub);
 
 	st = ScanCode2KeyName(kbd.last_down_scan_code);
-	TextPrint(Fs, TEXT_COLS - 25, 0, DKGRAY << 4 + YELLOW, "%25ts", st);
-	Free(st);
+	if (st)
+	{
+		TextPrint(wm, TEXT_COLS - 25, 0, DKGRAY << 4 + YELLOW, "%25ts", st);
+		Free(st);
+	}
 
-	Fs->hash_table = old_hash;
+	wm->hash_table = old_hash;
 	wall->last_calc_idle_count = winmgr.t->calc_idle_count;
 }
 
 U0 DrawTermBttn(CDC *dc, CCtrl *c)
 {
-	GrPrint(dc, c->left, c->top, "Term");
+	I64 x = c->left / FONT_WIDTH;
+	I64 y = c->top / FONT_HEIGHT;
+	CTask *wmt = c->win_task;
+
+	if (!wmt)
+		return;
+	if (Blink)
+		TextPrint(wmt, x, y, DKGRAY << 4 + YELLOW, "[Term]");
+	else
+		TextPrint(wmt, x, y, DKGRAY << 4 + LTGRAY, "[Term]");
 }
 
 U0 LeftClickTermBttn(CCtrl *, I64, I64, Bool down)
@@ -218,47 +240,66 @@ U0 LeftClickTermBttn(CCtrl *, I64, I64, Bool down)
 		User;
 }
 
-CCtrl *TermBttnNew()
+public CCtrl *TermBttnNew()
 {
-	CCtrl	*c = SysCAlloc(sizeof(CCtrl));
+	I64		 pw, ph;
+	CTask noreg *wmt = sys_winmgr_task;
+	CCtrl	*c;
 
-	c->win_task		= sys_winmgr_task;
+	if (!wmt || !TaskValidate(wmt))
+		return NULL;
+
+	c = SysCAlloc(sizeof(CCtrl));
+	c->win_task		= wmt;
 	c->flags		= CTRLF_SHOW;
 	c->type			= CTRLT_GENERIC;
 	c->draw_it		= &DrawTermBttn;
 	c->left_click	= &LeftClickTermBttn;
 
-	// EZODUS: skip $IB,"<1>",BI=1$ sprite parse — BI undefined on host Lex.
-	c->left		= sys_winmgr_task->pix_width - 4 * FONT_WIDTH;
-	c->right	= c->left + 4 * FONT_WIDTH - 1;
-	c->top		= sys_winmgr_task->pix_height - 16;
-	c->bottom	= c->top + 15;
+	pw = wmt->pix_width;
+	ph = wmt->pix_height;
+	if (pw <= 0)
+		pw = TEXT_COLS * FONT_WIDTH;
+	if (ph <= 0)
+		ph = TEXT_ROWS * FONT_HEIGHT;
 
-	QueueInsert(c, sys_winmgr_task->last_ctrl);
-	TaskDerivedValsUpdate(sys_winmgr_task);
+	c->left		= pw - 6 * FONT_WIDTH;
+	c->right	= c->left + 6 * FONT_WIDTH - 1;
+	c->top		= ph - FONT_HEIGHT;
+	c->bottom	= c->top + FONT_HEIGHT - 1;
+
+	QueueInsert(c, wmt->last_ctrl);
+	WinDerivedValsUpdate(wmt);
 
 	return c;
 }
 
 U0 WallPaperInit()
 {
-	CSMBIOSSystemInfo	*sys_info = SMBIOSStructGet(SMBIOSt_SYSTEM);
-	U8					*company = "None";
+	if (!wall)
+		WallPaperEzodusInit;
 
-	if (sys_info)
-		company = SMBIOSStr(sys_info, sys_info->manufacturer);
+	// Defer wallpaper callback until after first WinMgr Refresh (see FULL_PACKAGE).
 
-	TermBttnNew;
-	gr.fp_wall_paper = &WallPaper;
+	if (!_ezodus_host)
+	{
+		CSMBIOSSystemInfo	*sys_info = SMBIOSStructGet(SMBIOSt_SYSTEM);
+		U8					*company = "None";
 
-	if (!StrCompare(company, "VMware, Inc."))
-		wall->host_ch = 'W'; // vmWare
-	else if (!StrCompare(company, "innotek GmbH"))
-		wall->host_ch = 'V'; // Virtualbox
-	else if (!StrCompare(company, "QEMU"))
-		wall->host_ch = 'Q'; // Qemu
+		if (sys_info)
+			company = SMBIOSStr(sys_info, sys_info->manufacturer);
+
+		if (!StrCompare(company, "VMware, Inc."))
+			wall->host_ch = 'W'; // vmWare
+		else if (!StrCompare(company, "innotek GmbH"))
+			wall->host_ch = 'V'; // Virtualbox
+		else if (!StrCompare(company, "QEMU"))
+			wall->host_ch = 'Q'; // Qemu
+		else
+			wall->host_ch = '?'; // Bare-Metal / Unknown VM
+	}
 	else
-		wall->host_ch = '?'; // Bare-Metal / Unknown VM
+		wall->host_ch = '?';
 
 	if (sys_is_uefi_booted)
 		wall->bootm_ch = 'U'; // UEFI
@@ -292,10 +333,9 @@ U0 WallPaperInit()
 			wall->boots_ch = 'D'; // DVD
 			break;
 		default:
-			wall->boots_ch = "X"; // Unknown/missing case
+			wall->boots_ch = 'X'; // Unknown/missing case
 	}
 
 	// # of chars in resolution string in top bar
 	wall->res_str_size = ToI64(2 + Floor(1 + Log10(sys_framebuffer_width)) + Floor(1 + Log10(sys_framebuffer_height)));
 }
-        7              (      	      $            Term         9              (      	      $            Term  

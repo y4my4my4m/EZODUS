@@ -25,6 +25,11 @@ U0 SysGlblsInit()
 		text.cols = 640 / FONT_WIDTH;
 	if (!text.rows)
 		text.rows = 480 / FONT_HEIGHT;
+	if (!text.border_chars[2] && !text.border_chars[3])
+	{
+		text.border_chars[2](I64) = 0x0908070605040302;
+		text.border_chars[10](U32) = 0x0D0C0B0A;
+	}
 	if (!debug.fun_seg_cache)
 		debug.fun_seg_cache = CAlloc(FUN_SEG_CACHE_SIZE * sizeof(CFunSegCache));
 }

@@ -466,17 +466,21 @@ CTask *Spawn(U0 (*fp_start_addr)(U8 *data), U8 *data=NULL, U8 *task_name=NULL,
 
 U0 TaskDerivedValsUpdate(CTask *task=NULL, Bool update_z_buf=TRUE)
 {//Those things calculated from other variables.
-	if (!task)
-		task = Fs;
+	CTask noreg *t = task;
 
-	while (LBts(&task->task_flags, TASKf_TASK_LOCK))
+	if (!t)
+		t = Fs;
+	if (!t || !TaskValidate(t))
+		return;
+
+	while (LBts(&t->task_flags, TASKf_TASK_LOCK))
 		PAUSE
-	WinDerivedValsUpdate(task);
+	WinDerivedValsUpdate(t);
 	if (fp_update_ctrls)
-		(*fp_update_ctrls)(task);
-	if (update_z_buf && Bt(&task->display_flags, DISPLAYf_SHOW))
+		(*fp_update_ctrls)(t);
+	if (update_z_buf && Bt(&t->display_flags, DISPLAYf_SHOW))
 		LBts(&sys_semas[SEMA_UPDATE_WIN_Z_BUF], 0);
-	LBtr(&task->task_flags, TASKf_TASK_LOCK);
+	LBtr(&t->task_flags, TASKf_TASK_LOCK);
 }
 
 I64 ExeCmdLine(CCompCtrl *cc)
@@ -626,6 +630,8 @@ CTask *User(U8 *format=NULL, ...)
 	CTask noreg *task;
 
 	task = Spawn(&UserCmdLine,, "Terminal");
+	if (!TaskValidate(task))
+		throw('User');
 
 	TaskWait(task);
 	if (format)
@@ -635,6 +641,8 @@ CTask *User(U8 *format=NULL, ...)
 		Free(st);
 	}
 
+	if (!TaskValidate(task))
+		throw('User');
 	return task;
 }
 

@@ -658,6 +658,11 @@ I64 Comp(U8 *filename, U8 *map_name=NULL, U8 *out_name=NULL, U8 mapfile_drive_le
 	return error_count;
 }
 
+I64 Cmp(U8 *filename, U8 *dbg_file=NULL, U8 *out_name=NULL, U8 mapfile_drv_let=0)
+{//TempleOS/ZealOS name for $LK,"Comp",A="MN:Comp"$.
+	return Comp(filename, dbg_file, out_name, mapfile_drv_let);
+}
+
 I64 ExePutS(U8 *buf, U8 *filename=NULL, I64 ccf_flags=0, CLexHashTableContext *htc=NULL)
 {//JIT Compile and execute text from a puts("").
 	I64			 res;

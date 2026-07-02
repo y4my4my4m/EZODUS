@@ -50,11 +50,9 @@ public CDoc *DocRead(U8 *name=NULL, I64 flags=0)
 	StrCopy(doc->filename.name, name2);
 	if (src = FileRead(name2, &size, &doc->file_attr))
 	{
+		DocLoad(doc, src, size);
 		if (dirc = DirContextNew(name2))
-		{
-			DocLoad(doc, src, size);
 			DirContextDel(dirc);
-		}
 		Free(src);
 	}
 	Free(name2);

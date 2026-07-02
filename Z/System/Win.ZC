@@ -256,17 +256,21 @@ U0 WinMouseUpdate()
 public CTask *WinRefocus(CTask *task = NULL)
 {//Reset the focus task if NULL.
 	// EZODUS: no PUSHFD/CLI on host pthread.
+	CTask noreg *t;
+
+	if (!sys_winmgr_task || !TaskValidate(sys_winmgr_task))
+		return sys_focus_task;
 	if (!task)
 	{
-		task = sys_winmgr_task->last_task;
-		while (TaskValidate(task) && task != sys_winmgr_task)
+		t = sys_winmgr_task->last_task;
+		while (TaskValidate(t) && t != sys_winmgr_task)
 		{
-			if (!Bt(&task->win_inhibit, WIf_SELF_FOCUS))
+			if (!Bt(&t->win_inhibit, WIf_SELF_FOCUS))
 			{
-				sys_focus_task = task;
+				sys_focus_task = t;
 				break;
 			}
-			task = task->last_task;
+			t = t->last_task;
 		}
 	}
 	return sys_focus_task;
@@ -300,38 +304,40 @@ I64 WinOnTopWindows()
 public I64 WinToTop(CTask *task = NULL, Bool update_z_buf = TRUE)
 {//Put task's win on top of window stack.
 	CTask	*task1;
+	CTask noreg *t;
 	I64		 res = 0;
 
 	if (!task)
 		task = Fs;
-	if (!TaskValidate(task) || task->gs->num)
+	t = task;
+	if (!TaskValidate(t) || t->gs->num)
 		return 0;
-	TaskDerivedValsUpdate(task, FALSE);
-	if (!sys_winmgr_task || task == sys_winmgr_task)
+	TaskDerivedValsUpdate(t, FALSE);
+	if (!sys_winmgr_task || t == sys_winmgr_task)
 		return 0;
 
-	if (!TaskValidate(task))
+	if (!TaskValidate(t))
 		return 0;
-	if (task != sys_winmgr_task->last_task)
+	if (t != sys_winmgr_task->last_task)
 	{
-		TaskQueueRemove(task);
-		TaskQueueIns(task, sys_winmgr_task);
+		TaskQueueRemove(t);
+		TaskQueueIns(t, sys_winmgr_task);
 		res++;
 	}
-	if (!Bt(&task->win_inhibit, WIf_SELF_FOCUS))
-		sys_focus_task = task;
-	if (res && !Bt(&task->display_flags, DISPLAYf_CHILDREN_NOT_ON_TOP))
+	if (!Bt(&t->win_inhibit, WIf_SELF_FOCUS))
+		sys_focus_task = t;
+	if (res && !Bt(&t->display_flags, DISPLAYf_CHILDREN_NOT_ON_TOP))
 	{
-		task1 = task->next_child_task;
-		while (task1 != &task->next_child_task)
+		task1 = t->next_child_task;
+		while (task1 != &t->next_child_task)
 		{
 			if (!TaskValidate(task1))
 				break;
 			res += WinToTop(task1, FALSE);
 			task1 = task1->next_sibling_task;
 		}
-		if (task->popup_task && task->popup_task->parent_task == task)
-			res += WinToTop(task->popup_task, FALSE);
+		if (t->popup_task && t->popup_task->parent_task == t)
+			res += WinToTop(t->popup_task, FALSE);
 	}
 
 	res += WinOnTopWindows;
@@ -356,10 +362,12 @@ public CTask *WinFocus(CTask *task = NULL)
 public Bool WinHorz(I64 left, I64 right, CTask *task = NULL)
 {//Set task's win left and right columns.
 	I64 d = right - left;
+	CTask noreg *t;
 
 	if (!task)
 		task = Fs;
-	if (!TaskValidate(task))
+	t = task;
+	if (!TaskValidate(t))
 		return FALSE;
 	if (d < 0) d = 0;
 	if (left >= TEXT_COLS)
@@ -381,11 +389,11 @@ public Bool WinHorz(I64 left, I64 right, CTask *task = NULL)
 	}
 
 	// EZODUS: no PUSHFD/CLI on host pthread.
-	if (task->win_left != left || task->win_right != right)
+	if (t->win_left != left || t->win_right != right)
 	{
-		task->win_left = left;
-		task->win_right = right;
-		TaskDerivedValsUpdate(task);
+		t->win_left = left;
+		t->win_right = right;
+		TaskDerivedValsUpdate(t);
 		return TRUE;
 	}
 	else
@@ -395,10 +403,12 @@ public Bool WinHorz(I64 left, I64 right, CTask *task = NULL)
 public Bool WinVert(I64 top, I64 bottom, CTask *task = NULL)
 {//Set task's win top and bottom rows.
 	I64 d = bottom-top;
+	CTask noreg *t;
 
 	if (!task)
 		task = Fs;
-	if (!TaskValidate(task))
+	t = task;
+	if (!TaskValidate(t))
 		return FALSE;
 	if (d < 0) d = 0;
 	if (top >= TEXT_ROWS)
@@ -420,10 +430,10 @@ public Bool WinVert(I64 top, I64 bottom, CTask *task = NULL)
 	}
 
 	// EZODUS: no PUSHFD/CLI on host pthread.
-	if (task->win_top != top || task->win_bottom != bottom) {
-		task->win_top = top;
-		task->win_bottom = bottom;
-		TaskDerivedValsUpdate(task);
+	if (t->win_top != top || t->win_bottom != bottom) {
+		t->win_top = top;
+		t->win_bottom = bottom;
+		TaskDerivedValsUpdate(t);
 		return TRUE;
 	}
 	else
@@ -477,6 +487,7 @@ public U0 WinTileHorz()
 public U0 WinTileVert()
 {//Tile windows vertically side-by-side.
 	CTask	*task, *last_task = Fs;
+	CTask noreg *t;
 	I64		 count, c, i, horz_size, no_border;
 
 	// EZODUS: no PUSHFD/CLI on host pthread.
@@ -484,9 +495,10 @@ public U0 WinTileVert()
 	count = 0;
 	do
 	{
-		if (!Bt(&task->win_inhibit, WIf_SELF_FOCUS))
+		t = task;
+		if (!Bt(&t->win_inhibit, WIf_SELF_FOCUS))
 			count++;
-		task = task->last_task;
+		task = t->last_task;
 	}
 	while (task != sys_winmgr_task);
 
@@ -494,27 +506,29 @@ public U0 WinTileVert()
 	i = 0;
 	do
 	{
-		if (!Bt(&task->win_inhibit, WIf_SELF_FOCUS))
+		t = task;
+		if (!Bt(&t->win_inhibit, WIf_SELF_FOCUS))
 		{
-			no_border = Bt(&task->display_flags, DISPLAYf_NO_BORDER);
+			no_border = Bt(&t->display_flags, DISPLAYf_NO_BORDER);
 			c = count - i & ~3;
 			if (!c)
 				c = 1;
 			else if (c > 4)
 				c = 4;
 			horz_size = TEXT_COLS / c;
-			WinHorz((i & 3) * horz_size + 1 - no_border, (i & 3 + 1) * horz_size - 1 + no_border, task);
-			WinVert(2 - no_border, TEXT_ROWS - 2 + no_border, task);
-			last_task = task;
+			WinHorz((i & 3) * horz_size + 1 - no_border, (i & 3 + 1) * horz_size - 1 + no_border, t);
+			WinVert(2 - no_border, TEXT_ROWS - 2 + no_border, t);
+			last_task = t;
 			if (i & 3 == 3)
-				WinHorz(task->win_left, TEXT_COLS - 2, task);
+				WinHorz(t->win_left, TEXT_COLS - 2, t);
 			i++;
 		}
-		task = task->last_task;
+		task = t->last_task;
 	}
 	while (task != sys_winmgr_task);
 
-	WinHorz(last_task->win_left, TEXT_COLS - 2, last_task);
+	if (TaskValidate(last_task))
+		WinHorz(last_task->win_left, TEXT_COLS - 2, last_task);
 }
 
 public U0 WinTileGrid()

@@ -120,11 +120,15 @@ public CMenu *MenuFile(U8 *filename, I64 flags = 0, CTask *task = NULL)
 	CMenu		*m;
 	CMenuEntry	*tmpse;
 	CCompCtrl	*cc;
+	CTask noreg *t;
 	U8			*buf2 = FileNameAbs(filename);
 	U8			*src = FileRead(buf2);
 
 	if (!task)
 		task = Fs;
+	t = task;
+	if (!TaskValidate(t))
+		t = Fs;
 	cc = CompCtrlNew(NULL, CCF_DONT_FREE_BUF, filename);
 	// Pulldown .DD files are menu syntax, not DolDoc — bypass LexAttachDoc when RLf_DOC.
 	if (src)
@@ -133,13 +137,13 @@ public CMenu *MenuFile(U8 *filename, I64 flags = 0, CTask *task = NULL)
 		LexIncludeStr(cc, buf2, CAlloc(1), FALSE);
 	Free(buf2);
 	Lex(cc);
-	m = CAlloc(sizeof(CMenu), task);
-	m->task  = task;
+	m = CAlloc(sizeof(CMenu), t);
+	m->task  = t;
 	m->flags = flags;
 	m->attr  = BLUE << 4 + YELLOW;
 	tmpse = &m->sub;
 	while (tmpse)
-		tmpse = tmpse->next = MenuNewSub(cc, task);
+		tmpse = tmpse->next = MenuNewSub(cc, t);
 	CompCtrlDel(cc);
 
 	return m;

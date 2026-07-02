@@ -314,22 +314,49 @@ _TEXT_LEN_ATTR:://Bool TextLenAttr(CTask *task,I64 x,I64 y,I64 len,I64 attr)
 				POP 		RBP
 				RET1		40
 }
-public _extern _TEXT_CHAR Bool TextChar(CTask *task, Bool allow_border=FALSE, I64 x, I64 y, I64 d);
-//Plot char. 60fps in Fs->draw_it() callback.
+public _extern _TEXT_CHAR Bool TextCharRaw(CTask *task, Bool allow_border, I64 x, I64 y, I64 d);
+public _extern _TEXT_LEN_STR Bool TextLenStrRaw(CTask *task, I64 x, I64 y, I64 len, I64 attr, U8 *s);
+public _extern _TEXT_LEN_ATTR_STR Bool TextLenAttrStrRaw(CTask *task, I64 x, I64 y, I64 len, U32 *_attr);
+public _extern _TEXT_LEN_ATTR Bool TextLenAttrRaw(CTask *task, I64 x, I64 y, I64 len, I64 attr);
 
-public _extern _TEXT_LEN_STR Bool TextLenStr(CTask *task, I64 x, I64 y, I64 len, I64 attr, U8 *s);
-//Plot str with len.  60fps in Fs->draw_it() callback.
+public Bool TextChar(CTask *task, Bool allow_border=FALSE, I64 x, I64 y, I64 d)
+{//Plot char. 60fps in Fs->draw_it() callback.
+	if (!task || !TaskValidate(task))
+		return FALSE;
+	return TextCharRaw(task, allow_border, x, y, d);
+}
 
-public _extern _TEXT_LEN_ATTR_STR Bool TextLenAttrStr(CTask *task, I64 x, I64 y, I64 len, U32 *_attr);
-//Plot attr str with len.	60fps in Fs->draw_it() callback.
+public Bool TextLenStr(CTask *task, I64 x, I64 y, I64 len, I64 attr, U8 *s)
+{//Plot str with len.  60fps in Fs->draw_it() callback.
+	if (!task || !TaskValidate(task))
+		return FALSE;
+	return TextLenStrRaw(task, x, y, len, attr, s);
+}
 
-public _extern _TEXT_LEN_ATTR Bool TextLenAttr(CTask *task, I64 x, I64 y, I64 len, I64 attr);
-//Plot attrs with len.  60fps in Fs->draw_it() callback.
+public Bool TextLenAttrStr(CTask *task, I64 x, I64 y, I64 len, U32 *_attr)
+{//Plot attr str with len.	60fps in Fs->draw_it() callback.
+	if (!task || !TaskValidate(task))
+		return FALSE;
+	return TextLenAttrStrRaw(task, x, y, len, _attr);
+}
+
+public Bool TextLenAttr(CTask *task, I64 x, I64 y, I64 len, I64 attr)
+{//Plot attrs with len.  60fps in Fs->draw_it() callback.
+	if (!task || !TaskValidate(task))
+		return FALSE;
+	return TextLenAttrRaw(task, x, y, len, attr);
+}
 
 public U0 TextPrint(CTask *task, I64 x, I64 y, I64 attr, U8 *format, ...)
 {//Plot chars. 60fps in Fs->draw_it() callback.
 //You probably want $LK,"GrPrint",A="MN:GrPrint"$() or just $LK,"Print",A="MN:Print"$().
-	U8 *buf = StrPrintJoin(NULL, format, argc, argv);
+	U8 *buf;
+
+	if (!task)
+		task = GetFs();
+	if (!task || !TaskValidate(task))
+		return;
+	buf = StrPrintJoin(NULL, format, argc, argv);
 
 	TextLenStr(task, x, y, StrLen(buf), attr<<8, buf);
 	Free(buf);
@@ -342,7 +369,9 @@ public U0 TextBorder(CTask *task=NULL, I64 l, I64 r, I64 t, I64 b, I64 attr, Boo
 	I64 i;
 
 	if (!task)
-		task = Fs;
+		task = GetFs();
+	if (!task || !TaskValidate(task))
+		return;
 
 	attr <<= 8;
 	TextChar(task,, l - 1, t - 1, text.border_chars[6  + solid] + attr);

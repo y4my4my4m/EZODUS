@@ -95,21 +95,25 @@ U0 LFBFlush()
 
 U0 WinDerivedValsUpdate(CTask *task)
 {//Those things calculated from other variables.
-	if (!task)
-		task = Fs;
+	CTask noreg *t = task;
+
+	if (!t)
+		t = Fs;
+	if (!t)
+		return;
 	// EZODUS: no PUSHFD/CLI on host pthread.
-	task->win_width		= task->win_right  - task->win_left + 1;
-	task->win_height	= task->win_bottom - task->win_top + 1;
+	t->win_width		= t->win_right  - t->win_left + 1;
+	t->win_height	= t->win_bottom - t->win_top + 1;
 
-	task->pix_left		= FONT_WIDTH * task->win_left;
-	task->pix_right 	= FONT_WIDTH * (task->win_right + 1) - 1;
+	t->pix_left		= FONT_WIDTH * t->win_left;
+	t->pix_right 	= FONT_WIDTH * (t->win_right + 1) - 1;
 
-	task->pix_width 	= task->pix_right  - task->pix_left + 1;
+	t->pix_width 	= t->pix_right  - t->pix_left + 1;
 
-	task->pix_top 		= FONT_HEIGHT * task->win_top;
-	task->pix_bottom	= FONT_HEIGHT * (task->win_bottom + 1) - 1;
+	t->pix_top 		= FONT_HEIGHT * t->win_top;
+	t->pix_bottom	= FONT_HEIGHT * (t->win_bottom + 1) - 1;
 
-	task->pix_height	= task->pix_bottom - task->pix_top + 1;
+	t->pix_height	= t->pix_bottom - t->pix_top + 1;
 }
 
 Bool WinInside(I64 x, I64 y, CTask *task=NULL, I64 border=0)

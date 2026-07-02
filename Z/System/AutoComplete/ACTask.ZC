@@ -1,38 +1,54 @@
 #help_index "AutoComplete/Dictionary"
+
+U0 EzHeapFree(U8 *p)
+{//EZODUS: skip bogus addrs (host reg clobber / bad cur_word).
+	CHeapCtrl *hc;
+
+	if (!p || p(I64) < 0x1000)
+		return;
+	hc = MHeapCtrl(p);
+	if (hc && hc->hc_signature == HEAP_CTRL_SIGNATURE_VAL)
+		Free(p);
+}
+
 U0 ACDDictWordsAdd(U8 *st)
 {
 	I64 i;
-	U8 *ptr;
+	U8 *ptr, *end = acd.word_list + acd.word_list_size;
 
-	if (st && *st && (ptr = ACDWordPtAt(st)))
+	if (!st || !*st || !acd.word_list || !acd.word_list_size)
+		return;
+	if (!(ptr = ACDWordPtAt(st)) || ptr < acd.word_list || ptr >= end)
+		return;
+	for (i = 0; i < ACD_FILLINS_NUM; i++)
 	{
-		for (i = 0; i < ACD_FILLINS_NUM; i++)
-		{
-			if (*ptr++ != ACD_WORD_CHAR)
-				break;
-			if (i)
-				'\n';
-			acd.fillins[i] = ptr - 1;
-			"$$GREEN$$'%d'$$FG$$ $$BLACK$$%-23ts$$FG$$", i, ptr;
-			ptr += StrLen(ptr) + 3;
-		}
-		acd.num_fillins = i;
+		if (ptr < acd.word_list || ptr >= end || *ptr++ != ACD_WORD_CHAR)
+			break;
+		if (i)
+			'\n';
+		acd.fillins[i] = ptr - 1;
+		"$$GREEN$$'%d'$$FG$$ $$BLACK$$%-23ts$$FG$$", i, ptr;
+		if (ptr >= end)
+			break;
+		ptr += StrLen(ptr) + 3;
 	}
+	acd.num_fillins = i;
 }
 
 #help_index "AutoComplete"
 U0 ACDocReset(I64 left, I64 top)
 {
+	CTask noreg *ac_task = Fs;
 	CDoc *doc = DocPut;
 
 	DocReset(doc, TRUE);
 	doc->flags |= DOCF_SIZE_MIN;
-	Fs->border_src  = BDS_CONST;
-	Fs->border_attr = LTGRAY << 4 + DriveTextAttrGet(':') & 15;
-	Fs->text_attr   = LTGRAY << 4 + BLUE;
-	LBtr(&Fs->display_flags, DISPLAYf_SHOW);
-	WinHorz(left, Fs->win_right);
-	WinVert(top,  Fs->win_bottom);
+	ac_task->border_src  = BDS_CONST;
+	ac_task->border_attr = LTGRAY << 4 + DriveTextAttrGet(':') & 15;
+	ac_task->text_attr   = LTGRAY << 4 + BLUE;
+	LBtr(&ac_task->display_flags, DISPLAYf_SHOW);
+	WinHorz(left, ac_task->win_right);
+	WinVert(top,  ac_task->win_bottom);
 	DocCursor;
 }
 
@@ -91,15 +107,16 @@ U0 ACFillInAdd(CHashAC *tmpw)
 	}
 }
 
-U0 ACPutChoices(CDoc *focus_l, CDocEntry *doc_e, CTask *focus_task, Bool force_refresh)
+U0 ACPutChoices(CDoc noreg *focus_l, CDocEntry noreg *doc_e, CTask noreg *focus_task, Bool force_refresh)
 {
 	I64			 i, data_col;
 	U8			*buf, *buf1, *src = NULL, *st;
 	CHashAC		*tmpw;
 	F64			 timeout_time = tS + 0.5;
 	CHashSrcSym	*tmph;
+	CTask noreg *ac_task = Fs;
 
-	if (!ac.hash_table)
+	if (!ac.hash_table || !focus_l || !doc_e || !TaskValidate(focus_task))
 		return;
 
 	if (LBtr(&ac.flags, ACf_LAST_WAS_KEYMAP))
@@ -109,15 +126,24 @@ U0 ACPutChoices(CDoc *focus_l, CDocEntry *doc_e, CTask *focus_task, Bool force_r
 	}
 	else
 	{
-		ac.col = Fs->win_left;
-		ac.row = Fs->win_top;
+		ac.col = ac_task->win_left;
+		ac.row = ac_task->win_top;
 	}
 
 	src = DocScanLine(focus_l, doc_e, &data_col);
 	DocUnlock(focus_l);
+	if (!src)
+		return;
 	i = StrLen(src);
-	buf  = MAlloc(MaxI64(i + 1, 256));
-	buf1 = MAlloc(MaxI64(i + 1, 256));
+	buf  = MAlloc(MaxI64(i + 1, 256), ac_task);
+	buf1 = MAlloc(MaxI64(i + 1, 256), ac_task);
+	if (!buf || !buf1)
+	{
+		EzHeapFree(src);
+		EzHeapFree(buf);
+		EzHeapFree(buf1);
+		return;
+	}
 	if (data_col == -1)
 		data_col = 0;
 	data_col = ACPriorWordInStr(src, buf, data_col, 256);
@@ -128,8 +154,8 @@ U0 ACPutChoices(CDoc *focus_l, CDocEntry *doc_e, CTask *focus_task, Bool force_r
 	if (!ac.cur_word || StrCompare(ac.cur_word, buf) || force_refresh)
 	{
 		st = ac.cur_word;
-		ac.cur_word = SysStrNew(buf);
-		Free(st);
+		ac.cur_word = StrNew(buf, ac_task);
+		EzHeapFree(st);
 		ac.num_fillins = 0;
 		if (*ac.cur_word && ac.hash_table)
 			for (i = 0; i <= ac.hash_table->mask && tS < timeout_time; i++)
@@ -163,23 +189,26 @@ U0 ACPutChoices(CDoc *focus_l, CDocEntry *doc_e, CTask *focus_task, Bool force_r
 					"$$HL,0$$";
 				}
 			}
-			if (acd.has_words)
-				ACDDictWordsAdd(ac.cur_word);
+			if (acd.has_words && acd.word_list && acd.word_list_size)
+			{
+				try ACDDictWordsAdd(ac.cur_word);
+				catch {}
+			}
 		}
 		else if (FileFind("::/Doc/StandBy.DD"))
 			Type("::/Doc/StandBy.DD", 0);
 	}
-	Free(src);
-	Free(buf);
-	Free(buf1);
+	EzHeapFree(src);
+	EzHeapFree(buf);
+	EzHeapFree(buf1);
 }
 
-U0 ACTaskNormal(I64 sc, I64 last_sc, CTask *focus_task, CTask *original_focus_task)
+U0 ACTaskNormal(I64 sc, I64 last_sc, CTask noreg *focus_task, CTask noreg *original_focus_task)
 {
-	CDoc	  *doc;
-	CDocEntry *doc_e;
+	CDoc noreg *doc;
+	CDocEntry noreg *doc_e;
 
-	if ((doc=DocPut(focus_task)) && focus_task != Fs && Bt(&focus_task->display_flags, DISPLAYf_SHOW))
+	if ((doc = DocPut(focus_task)) && focus_task != Fs && Bt(&focus_task->display_flags, DISPLAYf_SHOW))
 	{
 		DocLock(doc);
 		if (TaskValidate(focus_task) &&
@@ -192,8 +221,11 @@ U0 ACTaskNormal(I64 sc, I64 last_sc, CTask *focus_task, CTask *original_focus_ta
 				doc_e = doc_e->last;
 			while (doc_e->last != doc && (doc_e->type_u8 == DOCT_NEW_LINE || doc_e->type_u8 == DOCT_SOFT_NEW_LINE))
 				doc_e = doc_e->last;
-			while (doc_e->last->type_u8 != DOCT_NEW_LINE && doc_e->last != doc)
-				doc_e = doc_e->last;
+			if (doc_e->last != doc && doc_e->last->type_u8 != DOCT_NEW_LINE)
+			{
+				while (doc_e->last->type_u8 != DOCT_NEW_LINE && doc_e->last != doc)
+					doc_e = doc_e->last;
+			}
 			ACPutChoices(doc, doc_e, focus_task, ToBool(sc != last_sc));
 		}
 		else
@@ -263,17 +295,21 @@ U0 ACTaskEndCB()
 
 U0 ACTask(I64)
 {
-	CTask	*focus_task, *original_focus_task;
+	CTask noreg *focus_task, *original_focus_task;
 	I64		 ch, scan_code = 0, last_scan_code = 0;
 	CDoc	*doc;
 
 	Fs->task_end_cb = &ACTaskEndCB;
 	DocTermNew;
 	LBts(&Fs->display_flags, DISPLAYf_SHOW);
+	if (!ac.col && !ac.row)
+	{
+		ac.col = text.cols - 50;
+		ac.row = 3;
+	}
 	ACDocReset(ac.col, ac.row);
 	LBts(&Fs->display_flags, DISPLAYf_WIN_ON_TOP);
 	Fs->win_inhibit = WIG_NO_FOCUS_TASK_DEFAULT;
-	Free(ac.cur_word);
 	ac.cur_word = NULL;
 
 	while (TRUE)

@@ -159,15 +159,12 @@ public U0 ACInit(U8 *mask=NULL)
 		ACMainFileListTraverse(mask);
 
 	ACDWordsLoad;
-	RegDefault("AutoComplete", "ac.col = TEXT_COLS-34;ac.row = 10;");
-	RegExe("AutoComplete");
 	LBtr(&ac.flags, ACf_INIT_IN_PROGRESS);
 	if (!ac.hash_table)
 		return;
 	LBts(&sys_run_level, RLf_AUTOCOMPLETE);
-	// EZODUS: ACTask DocTermNew + ACPutChoices crash on host until MSize/hash stable.
-	if (mem_boot_base)
-		AutoComplete(ON);
+	try AutoComplete(ON);
+	catch {}
 }
 
 I64 AutoCompleteSize()

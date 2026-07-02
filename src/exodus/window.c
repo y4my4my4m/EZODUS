@@ -130,6 +130,7 @@ static void updatescrn(u8 *px) {
   u64 sz = WIDTH * HEIGHT;
   asm("rep movsb" : "+D"(dst), "+S"(src), "+c"(sz), "=m"(*(char(*)[sz])dst));
   SDL_UnlockSurface(win.surf);
+  SDL_SetRenderDrawColor(win.rend, 0, 0, 0, 255);
   SDL_RenderClear(win.rend);
   int w, h, w2, h2, margin_x = 0, margin_y = 0;
   SDL_GetWindowSize(win.window, &w, &h);
@@ -692,7 +693,7 @@ void DrawWindowUpdate(u8 *px) {
   });
   SDL_LockMutex(win.screen_mutex);
   SDL_CondWaitTimeout(win.screen_done_cond, win.screen_mutex, 1e3 / GetFPS());
-  // CondWaitTimeout unlocks the mutex for us
+  SDL_UnlockMutex(win.screen_mutex);
 }
 
 void DrawWindowNew(void) {

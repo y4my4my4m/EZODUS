@@ -39,6 +39,34 @@ U0 LoadDocDefines()
 	DefinePrint("FONT_HEIGHT", "8");
 	DefinePrint("TEXT_COLS", "80");
 	DefinePrint("TEXT_ROWS", "60");
+	// EdPullDown.DD menu keys — LexExpressionI64 in MenuFile needs these in hash.
+	DefinePrint("CH_CTRLA", "0x01");
+	DefinePrint("CH_CTRLB", "0x02");
+	DefinePrint("CH_CTRLC", "0x03");
+	DefinePrint("CH_CTRLD", "0x04");
+	DefinePrint("CH_CTRLE", "0x05");
+	DefinePrint("CH_CTRLF", "0x06");
+	DefinePrint("CH_CTRLG", "0x07");
+	DefinePrint("CH_CTRLH", "0x08");
+	DefinePrint("CH_CTRLI", "0x09");
+	DefinePrint("CH_CTRLJ", "0x0A");
+	DefinePrint("CH_CTRLK", "0x0B");
+	DefinePrint("CH_CTRLL", "0x0C");
+	DefinePrint("CH_CTRLM", "0x0D");
+	DefinePrint("CH_CTRLO", "0x0F");
+	DefinePrint("CH_CTRLP", "0x10");
+	DefinePrint("CH_CTRLQ", "0x11");
+	DefinePrint("CH_CTRLR", "0x12");
+	DefinePrint("CH_CTRLS", "0x13");
+	DefinePrint("CH_CTRLT", "0x14");
+	DefinePrint("CH_CTRLU", "0x15");
+	DefinePrint("CH_CTRLV", "0x16");
+	DefinePrint("CH_CTRLW", "0x17");
+	DefinePrint("CH_CTRLX", "0x18");
+	DefinePrint("CH_CTRLY", "0x19");
+	DefinePrint("CH_CTRLZ", "0x1A");
+	DefinePrint("CH_ESC", "0x1B");
+	DefinePrint("CH_SHIFT_ESC", "0x1C");
 
 	if (mem_boot_base && CheckPtr(mem_boot_base(U8 *)))
 	{
