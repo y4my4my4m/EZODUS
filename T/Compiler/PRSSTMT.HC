@@ -111,7 +111,7 @@ CHashFun *PrsFunJoin(CCmpCtrl *cc,CHashClass *tmp_return,
     tmpf->src_link=NULL;
     header_return=NULL;
     tmpf->used_reg_mask=REGG_CLOBBERED+REGG_SAVED+REGG_STK_TMP;
-    tmpf->clobbered_reg_mask=REGG_CLOBBERED+REGG_STK_TMP;
+    tmpf->clobbered_reg_mask=REGG_CLOBBERED+REGG_STK_TMP+0x0C30;
     tmpf->str=name;
     if (cc->flags&CCF_AOT_COMPILE)
       tmpf->exe_addr=aotc->rip;

@@ -187,8 +187,8 @@ static void newwindow(void) {
   win.margin_y = win.margin_x = 0;
   win.sz_x = 640;
   win.sz_y = 480;
-  /* Ezodus: show host OS cursor — Zeal software cursor not visible on SDL yet */
-  SDL_ShowCursor(SDL_ENABLE);
+  /* ZealOS draws its own sprite cursor in GrUpdateScreen */
+  SDL_ShowCursor(SDL_DISABLE);
   SDL_SetWindowKeyboardGrab(win.window, SdlGrab());
   apply_palette_all();
   SDL_UnlockMutex(win.screen_mutex);

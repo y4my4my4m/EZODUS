@@ -109,7 +109,7 @@ CHashFun *ParseFunJoin(CCompCtrl *cc, CHashClass *tmp_return, U8 *name, I64 fsp_
 		tmpf = ParseFunNew;
 		header_return = NULL;
 		tmpf->used_reg_mask = REGG_CLOBBERED + REGG_SAVED + REGG_STACK_TMP;
-		tmpf->clobbered_reg_mask = REGG_CLOBBERED + REGG_STACK_TMP;
+		tmpf->clobbered_reg_mask = REGG_CLOBBERED + REGG_STACK_TMP + REGG_CALLER_SAVED_PTR_VARS;
 		tmpf->str = name;
 		if (cc->flags & CCF_AOT_COMPILE)
 			tmpf->exe_addr = aotc->rip;

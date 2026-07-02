@@ -34,10 +34,15 @@ public U0 EzodusMsInit()
 }
 
 U0 HMSSet4(I64 x, I64 y, I64 z, I64 lr)
-{//SDL event thread → fficall; SetFs sys_task like KBCb.
+{//SDL event thread → fficall; route to WinMgr task like bare-metal path.
+	CTask noreg *t;
+
 	while (LBts(&ms_host_mtx, 0))
 		PAUSE;
-	SetFs(sys_task);
+	t = sys_winmgr_task;
+	if (!TaskValidate(t))
+		t = sys_task;
+	SetFs(t);
 	SetGs(&cpu_structs[0]);
 	x = x * mouse.scale.x + mouse.offset.x;
 	y = y * mouse.scale.y + mouse.offset.y;

@@ -141,10 +141,29 @@ public Bool Drive(U8 drv_let=0)
 		return FALSE;
 	Fs->cur_dv = drive;
 	if (drive->fs_type == FSt_VIRT)
-		EzodusCurDirSet("/Home");
+		EzodusCurDirSet("/");
 	else
 		EzodusCurDirSet(_ezodus_root_dir);
 	return TRUE;
+}
+
+public U0 DiskChange(U8 drv_let=0)
+{//EZODUS: host virt drive — no removable media; remount Z: tree.
+	CDrive *drive;
+
+	if (!_ezodus_vfs_init)
+		EzodusVfsInit();
+	if (!drv_let || drv_let == ':')
+		drv_let = blkdev.boot_drive_let;
+	drive = Letter2Drive(drv_let, FALSE);
+	if (!drive || drive->drive_signature != DRIVE_SIGNATURE_VAL)
+		return;
+	if (drive->fs_type == FSt_VIRT)
+	{
+		VFsSetDrv(drive->drv_let);
+		VFsSetPwd("/");
+	}
+	Drive(drv_let);
 }
 
 public U8 *FileRead(U8 *filename, I64 *_size=NULL, I64 *_attr=NULL)

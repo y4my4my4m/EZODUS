@@ -49,11 +49,7 @@ U0 StartUpTasks()
 	st = sys_task;
 	WinVert(2, text.rows / 8, st);
 	if (TaskValidate(st))
-	{
-		st->win_right = text.cols - 2;
-		st->win_top = 3;
 		TaskDerivedValsUpdate(st, FALSE);
-	}
 	WinZBufUpdate;
 	"Boot Time:%7.3fs\n", tS;
 	try XTalkWait(user, "Cd; #include \"Once\";\n");

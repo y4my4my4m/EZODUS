@@ -331,6 +331,12 @@ I64 TaskInit(CTask *task, I64 stack_size)
 	else
 		t->cur_dir	= StrNew("/Home", Fs);
 
+	if (t->cur_dv)
+	{
+		t->border_src = BDS_CUR_DRIVE;
+		t->border_attr = DriveTextAttrGet(Drive2Letter(t->cur_dv));
+	}
+
 	Seed(, t);
 
 	return t;

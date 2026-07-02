@@ -1,9 +1,34 @@
 #help_index "DolDoc"
 
-I64 DocCharDist(CDoc *doc, I64 x, I64 y)
+I64 DocCharDistXY(I64 doc_x, I64 doc_y, I64 x, I64 y)
 {
+	I64 ax = doc_x, ay = doc_y, bx = x, by = y;
+
 #assert FONT_WIDTH == FONT_HEIGHT
-	return (SqrI64(doc->x - x) + SqrI64(doc->y - y)) * FONT_WIDTH * FONT_WIDTH;
+	return (SqrI64(ax - bx) + SqrI64(ay - by)) * FONT_WIDTH * FONT_WIDTH;
+}
+
+I64 DocCharDist(CDoc *_doc, I64 x, I64 y)
+{
+	I64			 doc_ad = _doc, doc_x, doc_y;
+	CDoc noreg	*doc;
+
+#assert FONT_WIDTH == FONT_HEIGHT
+	if (!doc_ad || doc_ad < 0x100000)
+		return I64_MAX;
+	try
+	{
+		doc = doc_ad(CDoc *);
+		if (doc->doc_signature != DOC_SIGNATURE_VAL)
+			return I64_MAX;
+		doc_x = doc->x;
+		doc_y = doc->y;
+	}
+	catch
+	{
+		return I64_MAX;
+	}
+	return DocCharDistXY(doc_x, doc_y, x, y);
 }
 
 U0 DocDelToNum(CDoc *doc, I64 num)
@@ -228,7 +253,7 @@ public I64 DocMax(I64 i=I64_MAX)
 #help_index "DolDoc/Task;StdOut/Task"
 U0 DocUpdateTaskDocs(CTask *task)
 {//This is called from $LK,"GrUpdateTaskWin",A="MN:GrUpdateTaskWin"$() by the winmgr at 60fps.
-	CDoc *doc;
+	CDoc noreg *doc;
 	CD3I64 saved_scroll;
 	CTask noreg *t = task;
 

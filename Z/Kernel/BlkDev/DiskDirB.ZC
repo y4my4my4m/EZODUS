@@ -99,6 +99,11 @@ Bool Cd(U8 *dirname=NULL, Bool make_dirs=FALSE)
 	}
 	Free(Fs->cur_dir);
 	Fs->cur_dir = StrNew(new_cur_dir);
+	if (Fs->cur_dv && Fs->cur_dv->fs_type == FSt_VIRT)
+	{
+		VFsSetDrv(Fs->cur_dv->drv_let);
+		VFsSetPwd(Fs->cur_dir);
+	}
 	Free(buf);
 	Free(chg_to_buf);
 	Free(new_cur_dir);

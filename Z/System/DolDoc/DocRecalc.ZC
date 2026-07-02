@@ -1,11 +1,28 @@
 #help_index "DolDoc"
 
-I64 DocWordWrapDel(CDoc *doc, CDocEntry *doc_e, Bool full_refresh, Bool same_win, I64 left_margin, I64 right_margin, 
+CDoc *DocRecalcDocAd(CDoc *_doc)
+{
+	I64 ad = _doc;
+	CDoc noreg *d;
+
+	if (!ad || ad < 0x10000)
+		return NULL;
+	d = ad(CDoc *);
+	if (!d || d->doc_signature != DOC_SIGNATURE_VAL)
+		return NULL;
+	return d;
+}
+
+I64 DocWordWrapDel(CDoc *_doc, CDocEntry *doc_e, Bool full_refresh, Bool same_win, I64 left_margin, I64 right_margin,
 				   CDocEntry **_best_doc_e, I64 *_best_col)
 {
+	CDoc noreg *doc = DocRecalcDocAd(_doc);
 	CDocEntry	*doc_e2;
 	U8			*ptr;
 	I64			 j, k;
+
+	if (!doc)
+		return 0;
 
 	if (doc_e->de_flags & DOCEF_TAG && doc_e->tag)
 		k = StrLen(doc_e->tag);
@@ -61,10 +78,14 @@ I64 DocWordWrapDel(CDoc *doc, CDocEntry *doc_e, Bool full_refresh, Bool same_win
 	return k;
 }
 
-U0 DocRecalcXY(CDoc *doc, CDocEntry *doc_e, I64 k, I64 left, I64 width, I64 height, I64 left_margin, I64 right_margin, 
+U0 DocRecalcXY(CDoc *_doc, CDocEntry *doc_e, I64 k, I64 left, I64 width, I64 height, I64 left_margin, I64 right_margin,
 			   I64 x0, I64 y0, I64 *_x, I64 *_y)
 {
+	CDoc noreg *doc = DocRecalcDocAd(_doc);
 	I64 i, x = *_x, y = *_y;
+
+	if (!doc)
+		return;
 
 	if (doc_e->de_flags & DOCEF_MARGIN_REL_X)
 	{
@@ -149,10 +170,14 @@ U0 DocRecalcXY(CDoc *doc, CDocEntry *doc_e, I64 k, I64 left, I64 width, I64 heig
 	*_y = y;
 }
 
-CDocEntry *DocSplitTag(CDoc *doc, CDocEntry *doc_e, I64 i, I64 x, I64 y, I64 type_u8)
+CDocEntry *DocSplitTag(CDoc *_doc, CDocEntry *doc_e, I64 i, I64 x, I64 y, I64 type_u8)
 {//Split tag at i, insert DOCT_SOFT_NEW_LINE, DOCT_MARKER or DOCT_CURSOR
+	CDoc noreg *doc = DocRecalcDocAd(_doc);
 	U8			*ptr;
 	CDocEntry	*doc_e2;
+
+	if (!doc)
+		return NULL;
 
 	if (doc_e->type_u8 == DOCT_TEXT && i)
 	{
@@ -183,12 +208,16 @@ CDocEntry *DocSplitTag(CDoc *doc, CDocEntry *doc_e, I64 i, I64 x, I64 y, I64 typ
 	return doc_e2;
 }
 
-CDocEntry *DocWordWrapAdd(CDoc *doc, CDocEntry *doc_e, I64 *_k, I64 left, I64 right_margin, I64 x, I64 y)
+CDocEntry *DocWordWrapAdd(CDoc *_doc, CDocEntry *doc_e, I64 *_k, I64 left, I64 right_margin, I64 x, I64 y)
 {
+	CDoc noreg *doc = DocRecalcDocAd(_doc);
 	CDocEntry	*doc_e2;
 	I64			 j,
 				 i = right_margin + 1 - (x + left), //Space left on line
 				 ii = x + 1 - doc_e->settings.left_margin;
+
+	if (!doc)
+		return NULL;
 
 	if (IsEditableText(doc_e))
 	{
@@ -239,9 +268,13 @@ CDocEntry *DocWordWrapAdd(CDoc *doc, CDocEntry *doc_e, I64 *_k, I64 left, I64 ri
 	return NULL;
 }
 
-I64 DocTmpAttr(CDoc *doc, CDocEntry *doc_e, I64 cur_u8_attr)
+I64 DocTmpAttr(CDoc *_doc, CDocEntry *doc_e, I64 cur_u8_attr)
 {
+	CDoc noreg *doc = DocRecalcDocAd(_doc);
 	I64 tmp_u32_attr;
+
+	if (!doc)
+		return cur_u8_attr;
 
 	doc_e->de_flags = doc->flags & (DOCG_BL_IV_UL | DOCEF_WORD_WRAP | DOCEF_HIGHLIGHT) |
 					  doc_e->de_flags & ~(DOCG_BL_IV_UL | DOCEF_WORD_WRAP | DOCEF_HIGHLIGHT);
@@ -302,13 +335,15 @@ I64 DocTmpAttr(CDoc *doc, CDocEntry *doc_e, I64 cur_u8_attr)
 	return tmp_u32_attr;
 }
 
-public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
+public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 {//Recalc and format.  Also used by WinMgr to draw on screen.
+	I64				 doc_ad = _doc, doc_cx = 0, doc_cy = 0;
+	CDoc noreg		*doc;
 	I64				 i, ii, j, k, x, x0, y, y0, D, d2, col, col2, best_col = 0, best_d = I64_MAX, xx, yy, zz, 
 					 num_entries = 0, i_jif, cur_u8_attr, tmp_u32_attr, 
 					 cursor_y = I64_MIN, left_margin, right_margin, y_plot_top, y_plot_bottom, 
 					 top, left, bottom, right, width, height, scroll_x, scroll_y, pix_top, pix_left;
-	CDocEntry	reg *doc_e, reg *doc_e2, *best_doc_e, *next_clear_found = NULL, *added_cursor = NULL;
+	CDocEntry	noreg *doc_e, noreg *doc_e2, *best_doc_e, *next_clear_found = NULL, *added_cursor = NULL;
 	CDocBin			*tmpb;
 	CDocSettings	*s;
 	Bool			 del_doc_e, skipped_update, tree_collapsed, same_win, more = FALSE, 
@@ -322,8 +357,14 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 	CWinScroll		*vss, *hss;
 	CHashDefineStr	*tmph;
 
+	if (!doc_ad || doc_ad < 0x10000)
+		return FALSE;
+	doc = doc_ad(CDoc *);
 	if (!doc || doc->doc_signature != DOC_SIGNATURE_VAL)
 		return FALSE;
+
+	doc_cx = doc->x;
+	doc_cy = doc->y;
 
 		//WinMgr updates all wins $TX,"(60000.0 / 1001)",D="WINMGR_FPS"$, 33.33333mS
 	if (recalc_flags & RECALCG_MASK == RECALCt_TO_SCREEN && doc->owning_task != Fs)
@@ -360,6 +401,8 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 	{
 		case RECALCt_FIND_CURSOR:
 			find_cursor = TRUE;
+			doc_cx = doc->x;
+			doc_cy = doc->y;
 			if (wt)
 				dc = DCAlias(gr.dc2, wt); //Necessary for sprites
 			break;
@@ -405,6 +448,8 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 	{
 		doc->x = x;
 		doc->y = y;
+		doc_cx = x;
+		doc_cy = y;
 	}
 
 	hss = &wt->horz_scroll;
@@ -438,6 +483,8 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 				}
 				doc->x = doc->line_start_col + width  / 2;
 				doc->y = doc->top_line_num   + height / 2;
+				doc_cx = doc->x;
+				doc_cy = doc->y;
 				find_cursor = TRUE;
 			}
 		}
@@ -499,6 +546,11 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 	}
 	while (doc_e != doc)
 	{
+		if (doc->doc_signature != DOC_SIGNATURE_VAL)
+		{
+			DocUnlock(doc);
+			return FALSE;
+		}
 		while (TRUE)
 		{
 			del_doc_e = FALSE;
@@ -557,7 +609,7 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 				doc->min_y = y;
 			if (find_cursor)
 			{
-				D = DocCharDist(doc, x, y);
+				D = DocCharDistXY(doc_cx, doc_cy, x, y);
 				col = 0;
 			}
 		}
@@ -662,7 +714,7 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 				}
 				if (find_cursor)
 				{
-					D = DocCharDist(doc, doc_e->x, doc_e->y);
+					D = DocCharDistXY(doc_cx, doc_cy, doc_e->x, doc_e->y);
 					col = doc_e->min_col;
 				}
 				col2 = doc_e->scroll_len; //TODO This is flawed
@@ -678,7 +730,7 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 						else
 							if (find_cursor)
 							{
-								d2 = DocCharDist(doc, x, y);
+								d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
 								if (d2 < D)
 								{
 									D = d2;
@@ -716,7 +768,7 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 						{
 							while (k--)
 							{
-								d2 = DocCharDist(doc, x, y);
+								d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
 								if (d2 < D)
 								{
 									D = d2;
@@ -770,7 +822,7 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 						}
 						if (find_cursor)
 						{
-							d2 = DocCharDist(doc, x, y);
+							d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
 							if (d2 < D)
 							{
 								D = d2;
@@ -796,7 +848,7 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 							}
 							if (find_cursor)
 							{
-								d2 = DocCharDist(doc, x, y);
+								d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
 								if (d2 < D)
 								{
 									D = d2;
@@ -824,7 +876,7 @@ public Bool DocRecalc(CDoc *doc, I64 recalc_flags=RECALCt_NORMAL)
 						}
 						if (find_cursor)
 						{
-							d2 = DocCharDist(doc, x, y);
+							d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
 							if (d2 < D)
 							{
 								D = d2;
@@ -918,7 +970,7 @@ rc_adjust_xy:
 							TextChar(wt, TRUE, x - x0, y - y0, tmp_u32_attr + CH_SPACE);
 						if (find_cursor)
 						{
-							d2 = DocCharDist(doc, x, y);
+							d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
 							if (d2 < D)
 								D = d2;
 						}
@@ -940,7 +992,7 @@ rc_adjust_xy:
 						{
 							while (k--)
 							{
-								d2 = DocCharDist(doc, x, y);
+								d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
 								if (d2 < D)
 									D = d2;
 								x++;
@@ -1374,7 +1426,7 @@ rc_skip:
 			doc_e->type.u8[1]		= cur_u8_attr;
 			if (find_cursor)
 			{
-				D = DocCharDist(doc, x, y);
+				D = DocCharDistXY(doc_cx, doc_cy, x, y);
 				if (D < best_d && !(doc_e->de_flags & DOCEF_NO_CLICK_ON))
 				{
 					best_d = D;

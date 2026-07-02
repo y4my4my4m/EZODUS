@@ -40,15 +40,20 @@ U0 ACDocReset(I64 left, I64 top)
 {
 	CTask noreg *ac_task = Fs;
 	CDoc *doc = DocPut;
+	I64 bot;
 
 	DocReset(doc, TRUE);
 	doc->flags |= DOCF_SIZE_MIN;
 	ac_task->border_src  = BDS_CONST;
-	ac_task->border_attr = LTGRAY << 4 + DriveTextAttrGet(':') & 15;
+	ac_task->border_attr = LTGRAY << 4 + PURPLE;
 	ac_task->text_attr   = LTGRAY << 4 + BLUE;
 	LBtr(&ac_task->display_flags, DISPLAYf_SHOW);
-	WinHorz(left, ac_task->win_right);
-	WinVert(top,  ac_task->win_bottom);
+	LBtr(&ac_task->display_flags, DISPLAYf_NO_BORDER);
+	WinHorz(left, WinCols() - 2);
+	bot = top + 17;
+	if (bot > WinRows() - 2)
+		bot = WinRows() - 2;
+	WinVert(top, bot);
 	DocCursor;
 }
 
@@ -302,14 +307,18 @@ U0 ACTask(I64)
 	Fs->task_end_cb = &ACTaskEndCB;
 	DocTermNew;
 	LBts(&Fs->display_flags, DISPLAYf_SHOW);
+	LBtr(&Fs->display_flags, DISPLAYf_NO_BORDER);
 	if (!ac.col && !ac.row)
 	{
 		ac.col = text.cols - 50;
 		ac.row = 3;
 	}
+	Fs->border_attr = LTGRAY << 4 + PURPLE;
+	Fs->text_attr = LTGRAY << 4 + BLUE;
+	Fs->border_src = BDS_CONST;
 	ACDocReset(ac.col, ac.row);
 	LBts(&Fs->display_flags, DISPLAYf_WIN_ON_TOP);
-	Fs->win_inhibit = WIG_NO_FOCUS_TASK_DEFAULT;
+	Fs->win_inhibit = WIG_TASK_DEFAULT;
 	ac.cur_word = NULL;
 
 	while (TRUE)

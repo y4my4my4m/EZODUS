@@ -56,21 +56,110 @@ U0 LoadImps() {
   }
 }
 
-U0 __InitCPUs() {
+U0 HostSysGrInit()
+{
+  I64 i;
+  text.font = sys_font_std;
+  text.aux_font = sys_font_aux;
+  text.aux_font[10] = text.font[10];
+  text.aux_font[255] = text.font[255];
+  for (i = '³'; i < 'Û'; i++)
+    text.aux_font[i] = text.font[i];
+  text.aux_font['©'] = text.font['©'];
+  text.cols = sys_framebuffer_width / FONT_WIDTH;
+  text.rows = sys_framebuffer_height / FONT_HEIGHT;
+  sys_framebuffer_pidth = sys_framebuffer_pitch / (sys_framebuffer_bpp / 8);
+  text.screen_size = sys_framebuffer_pidth * sys_framebuffer_height;
+  text.buffer_size = text.screen_size * 4;
+  text.raw_screen = CAlloc(text.buffer_size);
+  text.fb_alias = NULL;
+}
+
+U0 HostRunStartOS()
+{//Stock ::/StartOS.ZC body — system AOT in HCRT; JIT ~/MakeHome at boot.
+  CTask noreg *wmt;
+
+  Option(OPTf_WARN_PAREN, ON);
+  Option(OPTf_WARN_DUP_TYPES, ON);
+  DocTermNew;
+  WinVert(2, text.rows / 8);
+  wmt = Spawn(&WinMgrTask, NULL, "Window Manager");
+  if (!wmt || !TaskValidate(wmt))
+    throw('WinMgr');
+  sys_winmgr_task = wmt;
+  Fs->win_inhibit = WIG_TASK_DEFAULT - WIF_SELF_BORDER - WIF_SELF_GRAB_SCROLL - WIF_SELF_CTRLS;
+  LBts(&Fs->display_flags, DISPLAYf_CHILDREN_NOT_ON_TOP);
+  LBts(&Fs->display_flags, DISPLAYf_SHOW);
+  RegInit;
+  LBts(&sys_run_level, RLf_REGISTRY);
+  WallPaperInit;
+  PaletteSetSlate;
+  gr.fp_wall_paper = &WallPaper;
+  Option(OPTf_WARN_PAREN, OFF);
+  Option(OPTf_WARN_DUP_TYPES, OFF);
+  LBts(&sys_run_level, RLf_HOME);
+  while (!Bt(&sys_run_level, RLf_WINMGR))
+    Yield;
+  Refresh(1, FALSE);
+  TermBttnNew;
+  try StartUpTasks;
+  catch PutExcept(FALSE);
+}
+
+U0 HostKMainBoot()
+{//Minimal KMain — host init then stock ::/StartOS.ZC (MakeHome → HomeSys).
+  sys_task = Fs;
+  EzodusVfsInit;
+  CInit;
+  KeyDevInit;
+  DrawWindowNew;
+  sys_framebuffer_width = GR_WIDTH;
+  sys_framebuffer_height = GR_HEIGHT;
+  sys_framebuffer_pitch = GR_WIDTH * 4;
+  sys_framebuffer_bpp = 32;
+  sys_framebuffer_pidth = GR_WIDTH;
+  HostSysGrInit;
+  EzodusMsInit;
+  GrInit2;
+  WinEzodusInit;
+  GrEzodusInit;
+  WallPaperEzodusInit;
+  GrInit1;
+  MouseGrInit;
+  GrInit3;
+  GrInit4;
+  GrPaletteInit;
+  DocInit;
+  DocPutHooksInit;
+  LoadDocDefines;
+  Drive('Z');
+  GodEzodusInit;
+  MeshClipInit;
   MPIntsInit;
-  I64 idx;
-  for (idx=Gs->num+1;idx<mp_count;++idx)
-    __SpawnCore(&CoreAPExecutiveTask);
-  for (idx=Gs->num+1;idx<mp_count;++idx)
-    while (!Bt(&mp_count_lock,idx))
-      PAUSE
+  Gs->executive_task = Fs;
+  {
+    I64 idx;
+    for (idx = Gs->num + 1; idx < mp_count; ++idx)
+      __SpawnCore(&CoreAPExecutiveTask);
+    for (idx = Gs->num + 1; idx < mp_count; ++idx)
+      while (!Bt(&mp_count_lock, idx))
+        PAUSE;
+  }
+  LoadImps;
+  try ExePrint("#include \"~/HomeLocalize\";\n");
+  catch PutExcept(FALSE);
+  Drive('Z');
+  LBts(&sys_run_level, RLf_BLKDEV);
+  LBts(&sys_run_level, RLf_COMPILER);
+  PCSpkInit;
+  Cd("/");
+  HostRunStartOS;
+  LBts(&sys_run_level, RLf_SYSTEM_SERVER);
+  ServerTaskCont;
 }
 
 U0 _InitUI() {
-  CTask noreg *wmt;
   if (__IsCmdLine) {
-    // -c compile/scripts: stay on adam_task (HCRT compiler hash). SetFs(sys_task)
-    // before ExePrint makes Cmp/Comp invisible → LexErr on BuildHCRT.
     TOSPrint("_InitUI:cli\n");
     EzodusVfsInit;
     Drive('Z');
@@ -82,111 +171,9 @@ U0 _InitUI() {
     }
     return;
   }
-  TOSPrint("_InitUI:0\n");
+  TOSPrint("_InitUI:boot\n");
   SetFs(sys_task);
-  EzodusVfsInit;
-  TOSPrint("_InitUI:1 CInit\n");
-  CInit;
-  TOSPrint("_InitUI:2 KeyDev\n");
-  KeyDevInit;
-  WinEzodusInit;
-  GrEzodusInit;
-  WallPaperEzodusInit;
-  TOSPrint("_InitUI:3 Gr\n");
-  GrInit1;
-  MouseGrInit;
-  GrInit3;
-  GrInit4;
-  GrPaletteInit;
-  TOSPrint("_InitUI:4 Doc\n");
-  DocInit;
-  DocPutHooksInit;
-  LoadDocDefines;
-  TOSPrint("_InitUI:4b God\n");
-  Drive('Z');
-  GodEzodusInit;
-  // EZODUS: GodInit vocab load needs Virt FilesFind fix; defer.
-  // try GodInit("::/System/God/Vocab.DD"); catch {}
-  MeshClipInit;
-  TOSPrint("_InitUI:5 MP\n");
-  MPIntsInit;
-  TOSPrint("_InitUI:5a MPInts\n");
-  // EZODUS: stub executive on sys_task until Spawn/CTask heap stable on host.
-  Gs->executive_task = Fs;
-  TOSPrint("_InitUI:5b ExecStub\n");
-  // Gs->executive_task=Spawn(&CoreAPExecutiveTask,NULL,"Executive",-1,sys_task);
-  __InitCPUs;
-  TOSPrint("_InitUI:5c CPUs\n");
-  TOSPrint("_InitUI:6 LoadImps\n");
-  LoadImps;
-  {
-    TOSPrint("_InitUI:7 GUI\n");
-    DrawWindowNew;
-    sys_framebuffer_width = GR_WIDTH;
-    sys_framebuffer_height = GR_HEIGHT;
-    sys_framebuffer_pitch = GR_WIDTH * 4;
-    sys_framebuffer_bpp = 32;
-    sys_framebuffer_pidth = GR_WIDTH;
-    text.cols = sys_framebuffer_width / FONT_WIDTH;
-    text.rows = sys_framebuffer_height / FONT_HEIGHT;
-    text.screen_size = sys_framebuffer_pidth * sys_framebuffer_height;
-    text.buffer_size = text.screen_size * 4;
-    text.fb_alias = NULL; // EZODUS: SDL only
-    EzodusMsInit;
-    GrInit2;
-    // System task — small strip at top like StartOS.ZC / ZealOS screenshot.
-    StrCopy(Fs->task_name, "System Task CPU00");
-    StrCopy(Fs->task_title, Fs->task_name);
-    Fs->title_src = TTS_TASK_NAME;
-    DocTermNew;
-    WinVert(2, text.rows / 8);
-    Fs->win_right = text.cols - 2;
-    Fs->win_top++;
-    TaskDerivedValsUpdate(Fs, FALSE);
-    LBts(&Fs->win_inhibit, WIf_SELF_FOCUS);
-    TOSPrint("_InitUI:8 WinMgr\n");
-    // Real ZealOS boot: the Window Manager is its own task that composites the
-    // screen (GrUpdateScreen) ~30x/s from WinMgrSleep. Multitasking works now,
-    // so spawn it instead of painting inline on the boot task.
-    wmt = Spawn(&WinMgrTask, NULL, "Window Manager");
-    if (!wmt || !TaskValidate(wmt))
-      throw('WinMgr');
-    sys_winmgr_task = wmt;
-    sys_focus_task = wmt;
-    WinZBufUpdate;
-    Fs->win_inhibit = WIG_TASK_DEFAULT - WIF_SELF_BORDER - WIF_SELF_GRAB_SCROLL - WIF_SELF_CTRLS;
-    LBts(&Fs->display_flags, DISPLAYf_CHILDREN_NOT_ON_TOP);
-    LBts(&Fs->display_flags, DISPLAYf_SHOW);
-    RegInit;
-    LBts(&sys_run_level, RLf_REGISTRY);
-    TOSPrint("_InitUI:9 WallPaper\n");
-    WallPaperInit;
-    TOSPrint("_InitUI:9b WallPaper done\n");
-    PaletteSetSlate;
-    gr.fp_wall_paper = &WallPaper;
-    TOSPrint("_InitUI:10 Refresh\n");
-    while (!Bt(&sys_run_level, RLf_WINMGR))
-      Yield;
-    Refresh(1, FALSE);
-    TOSPrint("_InitUI:10b winmgr ready\n");
-    TermBttnNew;
-    TOSPrint("_InitUI:10c spk\n");
-    PCSpkInit;
-    TOSPrint("_InitUI:10d drive\n");
-    Drive('Z');
-    LBts(&sys_run_level, RLf_HOME);
-    if (!sys_os_version_str)
-    {
-      sys_os_version_str  = MStrPrint("ZealOS V%0.2f.%d", sys_os_version, sys_os_version_sub);
-      sys_os_version_nice = MStrPrint("%s\t%D %T\n", sys_os_version_str, sys_compile_time, sys_compile_time);
-      sys_os_version_full = MStrPrint("%s-%d.%d\n", sys_os_version_str, sys_compile_time.date, sys_compile_time.time);
-    }
-    TOSPrint("_InitUI:10e startup\n");
-    try StartUpTasks;
-    catch { PutExcept(FALSE); }
-    TOSPrint("_InitUI:11 server loop\n");
-    ServerTaskCont;
-  }
+  HostKMainBoot;
 }
 _InitUI;
 #include "PUBLIC.ZC";;

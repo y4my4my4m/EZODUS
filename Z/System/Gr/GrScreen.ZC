@@ -23,8 +23,8 @@ U0 GrUpdateTaskWin(CTask *task)
 	CDC		*dc;
 	CD3I64	 saved_scroll;
 	CTask	*clip;
-	// EZODUS: `task` param is register-backed; clobbered across TextRect/Doc calls.
 	CTask noreg *t = task;
+	CTask noreg *focus_task = sys_focus_task;
 
 	if (!TaskValidate(t))
 		return;
@@ -40,7 +40,7 @@ U0 GrUpdateTaskWin(CTask *task)
 	{
 		if (!Bt(&t->display_flags, DISPLAYf_NO_BORDER))
 			TextBorder(clip, t->win_left, t->win_right, t->win_top, t->win_bottom,
-							t->border_attr, t == sys_focus_task);
+							t->border_attr, t == focus_task);
 
 		TextRect(t->win_left, t->win_right, t->win_top, t->win_bottom, t->text_attr << 8);
 		if (t == sys_winmgr_task)

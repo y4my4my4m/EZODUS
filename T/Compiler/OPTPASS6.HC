@@ -49,6 +49,9 @@ U0 OptPass6Lag(CCmpCtrl *cc,CPrsStk *ps,CIntermediateCode *tmpi,
                 clobbered_reg_mask|=tmpf->clobbered_reg_mask;
             }
         }
+        // RSI,RDI,R10,R11 — SysV caller-saved; spill live reg vars at calls
+        if (cc->htc.fun)
+            clobbered_stk_tmp_mask|=cc->htc.fun->used_reg_mask&0x0C30;
         tmpi->ic_data=clobbered_stk_tmp_mask;
         PrsPush(ps,stk_ptr);
         PrsPush(ps,clobbered_stk_tmp_mask);
