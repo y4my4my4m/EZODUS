@@ -142,12 +142,25 @@ U0 WallPaper(CTask *_task)
 			i += sys_code_bp->alloced_u8s - sys_code_bp->used_u8s;
 		if (sys_data_bp)
 			i += sys_data_bp->alloced_u8s - sys_data_bp->used_u8s;
-		// EZODUS: skip %3tZ/ST_DAYS_OF_WEEK ? define lookup on WinMgr task crashes Print.
+	// EZODUS: skip ST_DAYS_OF_WEEK define lookup — crashes Print on WinMgr task.
+	{
+		U8 *dow;
+
+		switch (ds.day_of_week % 7)
+		{
+			case 0: dow = "Sun"; break;
+			case 1: dow = "Mon"; break;
+			case 2: dow = "Tue"; break;
+			case 3: dow = "Wed"; break;
+			case 4: dow = "Thu"; break;
+			case 5: dow = "Fri"; break;
+			default: dow = "Sat"; break;
+		}
 		StrPrint(wall->top_line,
-					" ? %02d %02d/%02d/%02d %02d:%02d:%02d FPS:%2tf RAM:%010X CPU:",
-					ds.day_of_week, ds.mon, ds.day_of_mon, ds.year % 100,
+					" %3ts %02d/%02d/%02d %02d:%02d:%02d FPS:%2tf RAM:%010X CPU:",
+					dow, ds.mon, ds.day_of_mon, ds.year % 100,
 					ds.hour, ds.min, ds.sec, winmgr.fps, i);
-		
+	}
 	}
 	TextPrint(Fs, 0, 0, DKGRAY << 4 + WHITE, wall->top_line);
 
@@ -196,8 +209,7 @@ U0 WallPaper(CTask *_task)
 
 U0 DrawTermBttn(CDC *dc, CCtrl *c)
 {
-	// EZODUS: avoid runtime $IB,BI=1$ sprite Lex on host.
-	GrPrint(dc, c->left, c->top, "<T>");
+	GrPrint(dc, c->left, c->top, "Term");
 }
 
 U0 LeftClickTermBttn(CCtrl *, I64, I64, Bool down)
@@ -217,8 +229,8 @@ CCtrl *TermBttnNew()
 	c->left_click	= &LeftClickTermBttn;
 
 	// EZODUS: skip $IB,"<1>",BI=1$ sprite parse — BI undefined on host Lex.
-	c->left		= sys_winmgr_task->pix_width - 32;
-	c->right	= c->left + 31;
+	c->left		= sys_winmgr_task->pix_width - 4 * FONT_WIDTH;
+	c->right	= c->left + 4 * FONT_WIDTH - 1;
 	c->top		= sys_winmgr_task->pix_height - 16;
 	c->bottom	= c->top + 15;
 

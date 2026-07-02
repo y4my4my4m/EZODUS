@@ -72,40 +72,60 @@ U0 DrawCtrls(CTask *task)
 	{
 		if (c->flags & CTRLF_SHOW)
 		{
+			if (c->update_derived_vals)
+				(*c->update_derived_vals)(c);
 			if (c->flags & CTRLF_BORDER)
 			{
 				if (!Bt(&task->display_flags, DISPLAYf_NO_BORDER))
 				{
-					PUSHFD
-					CLI
-					while (LBts(&task->task_flags, TASKf_TASK_LOCK))
-						PAUSE
+					if (_ezodus_host)
+					{
+						task->win_left--;
+						task->win_right++;
+						task->win_top--;
+						task->win_bottom++;
+						WinDerivedValsUpdate(task);
+						if (c->draw_it)
+							(*c->draw_it)(dc, c);
+						task->win_left++;
+						task->win_right--;
+						task->win_top++;
+						task->win_bottom++;
+						WinDerivedValsUpdate(task);
+					}
+					else
+					{
+						PUSHFD
+						CLI
+						while (LBts(&task->task_flags, TASKf_TASK_LOCK))
+							PAUSE
 
-					task->win_left--; //Allow drawing on border
-					task->win_right++;
-					task->win_top--;
-					task->win_bottom++;
-					WinDerivedValsUpdate(task);
+						task->win_left--; //Allow drawing on border
+						task->win_right++;
+						task->win_top--;
+						task->win_bottom++;
+						WinDerivedValsUpdate(task);
 
-					LBtr(&task->task_flags, TASKf_TASK_LOCK);
-					POPFD
+						LBtr(&task->task_flags, TASKf_TASK_LOCK);
+						POPFD
 
-					if (c->draw_it)
-						(*c->draw_it)(dc, c);
+						if (c->draw_it)
+							(*c->draw_it)(dc, c);
 
-					PUSHFD
-					CLI
-					while (LBts(&task->task_flags, TASKf_TASK_LOCK))
-						PAUSE
+						PUSHFD
+						CLI
+						while (LBts(&task->task_flags, TASKf_TASK_LOCK))
+							PAUSE
 
-					task->win_left++;
-					task->win_right--;
-					task->win_top++;
-					task->win_bottom--;
-					WinDerivedValsUpdate(task);
+						task->win_left++;
+						task->win_right--;
+						task->win_top++;
+						task->win_bottom++;
+						WinDerivedValsUpdate(task);
 
-					LBtr(&task->task_flags, TASKf_TASK_LOCK);
-					POPFD
+						LBtr(&task->task_flags, TASKf_TASK_LOCK);
+						POPFD
+					}
 				}
 			}
 			else
@@ -121,28 +141,54 @@ U0 DrawCtrls(CTask *task)
 #define WIN_SCROLL_BORDER_BONUS 4
 U0 DrawWinScroll(CDC *dc, CCtrl *c)
 {
-	CWinScroll *s = c->state;
+	CWinScroll *s;
+
+	if (!c || !c->win_task)
+		return;
+	if (!c->state)
+	{
+		if (c->type == CTRLT_WIN_HSCROLL)
+			c->state = &c->win_task->horz_scroll(U8);
+		else if (c->type == CTRLT_WIN_VSCROLL)
+			c->state = &c->win_task->vert_scroll(U8);
+	}
+	s = c->state;
+	if (!s)
+		return;
 
 	if (c->flags & CTRLF_CLICKED)
 		dc->color = s->color >> 4;
 	else
 		dc->color = s->color & 0xF;
 //	GrRect(dc, c->left, c->top, c->right - c->left + 1, c->bottom - c->top + 1);
-	GrPutS(dc, c->left, c->top, "Û");
+	GrPutS(dc, c->left, c->top, "\xDB");
 
 	if (c->flags & CTRLF_CLICKED)
 		dc->color = s->color & 0xF;
 	else
 		dc->color = s->color >> 4;
 //	GrRect(dc, c->left + 2, c->top + 2, c->right - c->left + 1 - 4, c->bottom - c->top + 1 - 4);
-	GrPutS(dc, c->left, c->top, "±");
+	GrPutS(dc, c->left, c->top, "\xB1");
 
 }
 
 U0 WinDerivedScrollValsUpdate(CCtrl *c)
 {
-	CWinScroll *s = c->state;
+	CWinScroll *s;
 	I64			range;
+
+	if (!c || !c->win_task)
+		return;
+	if (!c->state)
+	{
+		if (c->type == CTRLT_WIN_HSCROLL)
+			c->state = &c->win_task->horz_scroll(U8);
+		else if (c->type == CTRLT_WIN_VSCROLL)
+			c->state = &c->win_task->vert_scroll(U8);
+	}
+	s = c->state;
+	if (!s)
+		return;
 
 	if (s->max < s->min) s->max = s->min;
 	if (s->pos < s->min) s->pos = s->min;
@@ -221,11 +267,11 @@ U0 WinScrollsInit(CTask *task)
 
 	if (!CtrlFindUnique(task, CTRLT_WIN_HSCROLL))
 	{
-		c = CAlloc(sizeof(CCtrl));
+		c = CAlloc(sizeof(CCtrl), task);
 		c->win_task				= task;
 		c->flags				= CTRLF_SHOW | CTRLF_BORDER | CTRLF_CAPTURE_LEFT_MS;
 		c->type					= CTRLT_WIN_HSCROLL;
-		c->state				= &task->horz_scroll;
+		c->state				= &task->horz_scroll(U8);
 		c->update_derived_vals	= &WinDerivedScrollValsUpdate;
 		c->draw_it				= &DrawWinScroll;
 		c->left_click			= &LeftClickHWinScroll;
@@ -234,11 +280,11 @@ U0 WinScrollsInit(CTask *task)
 
 	if (!CtrlFindUnique(task, CTRLT_WIN_VSCROLL))
 	{
-		c = CAlloc(sizeof(CCtrl));
+		c = CAlloc(sizeof(CCtrl), task);
 		c->win_task=task;
 		c->flags				= CTRLF_SHOW | CTRLF_BORDER | CTRLF_CAPTURE_LEFT_MS;
 		c->type					= CTRLT_WIN_VSCROLL;
-		c->state				= &task->vert_scroll;
+		c->state				= &task->vert_scroll(U8);
 		c->update_derived_vals	= &WinDerivedScrollValsUpdate;
 		c->draw_it				= &DrawWinScroll;
 		c->left_click			= &LeftClickVWinScroll;

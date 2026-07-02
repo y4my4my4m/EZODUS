@@ -668,26 +668,32 @@ I64 TaskEnd()
 	// EZODUS: host monolith — minimal task teardown (no child/sibling queues).
 	if (_ezodus_host)
 	{
+		CTask *next;
+		CDoc  *doc;
+
 		if (task == sys_task)
 			return task;
+		next = task->next_task;
+		if (sys_focus_task == task)
+			sys_focus_task = sys_task;
 		if (LBtr(&task->display_flags, DISPLAYf_SHOW))
 			LBts(&sys_semas[SEMA_UPDATE_WIN_Z_BUF], 0);
-		if (sys_focus_task == task)
-		{
-			sys_focus_task = sys_task;
-			if (fp_set_std_palette)
-				(*fp_set_std_palette)();
-			WinToTop(sys_task);
-		}
-		while (LBts(&task->server_ctrl.flags, JOBCf_LOCKED))
-			PAUSE;
+		// Force-unlock — task won't run JobsHandler again; spin can hang OS.
+		LBtr(&task->server_ctrl.flags, JOBCf_LOCKED);
 		JobQueueDel(&task->server_ctrl.next_waiting);
 		JobQueueDel(&task->server_ctrl.next_done);
-		LBtr(&task->server_ctrl.flags, JOBCf_LOCKED);
 		LBtr(&task->task_flags, TASKf_TASK_LOCK);
-		if (TaskValidate(task->next_task) && TaskValidate(task->last_task))
+		LBtr(&task->task_flags, TASKf_KILL_TASK);
+		LBtr(&task->task_flags, TASKf_AWAITING_MESSAGE);
+		LBtr(&task->task_flags, TASKf_CMD_LINE_PROMPT);
+		if (doc = task->put_doc)
+			if (doc->doc_signature == DOC_SIGNATURE_VAL)
+				DocUnlock(doc);
+		if (TaskValidate(next) && TaskValidate(task->last_task))
 			TaskQueueRemove(task);
 		task->task_signature = 0;
+		if (TaskValidate(next))
+			return next;
 		if (TaskValidate(sys_task))
 			return sys_task;
 		return task;

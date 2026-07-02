@@ -550,6 +550,18 @@ Bool WinKeyNavMenu()
 	return FALSE;
 }
 
+Bool WinMgrTaskCloseOk(CTask *task)
+{//System / executive / winmgr windows are not closable (ZealOS).
+	I64 i;
+
+	if (!TaskValidate(task) || task == sys_task || task == sys_winmgr_task)
+		return FALSE;
+	for (i = 0; i < mp_count; i++)
+		if (task == cpu_structs[i].executive_task)
+			return FALSE;
+	return TRUE;
+}
+
 U0 WinMgrTask(I64)
 {
 	CTask		*task = Fs;
@@ -898,12 +910,16 @@ wmt_start:
 						}
 						else if (task->win_right - 2 <= mouse.pos_text.x <= task->win_right)
 						{
-							if (DocPut(task))
-								TaskMessage(task, 0, MESSAGE_KEY_DOWN, CH_SHIFT_ESC, 0, 0);
-							else
-								Kill(task, FALSE);
-							if (sys_focus_task == task)
-								sys_focus_task = sys_task;
+							if (WinMgrTaskCloseOk(task))
+							{
+								// EZODUS: host Kill — SHIFT_ESC Exit path can hang scheduler.
+								if (_ezodus_host)
+									Kill(task, FALSE);
+								else if (DocPut(task))
+									TaskMessage(task, 0, MESSAGE_KEY_DOWN, CH_SHIFT_ESC, 0, 0);
+								else
+									Kill(task, FALSE);
+							}
 							old_mouse.lb = FALSE;
 							goto wmt_start;
 						}

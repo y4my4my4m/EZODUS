@@ -52,13 +52,10 @@ public U0 DocTermNew()
 	pdoc->max_entries		= 4096;
 	Fs->border_src			= BDS_CUR_DRIVE;
 	pdoc->desc				= 'Term';
-	pdoc->win_task			= Fs;
 	Fs->put_doc				= Fs->display_doc = pdoc;
 	Fs->border_doc			= DocBorderNew(pdoc);
-	if (!_ezodus_host)
-		Fs->cur_menu = MenuFile("::/Doc/EdPullDown.DD");
-	else
-		Fs->cur_menu = NULL;
+	Fs->cur_menu			= MenuFile("::/Doc/EdPullDown.DD");
+	WinScrollsInit(Fs);
 	Raw(OFF);
 }
 

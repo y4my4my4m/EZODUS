@@ -1,24 +1,14 @@
 //Place this file in /Home and change
 //anything you want.
-// EZODUS: Z/HomeSys.ZC — monolith boot (included from FULL_PACKAGE.ZC).
 
 U0 UserStartUp()
 {//Run each time a user is spawned
-	if (!_ezodus_host)
-		LoadDocDefines;
 	DocTermNew;
-	if (_ezodus_host)
-	{
-		Fs->border_attr = LTGRAY << 4 + PURPLE;
-		PaletteSetSlate;
-	}
-	if (_ezodus_host)
-		Type("::/Doc/StartHost.DD");
-	else
-		Type("::/Doc/Start.DD");
+	Type("::/Doc/Start.DD");
 	LBts(&Fs->display_flags, DISPLAYf_SHOW);
 	WinToTop;
 	WinZBufUpdate;
+	Dir("*", FALSE);
 }
 
 U0 ServerStartUp()
@@ -31,30 +21,25 @@ U0 ServerStartUp()
 
 U0 StartUpTasks()
 {
-	CTask *user;
+	CTask *user = User;
 
-	if (_ezodus_host)
-	{
-		user = User;
-		WinTileVert;
-		WinToTop(user);
-		sys_focus_task = user;
-		return;
-	}
-
-	user = User;
 	if (sys_boot_src.u16[0] != BOOT_SRC_DVD)
 		User;
 
 	WinToTop(user);
 	WinTileVert;
-	sys_focus_task = user;
 	"Boot Time:%7.3fs\n", tS;
-	XTalk(user, "Cd(\"~/Home\"); #include \"Once\";\n");
+	try XTalk(user, "Cd; #include \"Once\";\n");
+	catch {}
 	Silent;
-	ACInit("::/Kernel/Kernel*.HH;::/Compiler/Compiler*.HH;::/System/*;::/Doc/*;::/Home/*");
+	try ACInit("::/Kernel/Kernel*.HH;::/Compiler/Compiler*.HH;::/System/*;::/Doc/*;::/Home/*");
+	catch {}
 	Silent(OFF);
 
 	if (sys_boot_src.u16[0] != BOOT_SRC_RAM)
-		PopUp("ExeFile2(\"::/System/ZSplash.ZC\");");
+		try PopUp("ExeFile2(\"::/System/ZSplash.ZC\");");
+	catch {}
+
+	if (sys_os_version_nice)
+		"\n%s\n\n", sys_os_version_nice;
 }
