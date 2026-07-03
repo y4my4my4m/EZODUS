@@ -109,7 +109,7 @@ def include_graph(entry_files):
             return
         seen.add(rel)
         text = strip_comments(read(path))
-        if rel.endswith(".ZC"):
+        if rel.endswith(".ZC") or (rel.endswith(".HH") and rel not in PRELOADED):
             order.append(rel)
         for m in re.finditer(r'#include\s+"([^"]+)"', text):
             visit(m.group(1), os.path.dirname(path))

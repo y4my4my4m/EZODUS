@@ -5,7 +5,7 @@
 
 void SetClipboard(char const *text);
 char *ClipboardText(argign void *stk);
-void DrawWindowNew(void);
+void DrawWindowNew(i64 width, i64 height);
 void DrawWindowUpdate(u8 *px);
 void EventLoop(void);
 void PCSpkInit(void);

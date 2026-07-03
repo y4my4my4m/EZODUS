@@ -1,7 +1,6 @@
 #exe {Cd(__DIR__);};
 // EZODUS: AOT compile before display init — bootstrap screen/text dims.
-#define GR_WIDTH 640
-#define GR_HEIGHT 480
+#include "../../EzodusRes.HH"
 #define TEXT_ROWS (GR_HEIGHT / FONT_HEIGHT)
 #define TEXT_COLS (GR_WIDTH / FONT_WIDTH)
 #include "GrInitA.ZC"

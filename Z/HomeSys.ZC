@@ -5,6 +5,7 @@ U0 UserStartUp()
 {//Run each time a user is spawned
 	DocTermNew;
 	Type("::/Doc/Start.DD");
+	WinToTop;
 	LBts(&Fs->display_flags, DISPLAYf_SHOW);
 	WinZBufUpdate;
 	Dir("*", FALSE);
@@ -17,6 +18,7 @@ U0 UserStartUp()
 U0 ServerStartUp()
 {//Run each time a server task is spawned.
 	DocTermNew;
+	WinToTop;
 	LBts(&Fs->display_flags, DISPLAYf_SHOW);
 	WinZBufUpdate;
 }
@@ -30,9 +32,6 @@ U0 StartUpTasks()
 
 	WinToTop(user);
 	WinTileVert;
-	WinVert(2, text.rows / 8, sys_task);
-	TaskDerivedValsUpdate(sys_task, FALSE);
-	WinZBufUpdate;
 	"Boot Time:%7.3fs\n", tS;
 	Silent;
 	try ACInit("::/Kernel/Kernel*.HH;::/Compiler/Compiler*.HH;::/System/*;::/Doc/*;::/Home/*");

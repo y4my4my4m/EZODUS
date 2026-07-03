@@ -119,10 +119,9 @@ void GrPaletteSync(void) {
   wait_palette_flush();
 }
 
-enum {
-  WIDTH = 640,
-  HEIGHT = 480,
-};
+/* Display size, set by the HCRT image via DrawWindowNew(GR_WIDTH, GR_HEIGHT)
+ * before the window exists. Z/EzodusRes.HH is the source of truth. */
+static int gr_width = 640, gr_height = 480;
 
 static void updatescrn(u8 *px) {
   /* EZODUS_DUMP=<path>: periodically dump palette+framebuffer for headless
@@ -137,21 +136,24 @@ static void updatescrn(u8 *px) {
   if (dumppath && !(dumpn++ % 30)) {
     FILE *f = fopen(dumppath, "wb");
     if (f) {
+      u32 dims[2] = {gr_width, gr_height};
+      fwrite("EZDF", 1, 4, f);
+      fwrite(dims, 4, 2, f);
       fwrite(palette_bgr48, 8, 256, f);
-      fwrite(px, 1, 640 * 480, f);
+      fwrite(px, 1, (u64)gr_width * gr_height, f);
       fclose(f);
     }
   }
   SDL_LockSurface(win.surf);
   u8 *dst = win.surf->pixels, *src = px;
-  u64 sz = WIDTH * HEIGHT;
+  u64 sz = (u64)gr_width * gr_height;
   asm("rep movsb" : "+D"(dst), "+S"(src), "+c"(sz), "=m"(*(char(*)[sz])dst));
   SDL_UnlockSurface(win.surf);
   SDL_SetRenderDrawColor(win.rend, 0, 0, 0, 255);
   SDL_RenderClear(win.rend);
   int w, h, w2, h2, margin_x = 0, margin_y = 0;
   SDL_GetWindowSize(win.window, &w, &h);
-  f32 ratio = (f32)WIDTH / HEIGHT;
+  f32 ratio = (f32)gr_width / gr_height;
   if (w > h * ratio) {
     h2 = h;
     w2 = ratio * h;
@@ -194,16 +196,16 @@ static void newwindow(void) {
   SDL_LockMutex(win.screen_mutex);
   win.window =
       SDL_CreateWindow("EZODUS", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       640, 480, SDL_WINDOW_RESIZABLE);
-  win.surf = SDL_CreateRGBSurface(0, 640, 480, 8, 0, 0, 0, 0);
+                       gr_width, gr_height, SDL_WINDOW_RESIZABLE);
+  win.surf = SDL_CreateRGBSurface(0, gr_width, gr_height, 8, 0, 0, 0, 0);
   win.palette = SDL_AllocPalette(256);
   SDL_SetSurfacePalette(win.surf, win.palette);
-  SDL_SetWindowMinimumSize(win.window, 640, 480);
+  SDL_SetWindowMinimumSize(win.window, gr_width, gr_height);
   // SDL_RENDERER_ACCELERATED will not fall back to software
   win.rend = SDL_CreateRenderer(win.window, -1, 0);
   win.margin_y = win.margin_x = 0;
-  win.sz_x = 640;
-  win.sz_y = 480;
+  win.sz_x = gr_width;
+  win.sz_y = gr_height;
   /* ZealOS draws its own sprite cursor in GrUpdateScreen */
   SDL_ShowCursor(SDL_DISABLE);
   SDL_SetWindowKeyboardGrab(win.window, SdlGrab());
@@ -587,8 +589,15 @@ static bool kb_init = false;
 
 int SDLCALL KBCallback(argign void *arg, SDL_Event *e) {
   u64 sc;
-  if (kb_cb && (-1 != ScanKey(&sc, e)))
+  static int trace = -1;
+  if (trace < 0)
+    trace = !!getenv("EZODUS_TRACE");
+  if (kb_cb && (-1 != ScanKey(&sc, e))) {
+    if (trace)
+      dprintf(2, "KB sc=%#jx\n", (uintmax_t)sc);
     fficall(kb_cb, sc);
+  } else if (trace && (e->type == SDL_KEYDOWN || e->type == SDL_KEYUP))
+    dprintf(2, "KB drop cb=%p sym=%#x\n", kb_cb, e->key.keysym.sym);
   return 0;
 }
 
@@ -627,16 +636,16 @@ int SDLCALL MSCallback(argign void *arg, SDL_Event *e) {
     if (x < win.margin_x)
       x2 = 0;
     else if (x > win.margin_x + win.sz_x)
-      x2 = 640 - 1; // -1 because zero-indexed
+      x2 = gr_width - 1; // -1 because zero-indexed
     else
-      x2 = (x - win.margin_x) * 640. / win.sz_x;
+      x2 = (x - win.margin_x) * (f64)gr_width / win.sz_x;
 
     if (y < win.margin_y)
       y2 = 0;
     else if (y > win.margin_y + win.sz_y)
-      y2 = 480 - 1; // -1 because zero-indexed
+      y2 = gr_height - 1; // -1 because zero-indexed
     else
-      y2 = (y - win.margin_y) * 480. / win.sz_y;
+      y2 = (y - win.margin_y) * (f64)gr_height / win.sz_y;
     fficall(ms_cb, x2, y2, z, state);
   }
   return 0;
@@ -671,7 +680,9 @@ static int injectthrd(argign void *arg) {
       for (char *p = rest; *p; ++p) {
         char base = *p;
         u16 kmod = 0;
-        if (*p >= 'A' && *p <= 'Z') {
+        if (*p == '\n')
+          base = SDLK_RETURN;
+        else if (*p >= 'A' && *p <= 'Z') {
           base = *p + 32;
           kmod = KMOD_LSHIFT;
         } else {
@@ -795,7 +806,14 @@ void DrawWindowUpdate(u8 *px) {
   SDL_UnlockMutex(win.screen_mutex);
 }
 
-void DrawWindowNew(void) {
+void DrawWindowNew(i64 width, i64 height) {
+  /* Dims come from the HCRT image (GR_WIDTH/GR_HEIGHT, see Z/EzodusRes.HH).
+   * Multiples of 8 only — the text plane is 8x8 cells. */
+  if (width >= 640 && width <= 16384 && !(width & 7) && height >= 480 &&
+      height <= 16384 && !(height & 7)) {
+    gr_width = width;
+    gr_height = height;
+  }
   SDL_PushEvent(&(SDL_Event){
       .user = {
                .type = SDL_USEREVENT,

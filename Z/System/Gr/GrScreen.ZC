@@ -441,6 +441,37 @@ U0 GrUpdateScreen32()
 
 U0 EzodusFirstPaint()
 {//EZODUS: full composite — wallpaper, sys strip, task windows.
+	//EZDBG: periodic z-state dump, remove when z-order verified.
+	static I64 ezdbg_frame = 0;
+	CTask *zt;
+	I64 zi;
+
+	if (++ezdbg_frame % 256 == 0 && gr.win_z_buf)
+	{
+		if (TaskValidate(sys_focus_task))
+			TOSPrint("EZDBG f=%d focus=[%s] unc=%x sema=%d\n", ezdbg_frame,
+					sys_focus_task->task_name, gr.win_uncovered_bitmap[0],
+					Bt(&sys_semas[SEMA_UPDATE_WIN_Z_BUF], 0));
+		zt = sys_winmgr_task;
+		do
+		{
+			if (!TaskValidate(zt))
+				break;
+			TOSPrint("EZDBG T[%s] z=%d lrtb %d,%d,%d,%d show=%d attr=%x inh=%x\n",
+					zt->task_name, zt->win_z_num, zt->win_left, zt->win_right,
+					zt->win_top, zt->win_bottom,
+					Bt(&zt->display_flags, DISPLAYf_SHOW), zt->border_attr,
+					zt->win_inhibit);
+			zt = zt->next_task;
+		}
+		while (zt != sys_winmgr_task);
+		for (zi = 0; zi < 80; zi++)
+			TOSPrint("%d", gr.win_z_buf[80 + zi]);
+		TOSPrint("\n");
+		for (zi = 0; zi < 80; zi++)
+			TOSPrint("%d", gr.win_z_buf[10 * 80 + zi]);
+		TOSPrint("\n");
+	}
 	try
 		GrUpdateScreen;
 	catch

@@ -7,7 +7,7 @@
 #define IMPORT_BUILTINS 1
 #define INIT_EVERYTHING 1
 #define FPTRS 1
-#define USE_DOLDOC 1
+#define USE_DOLDOC 1
 #define EZODUS 1
 #define CONFIG_MEM_INIT 		0
 #define CONFIG_HEAP_INIT		1
@@ -150,13 +150,13 @@
 #define NDARRAY_I64		1
 #define NDARRAY_F32		2
 #define NDARRAY_F64		3
-#define GR_WIDTH 640
-#define GR_HEIGHT 480
 #define TEXT_ROWS (GR_HEIGHT / FONT_HEIGHT)
 #define TEXT_COLS (GR_WIDTH / FONT_WIDTH)
 #define SPE_ABORT 	(-1)
 #define SPE_EXIT	0
 #define SPE_CONT	1
+#define GR_WIDTH	640
+#define GR_HEIGHT	480
 #define SPHT_ELEM_CODE		1
 #define GR_PEN_BRUSHES_NUM	64
 #define GR_SCREEN_ZOOM_MAX	8
@@ -975,9 +975,9 @@ extern I64  kb_host_mtx;
 extern I64  ms_host_mtx;
 extern CDrive _ezodus_drvs[DRIVES_NUM];
 extern CBlkDev _ezodus_blkdevs[BLKDEVS_NUM];
-extern U8  _ezodus_home_dir[];
-extern U8  _ezodus_root_dir[];
-extern U8  _ezodus_tmp_name[];
+extern U8 _ezodus_home_dir[16];
+extern U8 _ezodus_root_dir[4];
+extern U8 _ezodus_tmp_name[16];
 extern Bool _ezodus_vfs_init;
 extern U8  blkdev_text_attr[BDT_TYPES_NUM];
 extern U8  drv_text_attr[3];

@@ -139,6 +139,8 @@ U0 HostRunStartOS()
     Yield;
   Refresh(1, FALSE);
   TermBttnNew;
+  try GodInit; //EZODUS: stock runs this at HolySpirit.ZC include; seed AOT skips module-level statements.
+  catch PutExcept(FALSE);
   try StartUpTasks;
   catch PutExcept(FALSE);
 }
@@ -149,7 +151,7 @@ U0 HostKMainBoot()
   EzodusVfsInit;
   CInit;
   KeyDevInit;
-  DrawWindowNew;
+  DrawWindowNew(GR_WIDTH, GR_HEIGHT);
   sys_framebuffer_width = GR_WIDTH;
   sys_framebuffer_height = GR_HEIGHT;
   sys_framebuffer_pitch = GR_WIDTH * 4;

@@ -1,11 +1,6 @@
 #help_index "TextBase Layer;Char/TextBase Layer"
 #help_file "::/Doc/TextBase"
 
-#define GR_WIDTH 640
-#define GR_HEIGHT 480
-#define TEXT_ROWS (GR_HEIGHT / FONT_HEIGHT)
-#define TEXT_COLS (GR_WIDTH / FONT_WIDTH)
-
 asm {
 //************************************
 _TEXT_CHAR::

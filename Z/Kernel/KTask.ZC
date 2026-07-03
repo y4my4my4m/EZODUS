@@ -690,7 +690,7 @@ I64 TaskEnd()
 			return task;
 		next = task->next_task;
 		if (sys_focus_task == task)
-			sys_focus_task = sys_task;
+			sys_focus_task = NULL; //Stock: WinRefocus picks the top window.
 		if (LBtr(&task->display_flags, DISPLAYf_SHOW))
 			LBts(&sys_semas[SEMA_UPDATE_WIN_Z_BUF], 0);
 		// Force-unlock — task won't run JobsHandler again; spin can hang OS.

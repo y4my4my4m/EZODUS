@@ -274,6 +274,10 @@ static void STK_DrawWindowUpdate(u8 **stk) {
   DrawWindowUpdate(stk[0]);
 }
 
+static void STK_DrawWindowNew(i64 *stk) {
+  DrawWindowNew(stk[0], stk[1]);
+}
+
 static void STK_SetKBCallback(void **stk) {
   SetKBCallback(stk[0]);
 }
@@ -560,7 +564,7 @@ void BootstrapLoader(void) {
       S(SetMSCallback, 1),
       S(__BootstrapForeachSymbol, 1),
       S(DrawWindowUpdate, 1),
-      R("DrawWindowNew", DrawWindowNew, 0),
+      S(DrawWindowNew, 2),
       R("PCSpkInit", PCSpkInit, 0),
       S(UnblockSignals, 0),
       /*
