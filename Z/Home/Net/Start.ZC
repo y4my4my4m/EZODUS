@@ -15,6 +15,7 @@ else
 NetRep;
 if (ipv4_globals.local_ip != 0 && Fs != sys_task)
 {
-	"\nNow run one of the $MA,"Programs",LM="Cd(\"C:/Home/Net/Programs\");Dir;\n"$.\n";
+	//EZODUS: plain text; the stock $MA$ menu link needs DolDoc-parsed includes.
+	"\nNow run one of the programs in ::/Home/Net/Programs.\n";
 	"\nIf anything crashes to Debug, try typing $FG,0$G2;$FG$\n\n";
 }

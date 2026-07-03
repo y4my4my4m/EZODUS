@@ -10,6 +10,10 @@
 #include <time.h>
 
 #include <dyad/dyad.h>
+
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 #include <isocline.h>
 
 #include <exodus/abi.h>
@@ -217,6 +221,23 @@ static void STK_DyadSetTimeout(u64 *stk) {
 
 static void STK_DyadSetNoDelay(i64 *stk) {
   dyad_setNoDelay((dyad_Stream *)stk[0], stk[1]);
+}
+
+/* IPv4 A record via the host resolver, network byte order, 0 on failure.
+ * Used by Home/Net/EzodusNet.ZC (ring-3 has no NIC for the real DNS stack). */
+static i64 STK_HostDNSResolve(char **stk) {
+  struct addrinfo hints = {.ai_family = AF_INET, .ai_socktype = SOCK_STREAM},
+                  *res;
+  if (getaddrinfo(stk[0], NULL, &hints, &res))
+    return 0;
+  u32 ip = 0;
+  for (struct addrinfo *a = res; a; a = a->ai_next)
+    if (a->ai_family == AF_INET) {
+      ip = ((struct sockaddr_in *)a->ai_addr)->sin_addr.s_addr;
+      break;
+    }
+  freeaddrinfo(res);
+  return ip;
 }
 
 static void STK_UnblockSignals(argign void *args) {
@@ -590,6 +611,7 @@ void BootstrapLoader(void) {
       S(DyadSetListenCallback, 4),
       S(DyadSetTimeout, 2),
       S(DyadSetNoDelay, 2),
+      S(HostDNSResolve, 1),
       S(MemCmp, 3),
       S(MemCpy, 3),
       S(MemSet, 3),

@@ -7,6 +7,7 @@
 
 //Delete the rest from this file.
 
+
 U0 Tmp()
 {
 	OnceExe;
@@ -49,6 +50,12 @@ U0 Tmp()
 			try TipOfDay;
 			catch {}
 			try Type("::/Doc/Customize.DD");
+			catch {}
+			break;
+	}
+}
+Tmp;
+tomize.DD");
 			catch {}
 			break;
 	}

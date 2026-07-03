@@ -7,8 +7,8 @@ $LK,"Help & Index",A="FI:::/Doc/HelpIndex.DD"$, $LK,"Quick Start: Cmd line",A="F
 
 $MA,"Directory",LM="PopUpCd;Dir;\n"$ of Z:/
 DATE_ TIME_   SIZE
-07/03 14:23 00001B $MA,".",LM="Cd(\"Z:/.\");Dir;\n"$
-07/03 14:25 000017 $MA,"..",LM="Cd(\"Z:/..\");Dir;\n"$
+07/03 15:25 00001C $MA,".",LM="Cd(\"Z:/.\");Dir;\n"$
+07/03 15:24 000017 $MA,"..",LM="Cd(\"Z:/..\");Dir;\n"$
 07/03 13:00 00000D $MA,"Apps",LM="Cd(\"Z:/Apps\");Dir;\n"$
 07/03 07:18 000023 $MA,"Compiler",LM="Cd(\"Z:/Compiler\");Dir;\n"$
 07/01 00:55 000031 $MA,"Demo",LM="Cd(\"Z:/Demo\");Dir;\n"$
@@ -17,80 +17,27 @@ DATE_ TIME_   SIZE
 07/03 08:41 000031 $MA,"Kernel",LM="Cd(\"Z:/Kernel\");Dir;\n"$
 07/01 00:55 000008 $MA,"Misc",LM="Cd(\"Z:/Misc\");Dir;\n"$
 07/03 10:16 00001D $MA,"System",LM="Cd(\"Z:/System\");Dir;\n"$
-07/03 13:48 000000 $MA,"Tmp",LM="Cd(\"Z:/Tmp\");Dir;\n"$
-07/03 14:23 046272 $LK,"HCRT.DBG.Z",A="FI:Z:/HCRT.DBG.Z"$
-07/03 14:05 00085D $LK,"OpCodes.DD",A="FI:Z:/OpCodes.DD"$
+07/03 15:27 000001 $MA,"Tmp",LM="Cd(\"Z:/Tmp\");Dir;\n"$
+07/03 15:25 046157 $LK,"HCRT.DBG.Z",A="FI:Z:/HCRT.DBG.Z"$
+07/03 14:29 001A44 $LK,"OpCodes.DD",A="FI:Z:/OpCodes.DD"$
 07/01 00:55 00FFFF $LK,"PersonalMenu.DD",A="FI:Z:/PersonalMenu.DD"$
 07/01 00:55 00003A $LK,"PersonalNotes.DD",A="FI:Z:/PersonalNotes.DD"$
-07/03 13:13 017D1D $LK,"HeadersGen.HH",A="FI:Z:/HeadersGen.HH"$
-07/03 13:13 00051A $LK,"HeadersGenSys.HH",A="FI:Z:/HeadersGenSys.HH"$
+07/03 15:25 000183 $LK,"EzodusRes.HH",A="FI:Z:/EzodusRes.HH"$
+07/03 15:25 017D1F $LK,"HeadersGen.HH",A="FI:Z:/HeadersGen.HH"$
+07/03 15:25 00051A $LK,"HeadersGenSys.HH",A="FI:Z:/HeadersGenSys.HH"$
 07/03 13:32 0000F4 $LK,"BuildHCRT.ZC",A="FI:Z:/BuildHCRT.ZC"$
-07/03 14:05 00161A $LK,"FULL_PACKAGE.ZC",A="FI:Z:/FULL_PACKAGE.ZC"$
+07/03 15:23 0016B4 $LK,"FULL_PACKAGE.ZC",A="FI:Z:/FULL_PACKAGE.ZC"$
 07/03 12:04 0028CC $LK,"HCRT_TOS.ZC",A="FI:Z:/HCRT_TOS.ZC"$
 07/01 00:55 001330 $LK,"HomeKeyPlugIns.ZC",A="FI:Z:/HomeKeyPlugIns.ZC"$
-07/03 12:18 000272 $LK,"HomeLocalize.ZC",A="FI:Z:/HomeLocalize.ZC"$
-07/03 13:48 00047F $LK,"HomeSys.ZC",A="FI:Z:/HomeSys.ZC"$
+07/03 14:29 000272 $LK,"HomeLocalize.ZC",A="FI:Z:/HomeLocalize.ZC"$
+07/03 15:11 000436 $LK,"HomeSys.ZC",A="FI:Z:/HomeSys.ZC"$
 07/01 00:55 0003B5 $LK,"HomeWrappers.ZC",A="FI:Z:/HomeWrappers.ZC"$
 07/03 12:20 0001A7 $LK,"MakeHome.ZC",A="FI:Z:/MakeHome.ZC"$
 07/02 01:07 000432 $LK,"Once.ZC",A="FI:Z:/Once.ZC"$
 07/01 20:48 00009E $LK,"PUBLIC.ZC",A="FI:Z:/PUBLIC.ZC"$
 07/01 00:55 000495 $LK,"StartOS.ZC",A="FI:Z:/StartOS.ZC"$
-07/03 14:23 10F670 $LK,"HCRT.ZXE",A="FI:Z:/HCRT.ZXE"$
-Z:/>$PT$Cd("Z:/Apps");Dir;
-$PT$$FG$$BG$$MA,"Directory",LM="PopUpCd;Dir;\n"$ of Z:/Apps
-DATE_ TIME_ SIZE
-07/03 13:00 000D $MA,".",LM="Cd(\"Z:/Apps/.\");Dir;\n"$
-07/03 14:23 001B $MA,"..",LM="Cd(\"Z:/Apps/..\");Dir;\n"$
-07/01 00:55 000B $MA,"Budget",LM="Cd(\"Z:/Apps/Budget\");Dir;\n"$
-07/01 00:55 0005 $MA,"GrModels",LM="Cd(\"Z:/Apps/GrModels\");Dir;\n"$
-07/01 00:55 0003 $MA,"KeepAway",LM="Cd(\"Z:/Apps/KeepAway\");Dir;\n"$
-07/01 00:55 0003 $MA,"Logic",LM="Cd(\"Z:/Apps/Logic\");Dir;\n"$
-07/01 00:55 000C $MA,"Psalmody",LM="Cd(\"Z:/Apps/Psalmody\");Dir;\n"$
-07/01 00:55 0008 $MA,"Span",LM="Cd(\"Z:/Apps/Span\");Dir;\n"$
-07/01 00:55 0003 $MA,"Strut",LM="Cd(\"Z:/Apps/Strut\");Dir;\n"$
-07/01 00:55 0003 $MA,"TimeClock",LM="Cd(\"Z:/Apps/TimeClock\");Dir;\n"$
-07/01 00:55 0003 $MA,"Titanium",LM="Cd(\"Z:/Apps/Titanium\");Dir;\n"$
-07/01 00:55 000C $MA,"ToTheFront",LM="Cd(\"Z:/Apps/ToTheFront\");Dir;\n"$
-07/01 00:55 0003 $MA,"Vocabulary",LM="Cd(\"Z:/Apps/Vocabulary\");Dir;\n"$
-07/01 00:55 0004 $MA,"X-Caliber",LM="Cd(\"Z:/Apps/X-Caliber\");Dir;\n"$
-07/03 13:00 03B9 $LK,"HomeSys.ZC",A="FI:Z:/Apps/HomeSys.ZC"$
-0.001000s ans=0x0000000F=15
-Z:/Apps>$PT$Cd("Z:/Apps/Logic");Dir;
-$PT$$FG$$BG$$MA,"Directory",LM="PopUpCd;Dir;\n"$ of Z:/Apps/Logic
-DATE_ TIME_ SIZE
-07/01 00:55 0003 $MA,".",LM="Cd(\"Z:/Apps/Logic/.\");Dir;\n"$
-07/03 13:00 000D $MA,"..",LM="Cd(\"Z:/Apps/Logic/..\");Dir;\n"$
-07/01 00:55 0043 $LK,"Load.ZC",A="FI:Z:/Apps/Logic/Load.ZC"$
-07/01 00:55 5E79 $LK,"Logic.ZC",A="FI:Z:/Apps/Logic/Logic.ZC"$
-07/01 00:55 002B $LK,"Run.ZC",A="FI:Z:/Apps/Logic/Run.ZC"$
-0.001000s ans=0x00000005=5
-Z:/Apps/Logic>$PT$Cd("Z:/Apps/Logic/..");Dir;
-$PT$$FG$$BG$$MA,"Directory",LM="PopUpCd;Dir;\n"$ of Z:/Apps
-DATE_ TIME_ SIZE
-07/03 13:00 000D $MA,".",LM="Cd(\"Z:/Apps/.\");Dir;\n"$
-07/03 14:23 001B $MA,"..",LM="Cd(\"Z:/Apps/..\");Dir;\n"$
-07/01 00:55 000B $MA,"Budget",LM="Cd(\"Z:/Apps/Budget\");Dir;\n"$
-07/01 00:55 0005 $MA,"GrModels",LM="Cd(\"Z:/Apps/GrModels\");Dir;\n"$
-07/01 00:55 0003 $MA,"KeepAway",LM="Cd(\"Z:/Apps/KeepAway\");Dir;\n"$
-07/01 00:55 0003 $MA,"Logic",LM="Cd(\"Z:/Apps/Logic\");Dir;\n"$
-07/01 00:55 000C $MA,"Psalmody",LM="Cd(\"Z:/Apps/Psalmody\");Dir;\n"$
-07/01 00:55 0008 $MA,"Span",LM="Cd(\"Z:/Apps/Span\");Dir;\n"$
-07/01 00:55 0003 $MA,"Strut",LM="Cd(\"Z:/Apps/Strut\");Dir;\n"$
-07/01 00:55 0003 $MA,"TimeClock",LM="Cd(\"Z:/Apps/TimeClock\");Dir;\n"$
-07/01 00:55 0003 $MA,"Titanium",LM="Cd(\"Z:/Apps/Titanium\");Dir;\n"$
-07/01 00:55 000C $MA,"ToTheFront",LM="Cd(\"Z:/Apps/ToTheFront\");Dir;\n"$
-07/01 00:55 0003 $MA,"Vocabulary",LM="Cd(\"Z:/Apps/Vocabulary\");Dir;\n"$
-07/01 00:55 0004 $MA,"X-Caliber",LM="Cd(\"Z:/Apps/X-Caliber\");Dir;\n"$
-07/03 13:00 03B9 $LK,"HomeSys.ZC",A="FI:Z:/Apps/HomeSys.ZC"$
-0.000000s ans=0x0000000F=15
-Z:/Apps>$PT$Cd("Z:/Apps/..");Dir;
-$PT$$FG$$BG$$MA,"Directory",LM="PopUpCd;Dir;\n"$ of Z:/
-DATE_ TIME_   SIZE
-07/03 14:23 00001B $MA,".",LM="Cd(\"Z:/.\");Dir;\n"$
-07/03 14:25 000017 $MA,"..",LM="Cd(\"Z:/..\");Dir;\n"$
-07/03 13:00 00000D $MA,"Apps",LM="Cd(\"Z:/Apps\");Dir;\n"$
-07/03 07:18 000023 $MA,"Compiler",LM="Cd(\"Z:/Compiler\");Dir;\n"$
-07/01 00:55 000031 $MA,"Demo",LM="Cd(\"Z:/Demo\");Dir;\n"$
+07/03 15:25 10F960 $LK,"HCRT.ZXE",A="FI:Z:/HCRT.ZXE"$
+Z:/>$PT$shatter aforetime imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining imagining contentment endures wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness wholesomeness helpidius epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus epicurus put reckcollects collects collects collects collects collects collects collects collects collects collects collects collects collects collects collects collects collects collects collects collects collects collecprivation privation privation privation privation privation privation privation privation privation privation privation privation privation privation privation privation privation privation privation ts collects oned completed imaginary embcoeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal coeternal races mention 00:55 000031 $MA,"Demo",LM="Cd(\"Z:/Demo\");Dir;\n"$
 07/01 20:56 00005C $MA,"Doc",LM="Cd(\"Z:/Doc\");Dir;\n"$
 07/01 18:50 000008 $MA,"Home",LM="Cd(\"Z:/Home\");Dir;\n"$
 07/03 08:41 000031 $MA,"Kernel",LM="Cd(\"Z:/Kernel\");Dir;\n"$

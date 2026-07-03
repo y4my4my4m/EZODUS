@@ -1,27 +1,6 @@
 Cd(__DIR__);;
-#include "Utilities/Net.HH"
-
-#include "Utilities/NetLog"
-
-#include "Utilities/NetQueue"
-
-#include "Drivers/Run"
-
-#include "Protocols/Ethernet"
-
-#include "Protocols/ARP"
-#include "Protocols/IPV4"
-#include "Protocols/ICMP"
-
-#include "Protocols/Sockets"
-
-#include "Utilities/BST"
-#include "Protocols/UDP/MakeUDP"
-#include "Protocols/DNS"
-#include "Utilities/Ping"
-
-#include "Protocols/TCP/MakeTCP"
-
-#include "Protocols/DHCP"
-
-#include "Utilities/NetHandler" // needs IPV4, UDP, ICMP
+//EZODUS: the hardware stack (NIC drivers over PCI/IRQ/port I/O, Ethernet,
+//ARP, IPV4, TCP, DHCP) cannot run in ring-3. EzodusNet bridges the ZealOS
+//TCPSocket API to host sockets instead. Stock include list: see git history
+//or ZealOS/src/Home/Net/Load.ZC.
+#include "EzodusNet"

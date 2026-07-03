@@ -4626,6 +4626,7 @@ import U0i DyadSetListenCallback(CDyadStream *, I64, U0i(*fptr)(CDyadStream *, U
 import U0i DyadSetReadCallback(CDyadStream *, I64, U0i(*fptr)(CDyadStream *, U8i *, I64i, U8i *), U8i *);
 import U0  DyadSetTimeout(CDyadStream *, F64);
 import U0  DyadSetNoDelay(CDyadStream *, I64i);
+import U32 HostDNSResolve(U8 *hostname);
 import U0i Shutdown(I32i ec=0);
 import Bool __IsCmdLine();
 import I64i __CoreNum();
@@ -4694,6 +4695,7 @@ extern U0i DyadSetListenCallback(CDyadStream *, I64, U0i(*fptr)(CDyadStream *, U
 extern U0i DyadSetReadCallback(CDyadStream *, I64, U0i(*fptr)(CDyadStream *, U8i *, I64i, U8i *), U8i *);
 extern U0  DyadSetTimeout(CDyadStream *, F64);
 extern U0  DyadSetNoDelay(CDyadStream *, I64i);
+extern U32 HostDNSResolve(U8 *hostname);
 extern U0i Shutdown(I32i ec=0);
 extern Bool __IsCmdLine();
 extern I64i __CoreNum();
