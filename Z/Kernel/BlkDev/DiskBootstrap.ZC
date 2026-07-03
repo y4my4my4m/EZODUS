@@ -345,3 +345,109 @@ public Bool FAT32MkDir(CDrive *drive, U8 *cur_dir, U8 *name, I64 entry_count)
 	PrintErr("File System Not Supported\n");
 	return FALSE;
 }
+
+//──────────────────────────────────────────────────────────────────────────
+// EZODUS: bodies for KExterns.ZC externs whose ring-0 homes (DiskDrive,
+// DiskFileB, MultiProc) are not in this build. An extern that is never
+// defined compiles into a call to an unresolved address.
+
+U8 blkdev_text_attr[BDT_TYPES_NUM]	= {BLACK, LTCYAN, WHITE, LTGREEN, LTRED, LTBLUE};
+U8 drv_text_attr[3]					= {BLACK, BLUE, RED};
+
+public I64 Letter2BlkDevType(U8 drv_let=0)
+{//All host VFS drives look like hard drives.
+	no_warn drv_let;
+	return BDT_ATA;
+}
+
+public U8 DriveTextAttrGet(U8 drv_let=0)
+{//Get color of drive.
+	drv_let = Letter2Letter(drv_let);
+	if ('A' <= drv_let <= 'Z')
+		return blkdev_text_attr[Letter2BlkDevType(drv_let)] << 4 | drv_text_attr[drv_let % sizeof(drv_text_attr)];
+	else
+		return BLACK << 4 | WHITE;
+}
+
+public U0 DrivesRelease()
+{
+}
+
+public U0 BlkDevsRelease()
+{
+}
+
+public U0 MPInt(U8 num, I64 cpu_num=1)
+{//Host cores are wired through InterruptCore/__AwakeCore FFI instead.
+	no_warn num, cpu_num;
+}
+
+public CTask *SpawnQueue(U0 (*fp_addr)(U8 *data), U8 *data=NULL, U8 *task_name=NULL,
+		I64 target_cpu, CTask *parent=NULL, I64 stack_size=0, I64 flags=1<<JOBf_ADD_TO_QUE)
+{//Single scheduler queue on host: spawn locally.
+	no_warn target_cpu;
+	return Spawn(fp_addr, data, task_name, -1, parent, stack_size, flags);
+}
+
+public I64 Del(U8 *files_find_mask, Bool make_mask=FALSE, Bool del_dir=FALSE, Bool print_message=TRUE)
+{//Delete file (host VFS).
+	U8	*abs = FileNameAbs(files_find_mask);
+	I64	 res = 0;
+
+	no_warn make_mask, del_dir;
+	if (abs)
+	{
+		VFsSetDrv(abs[0]);
+		VFsSetPwd("/");
+		res = VFsDel(abs + 2);
+		if (res && print_message)
+			"Deleted \"%s\"\n", abs;
+		Free(abs);
+	}
+	return res;
+}
+
+public CFile *FOpen(U8 *filename, U8 *flags, I64 count=0)
+{//Open file for block access (host VFS). fblk_num holds the host fd.
+	CFile	*f;
+	U8		*abs = FileNameAbs(filename);
+	I64		 fd;
+	Bool	 rw = ToBool(StrFirstOcc(flags, "w"));
+
+	no_warn count;
+	if (!abs)
+		return NULL;
+	VFsSetDrv(abs[0]);
+	VFsSetPwd("/");
+	if (rw)
+		fd = VFsFOpenW(abs + 2);
+	else
+		fd = VFsFOpenR(abs + 2);
+	Free(abs);
+	if (fd < 0)
+		return NULL;
+	f = CAlloc(sizeof(CFile));
+	f->fblk_num = fd;
+	f->flags	= rw;
+	return f;
+}
+
+public Bool FBlkRead(CFile *f, U8 *buf, I64 blk=FFB_NEXT_BLK, I64 count=1)
+{
+	if (!f)
+		return FALSE;
+	if (blk == FFB_NEXT_BLK)
+		blk = f->max_blk + 1;
+	f->max_blk = blk + count - 1;
+	VFsFSeek(blk * BLK_SIZE, f->fblk_num);
+	return VFsFBlkRead(buf, BLK_SIZE, count, f->fblk_num);
+}
+
+public U0 FClose(CFile *f)
+{
+	if (f)
+	{
+		VFsFClose(f->fblk_num);
+		Free(f);
+	}
+}

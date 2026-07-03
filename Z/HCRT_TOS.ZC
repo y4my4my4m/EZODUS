@@ -268,6 +268,7 @@ public CWinMgrGlobals winmgr = {0, 0, 0, WINMGR_FPS, 0, 0, NULL, FALSE, FALSE, F
 #include "System/God/GodExterns.ZC"
 #include "System/DolDoc/MakeDoc.ZC"
 #include "System/Ctrls/MakeCtrls.ZC"
+#include "System/Utils/Find.ZC"
 #include "System/InFile.ZC"
 #include "System/Registry.ZC"
 #include "System/AutoComplete/MakeAC.ZC"

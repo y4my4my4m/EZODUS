@@ -24,7 +24,6 @@ U0 ACDDictWordsAdd(U8 *st)
 U0 ACDocReset(I64 left, I64 top)
 {
 	CDoc *doc = DocPut;
-
 	DocReset(doc, TRUE);
 	doc->flags |= DOCF_SIZE_MIN;
 	Fs->border_src  = BDS_CONST;

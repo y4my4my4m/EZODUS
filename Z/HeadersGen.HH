@@ -306,6 +306,12 @@
 #define BTF_DONT_FREE 	1
 #define SLIDER_SPACING\t%d
 #define SLIDER_BORDER\t%d
+#define FND_REPLACE 	0
+#define FND_SKIP		1
+#define FND_ALL 		2
+#define FND_ED			3
+#define FND_ABORT_FILE	4
+#define FND_SKIP_FILE 	5
 #define REGISTRY_FILENAME "~/Registry.ZC"
 #define DUR_4 			0
 #define DUR_8_8			1
@@ -852,6 +858,18 @@ class CTemplateCS
 	I64					 num_sliders, range, spacing, border;
 	U8					*global_name;
 };
+class CFind
+{
+	U8		find_text[STR_LEN]		format "$$DA-P,"
+										   "A=\"FIND        :%s\"$$\n";
+	U8		replace_text[STR_LEN]	format "$$DA-P,"
+										   "A=\"REPLACE     :%s\"$$\n";
+	Bool	replace 				format "$$CB,\"REPLACE\"$$\n";
+	Bool	match_case				format "$$CB,\"MATCH CASE\"$$\n";
+	Bool	whole_labels			format "$$CB,\"WHOLE LABELS\"$$\n";
+	U8		filemask[STR_LEN]		format "$$DA-P,A=\"FILE MASK   :%s\"$$\n";
+	Bool	recurse 				format "$$CB,\"RECURSE\"$$\n";
+};
 class CMakeSongSettings
 {
 	I64  complexity 	format "$$LS,D=\"ST_RHYTHM_COMPLEXITY\"$$\n";
@@ -890,6 +908,8 @@ extern CHeapCtrl ahc, ahd;
 extern CTask _boot_task;
 extern CCompGlobals cmp;
 extern CUAsmGlobals uasm;
+extern CWinMgrGlobals  winmgr;
+extern U32  char_bmp_alpha[16];
 extern CJob sys_macro_head;
 extern CTask *sys_macro_task;
 extern CDoc *sys_clip_doc;
@@ -907,6 +927,7 @@ extern CAutoCompleteDictGlobals acd;
 extern CAutoCompleteGlobals ac;
 extern Bool _ezodus_host;
 extern CBlkDevGlobals blkdev;
+extern CCountsGlobals  counts;
 extern CDebugGlobals debug;
 extern CDevGlobals dev;
 extern CGridGlobals mouse_grid;
@@ -920,6 +941,10 @@ extern U8 *(*fp_getstr2)(I64 flags=0);
 extern U0 (*fp_update_ctrls)(CTask *task);
 extern CDoc *(*fp_doc_put)(CTask *task=NULL);
 extern U0 (*fp_set_std_palette)();
+extern U64  sys_font_std[256];
+extern U64  sys_font_aux[256];
+extern U16  month_start_days[12];
+extern U16  month_start_days_leap[12];
 extern U8  *sys_pos_pows_lets,  *sys_neg_pows_lets,  *sys_pos_pows_list,  *sys_neg_pows_list;
 extern U8  *str2color_list;
 extern I64  kb_host_mtx;
@@ -930,7 +955,12 @@ extern U8  _ezodus_home_dir[];
 extern U8  _ezodus_root_dir[];
 extern U8  _ezodus_tmp_name[];
 extern Bool _ezodus_vfs_init;
+extern U8  blkdev_text_attr[BDT_TYPES_NUM];
+extern U8  drv_text_attr[3];
+extern CIntermediateStruct  intermediate_code_table[IC_ICS_NUM];
+extern CInternalType internal_types_table[INTERNAL_TYPES_NUM];
 extern U32  lex_zeros;
+extern U8  asm_seg_prefixes[6];
 extern F64  ode_alloced_factor;
 extern CVector4D  *gVec4Temp0;
 extern CVector4D  *gVec4Temp1;
@@ -939,17 +969,37 @@ extern CVector4D  *gVec4Temp3;
 extern CMatrix4D  *gMat4Temp1;
 extern CMatrix4D  *gMat4Temp2;
 extern CBGR24 gr_palette[COLORS_NUM];
+extern CGrGlobals gr;
+extern U8  gr_rainbow_10[10];
+extern CBGR24  gr32_palette_std[COLORS_NUM];
+extern CBGR24  gr_palette_gray[COLORS_NUM];
+extern CBGR24  gr_palette_dark[COLORS_NUM];
+extern CBGR24  gr_palette_light[COLORS_NUM];
+extern CBGR24  gr_palette_slate[COLORS_NUM];
+extern CBGR24  gr_palette_commander[COLORS_NUM];
+extern I64  gr_x_offsets[8];
+extern U8  polypt_map[9];
+extern I64  sprite_elem_base_sizes[SPT_TYPES_NUM];
 extern CMeshEdVertex sys_clip_vertex_head;
 extern CMeshEdTri sys_clip_tri_head;
+extern CMusicGlobals music;
 extern CMenuEntry  *sys_cur_submenu_entry;
+extern CMouseStateGlobals  old_mouse;
 extern CTask *ext_ASCII_task;
+extern CGodGlobals god;
+extern CDolDocGlobals doldoc;
 extern CColorROPU32  highlight_hash_type_colors[HTt_TYPES_NUM], DOC_COLOR_DEFINE_STR, DOC_COLOR_GLOBAL_VAR, DOC_COLOR_CLASS, DOC_COLOR_KEYWORD, DOC_COLOR_FUN, DOC_COLOR_REG;
 extern U8 captured_macro_name[STR_LEN];
 extern I64  sys_macro_repeat_n;
 extern U8  *ctrl_L_footer;
 extern I64 in_plot_l, in_plot_r;
 extern CDoc  *sys_registry_doc;
+extern I64  sys_message_flags[1];
 extern F64 registry_version;
+extern U8  god_simple_songs [5];
+extern U8  god_normal_songs [5];
+extern U8  god_complex_songs[9];
+extern CWallPaperGlobals *wall;
 
 extern U0 LoadImps();
 extern U0 HostSysGrInit();
@@ -1348,6 +1398,16 @@ public extern Bool ISOCd(U8 *buf, I64 cur_dir_clus);
 public extern Bool FAT32Cd(U8 *buf, I64 cur_dir_clus);
 public extern Bool RedSeaMkDir(CDrive *drive, U8 *cur_dir, U8 *name, I64 entry_count);
 public extern Bool FAT32MkDir(CDrive *drive, U8 *cur_dir, U8 *name, I64 entry_count);
+public extern I64 Letter2BlkDevType(U8 drv_let=0);
+public extern U8 DriveTextAttrGet(U8 drv_let=0);
+public extern U0 DrivesRelease();
+public extern U0 BlkDevsRelease();
+public extern U0 MPInt(U8 num, I64 cpu_num=1);
+public extern CTask *SpawnQueue(U0 (*fp_addr)(U8 *data), U8 *data=NULL, U8 *task_name=NULL, I64 target_cpu, CTask *parent=NULL, I64 stack_size=0, I64 flags=1<<JOBf_ADD_TO_QUE);
+public extern I64 Del(U8 *files_find_mask, Bool make_mask=FALSE, Bool del_dir=FALSE, Bool print_message=TRUE);
+public extern CFile *FOpen(U8 *filename, U8 *flags, I64 count=0);
+public extern Bool FBlkRead(CFile *f, U8 *buf, I64 blk=FFB_NEXT_BLK, I64 count=1);
+public extern U0 FClose(CFile *f);
 extern U8 *FileExtDot(U8 *src);
 extern U8 *FileExtRemove(U8 *src, U8 *dst=NULL);
 extern Bool IsDotC(U8 *filename);
@@ -2290,6 +2350,12 @@ public extern CCtrl *CtrlBttnNew(I64 x, I64 y, I64 width=-1, I64 height=-1, I64 
 public extern U0 CtrlBttnDel(CCtrl *c);
 extern CTemplateCS *CtrlSliderGet();
 extern U0 TemplateCtrlSlider(CDoc *doc);
+extern I64 PopUpFindMenu();
+extern I64 FindFile(U8 *needle_str, U8 *haystack_filename, I64 *_fuf_flags, U8 *replace_text);
+public extern I64 Find(U8 *needle_str, U8 *files_find_mask="*", U8 *fu_flags=NULL, U8 *replace_text=NULL);
+public extern I64 FileOcc(U8 *needle_str, U8 *files_find_mask="*", U8 *fu_flags="+r+i+l");
+extern I64 FindWiz();
+public extern I64 FR(U8 *text_to_replace, U8 *new_text, U8 *files_find_mask="/*", U8 *fu_flags=NONE, I64 sff_flags=NONE);
 public extern U0 InGetStr(U8 *st);
 public extern U0 InPrint(I64 mS=100, U8 *format,...);
 public extern U0 InKeyGet(I64 scan_code, I64 sc_mask = 0xFF | SCF_SHIFT | SCF_CTRL | SCF_ALT);
