@@ -1,2 +1,0 @@
-TOSPrint("RESULT hf=%x\n", HashFind("TOSPrint",Fs->hash_table,-1));
-Shutdown;

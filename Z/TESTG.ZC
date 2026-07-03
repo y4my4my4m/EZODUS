@@ -1,5 +1,0 @@
-I64 b = 0;
-BEqual(&b, 1, 1);
-TOSPrint("bequal ok b=%d\n", b);
-TOSPrint("sqrt ok %d\n", Sqrt(16.0));
-Shutdown;

@@ -1,4 +1,0 @@
-TOSPrint("fs=%x\n", Fs);
-TOSPrint("ht=%x\n", Fs->hash_table);
-TOSPrint("hf=%x\n", HashFind("TOSPrint", Fs->hash_table, -1));
-Shutdown;
