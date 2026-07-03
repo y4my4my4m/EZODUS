@@ -583,17 +583,9 @@ U0 InFile(U8 *filename)
 
 U0 In(U8 *format, ...)
 {//Send text to own input buffer. See $LK,"::/Demo/AcctExample/TOS/TOSDistro.ZC"$.
-	U8 *buf = StrPrintJoin(NULL, format, argc, argv);
+	U8 *buf = StrPrintJoin(NULL, format, argc, argv), *st = SysStrNew(buf);
 
-	// EZODUS: In() normally JIT-compiles "macro",ptr;Free(ptr) which needs PutChars
-	// in the task hash — user tasks on host don't have it. Execute macro directly.
-	if (_ezodus_host)
-		TaskText(Fs, NULL, buf, 1 << JOBf_HIGHEST_PRIORITY);
-	else
-	{
-		U8 *st = SysStrNew(buf);
-		InStr("\"%%s\",%d;Free(%d);", st, st);
-	}
+	InStr("\"%%s\",%d;Free(%d);", st, st);
 	Free(buf);
 }
 

@@ -24,8 +24,8 @@ ENTRY = ["FULL_PACKAGE.ZC"]
 OUT_SYS = os.path.join(Z, "HeadersGenSys.HH")
 # Headers already compiled at boot before HeadersGen.HH; skip anything
 # (classes, functions) they declare.
-PRELOADED = ["Kernel/KernelA.HH", "Kernel/KernelB.HH", "Compiler/CompilerA.HH",
-             "Compiler/CompilerB.HH", "System/Gr/Gr.HH"]
+PRELOADED = ["Kernel/KernelA.HH", "Kernel/KernelB.HH", "Kernel/KernelC.HH",
+             "Compiler/CompilerA.HH", "Compiler/CompilerB.HH", "System/Gr/Gr.HH"]
 
 IDENT = r"[A-Za-z_][A-Za-z_0-9]*"
 

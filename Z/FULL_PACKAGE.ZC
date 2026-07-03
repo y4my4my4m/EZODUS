@@ -45,6 +45,9 @@ asm { // embed boot headers to speedup boot
   _COMPILERA_BIN::
   BINFILE "Compiler/CompilerA.HH";
   DU8 0;
+  _KERNELC_BIN::
+  BINFILE "Kernel/KernelC.HH";
+  DU8 0;
   _COMPILERB_BIN::
   BINFILE "Compiler/CompilerB.HH";
   DU8 0;
@@ -73,11 +76,15 @@ U0 LoadImps() {
     DocWrite(unfound);
     DocDel(unfound);
 #endif
-//Load asm externs second
-    ExePutS2("#define BOOT_EXODUS;\n");
+    // These need the sys syms the foreach creates (_UPPER asm labels; the
+    // KernelC public API binds its extern addresses directly at parse).
     ExePutS2(_KERNELB_BIN,"KernelB.HH");
+    ExePutS2(_KERNELC_BIN,"KernelC.HH");
     ExePutS2(_COMPILERB_BIN,"CompilerB.HH");
     ExePutS2(_HEADERS_GEN_SYS_BIN,"HeadersGenSys.HH");
+    // KernelC re-declares extern vars already patched above; patch again so
+    // the newest hash entries get their data_addr/exe_addr bound.
+    __BootstrapForeachSymbol(&BootstrapImportSymbol);
   } catch {
     TOSPrint("BOOT ERROR:%c\n",Fs->except_ch);
     Fs->catch_except=TRUE;
@@ -94,6 +101,8 @@ U0 HostSysGrInit()
   for (i = 'Â³'; i < 'Ã›'; i++)
     text.aux_font[i] = text.font[i];
   text.aux_font['Â©'] = text.font['Â©'];
+  text.border_chars[2] (I64) = 'ÄÍ³ºÚÉ¿»';
+  text.border_chars[10](U32) = 'ÀÈÙ¼';
   text.cols = sys_framebuffer_width / FONT_WIDTH;
   text.rows = sys_framebuffer_height / FONT_HEIGHT;
   sys_framebuffer_pidth = sys_framebuffer_pitch / (sys_framebuffer_bpp / 8);

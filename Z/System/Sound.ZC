@@ -130,7 +130,6 @@ public F64 Beat()
 	F64 res, cur_tM;
 
 	PUSHFD
-	CLI
 	if (mp_count > 1)
 		while (LBts(&sys_semas[SEMA_TMBEAT], 0))
 			PAUSE
@@ -354,7 +353,6 @@ U0 MusicSettingsReset()
 	music.meter_bottom		= 4;
 	SoundReset;
 	PUSHFD
-	CLI
 	if (mp_count > 1)
 		while (LBts(&sys_semas[SEMA_TMBEAT], 0))
 			PAUSE

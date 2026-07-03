@@ -167,7 +167,6 @@ Bool Mute(Bool val)
 	if (val)
 	{
 		PUSHFD
-		CLI
 		Sound;
 		res = LBts(&sys_semas[SEMA_MUTE], 0);
 		POPFD

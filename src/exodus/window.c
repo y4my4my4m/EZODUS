@@ -125,6 +125,23 @@ enum {
 };
 
 static void updatescrn(u8 *px) {
+  /* EZODUS_DUMP=<path>: periodically dump palette+framebuffer for headless
+   * debugging (see scripts/fbdump2png.py). */
+  static char const *dumppath;
+  static bool dumpinit;
+  static int dumpn;
+  if (!dumpinit) {
+    dumppath = getenv("EZODUS_DUMP");
+    dumpinit = true;
+  }
+  if (dumppath && !(dumpn++ % 30)) {
+    FILE *f = fopen(dumppath, "wb");
+    if (f) {
+      fwrite(palette_bgr48, 8, 256, f);
+      fwrite(px, 1, 640 * 480, f);
+      fclose(f);
+    }
+  }
   SDL_LockSurface(win.surf);
   u8 *dst = win.surf->pixels, *src = px;
   u64 sz = WIDTH * HEIGHT;
@@ -625,6 +642,86 @@ int SDLCALL MSCallback(argign void *arg, SDL_Event *e) {
   return 0;
 }
 
+/* EZODUS_INJECT="1500 key Return;3000 text dir;4000 click 100,200;..."
+ * Debug-only input injection for headless testing. */
+static int injectthrd(argign void *arg) {
+  char *spec = strdup(getenv("EZODUS_INJECT")), *save = NULL;
+  u32 prev = 0;
+  for (char *cmd = SDL_strtokr(spec, "|", &save); cmd;
+       cmd = SDL_strtokr(NULL, "|", &save)) {
+    u32 at = 0;
+    char what[16] = "", rest[256] = "";
+    if (sscanf(cmd, "%u %15s %255[^|]", &at, what, rest) < 2)
+      continue;
+    if (at > prev)
+      SDL_Delay(at - prev);
+    prev = at;
+    if (!strcmp(what, "key")) {
+      SDL_Keycode k = SDL_GetKeyFromName(rest);
+      SDL_Event e = {.key = {.type = SDL_KEYDOWN,
+                             .state = SDL_PRESSED,
+                             .keysym = {.scancode = SDL_GetScancodeFromKey(k),
+                                        .sym = k}}};
+      SDL_PushEvent(&e);
+      e.key.type = SDL_KEYUP;
+      e.key.state = SDL_RELEASED;
+      SDL_PushEvent(&e);
+    } else if (!strcmp(what, "text")) {
+      static char const shifted[] = "!1@2#3$4%5^6&7*8(9)0_-+=:;\"'<,>.?/{[}]|\\~`";
+      for (char *p = rest; *p; ++p) {
+        char base = *p;
+        u16 kmod = 0;
+        if (*p >= 'A' && *p <= 'Z') {
+          base = *p + 32;
+          kmod = KMOD_LSHIFT;
+        } else {
+          for (char const *q = shifted; *q; q += 2)
+            if (*q == *p) {
+              base = q[1];
+              kmod = KMOD_LSHIFT;
+              break;
+            }
+        }
+        SDL_Event e = {
+            .key = {.type = SDL_KEYDOWN,
+                    .state = SDL_PRESSED,
+                    .keysym = {.scancode = SDL_GetScancodeFromKey(base),
+                               .sym = base,
+                               .mod = kmod}}
+        };
+        SDL_PushEvent(&e);
+        e.key.type = SDL_KEYUP;
+        e.key.state = SDL_RELEASED;
+        SDL_PushEvent(&e);
+        SDL_Delay(30);
+      }
+    } else if (!strcmp(what, "wheel")) {
+      int n = 0;
+      sscanf(rest, "%d", &n);
+      SDL_Event e = {
+          .wheel = {.type = SDL_MOUSEWHEEL, .y = n}
+      };
+      SDL_PushEvent(&e);
+    } else if (!strcmp(what, "click") || !strcmp(what, "rclick")) {
+      int x = 0, y = 0;
+      sscanf(rest, "%d,%d", &x, &y);
+      u8 btn = strcmp(what, "rclick") ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT;
+      SDL_Event e = {.motion = {.type = SDL_MOUSEMOTION, .x = x, .y = y}};
+      SDL_PushEvent(&e);
+      SDL_Delay(60);
+      e = (SDL_Event){
+          .button = {.type = SDL_MOUSEBUTTONDOWN, .button = btn, .x = x, .y = y}
+      };
+      SDL_PushEvent(&e);
+      SDL_Delay(60);
+      e.button.type = SDL_MOUSEBUTTONUP;
+      SDL_PushEvent(&e);
+    }
+  }
+  free(spec);
+  return 0;
+}
+
 void EventLoop(void) {
   if (SDL_Init(SDL_INIT_EVENTS) < 0) {
     flushprint(stderr, "%s\n", SDL_GetError());
@@ -633,6 +730,8 @@ void EventLoop(void) {
   /* SDL2 src/events/SDL_events.c
    * Will always return SDL_UserEvent */
   SDL_RegisterEvents(1);
+  if (getenv("EZODUS_INJECT"))
+    SDL_CreateThread(injectthrd, "inject", NULL);
   SDL_Event e;
   while (true) {
     if (!SDL_WaitEvent(&e))

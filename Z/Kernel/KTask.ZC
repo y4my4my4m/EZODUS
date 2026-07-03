@@ -142,7 +142,6 @@ Bool Suspend(CTask *task=NULL, Bool state=TRUE)
 		task = Fs;
 
 	PUSHFD
-	CLI
 	if (TaskValidate(task))
 		res = LBEqual(&task->task_flags, TASKf_SUSPENDED, state);
 	else
@@ -215,7 +214,6 @@ argpop I64 CallStackGrow(I64 stack_size_threshold, I64 stack_size, /*argpop*/I64
 
 			PUSHFD
 			POP 			RDX 			//flags
-			CLI
 			MOV 			RBX, U64 &tmps2[RBP]
 			MOV 			RAX, &_stack[RBP]
 			MOV 			U64 [RAX], RBX 	//Fs->stack=tmps2
@@ -228,7 +226,6 @@ argpop I64 CallStackGrow(I64 stack_size_threshold, I64 stack_size, /*argpop*/I64
 
 			PUSHFD
 			POP 			RDX 			//flags
-			CLI
 			MOV 			RBX, U64 &tmps[RBP]
 			MOV 			RAX, &_stack[RBP]
 			MOV 			U64 [RAX], RBX 	//Fs->stack=tmps

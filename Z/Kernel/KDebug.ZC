@@ -107,7 +107,6 @@ U0 StackRep(CTask *task=NULL)
 		return;
 
 	PUSHFD
-	CLI
 	if (task == Fs)
 	{
 		rbp = RBPGet;
@@ -242,7 +241,6 @@ U0 RawPrint(I64 mS=100, U8 *format, ...)
 	Bool old_raw, old_input_filter;
 
 	PUSHFD
-	CLI
 	old_raw = Raw(ON);
 	old_input_filter = LBtr(&Fs->task_flags, TASKf_INPUT_FILTER_TASK);
 	"%s", buf;
@@ -261,7 +259,6 @@ U0 RawDump(I64 mS=100, U8 *addr, I64 count=0x80)
 	Bool old_raw, old_input_filter;
 
 	PUSHFD
-	CLI
 	old_raw = Raw(ON);
 	old_input_filter = LBtr(&Fs->task_flags, TASKf_INPUT_FILTER_TASK);
 	Dump(addr, count);
@@ -279,7 +276,6 @@ U0 RawDumpMem(I64 mS=100, U8 *addr, I64 count=0x80)
 	Bool old_raw, old_input_filter;
 
 	PUSHFD
-	CLI
 	old_raw = Raw(ON);
 	old_input_filter = LBtr(&Fs->task_flags, TASKf_INPUT_FILTER_TASK);
 	DumpMem(addr, count);
@@ -401,7 +397,6 @@ CBpt *BptFind(U8 *needle_addr, CTask *haystack_task=NULL, Bool rem=FALSE)
 		haystack_task = Fs;
 
 	PUSHFD
-	CLI
 	tmpb1 = &haystack_task->bpt_list;
 	tmpb  =  haystack_task->bpt_list;
 	while (tmpb)
@@ -432,7 +427,6 @@ Bool BptS(U8 *addr, CTask *task=NULL, Bool live=TRUE)
 		task = Fs;
 
 	PUSHFD
-	CLI
 	if (!(tmpb = BptFind(addr, task, FALSE)))
 	{
 		tmpb = CAlloc(sizeof(CBpt), task);
@@ -459,7 +453,6 @@ Bool BptR(U8 *addr, CTask *task=NULL, Bool live=TRUE, Bool rem=TRUE)
 		task = Fs;
 
 	PUSHFD
-	CLI
 	if (tmpb = BptFind(addr, task, rem))
 	{
 		if (task == Fs && live)
@@ -479,7 +472,6 @@ Bool B(U8 *addr, CTask *task=NULL, Bool live=TRUE)
 	Bool res = FALSE;
 
 	PUSHFD
-	CLI
 	if (BptFind(addr, task, FALSE))
 	{
 		BptR(addr, task, live, TRUE);
@@ -502,7 +494,6 @@ I64 B2(CTask *task=NULL, Bool live=TRUE)
 		task = Fs;
 
 	PUSHFD
-	CLI
 	tmpb = task->bpt_list;
 	task->bpt_list = NULL;
 	while (tmpb)
@@ -568,7 +559,6 @@ public U0 S(U8 *ip=INVALID_PTR, CTask *task=NULL) //Single-step.
 		task = Fs;
 
 	PUSHFD
-	CLI
 	if (ip != INVALID_PTR)
 		task->rip = ip;
 	LBts(&task->task_flags, TASKf_DISABLE_BPTS);
@@ -664,7 +654,6 @@ U0 Fault3(I64 fault_num, I64 fault_err_code)
 	no_warn fault_err_code;
 
 	PUSHFD
-	CLI
 	if (Gs->num && debug.mp_crash)
 	{
 		mp_count = 1;

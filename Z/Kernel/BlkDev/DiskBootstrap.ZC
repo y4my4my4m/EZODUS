@@ -3,9 +3,11 @@
 
 CDrive  _ezodus_drvs[DRIVES_NUM];
 CBlkDev _ezodus_blkdevs[BLKDEVS_NUM];
-U8      _ezodus_home_dir[] = "Z:/Home";
-U8      _ezodus_root_dir[] = "/";
-U8      _ezodus_tmp_name[] = "OpCodes.DD";
+// NOTE: no string initializers here: the seed AOT places "U8 x[]="..."" data
+// inside the code stream; EzodusVfsInit fills these at runtime instead.
+U8      _ezodus_home_dir[16];
+U8      _ezodus_root_dir[4];
+U8      _ezodus_tmp_name[16];
 Bool    _ezodus_vfs_init;
 
 Bool EzodusCurDirIsStatic(U8 *dir)
@@ -63,6 +65,9 @@ U0 EzodusVfsInit()
 		return;
 	MemSet(_ezodus_drvs, 0, sizeof(_ezodus_drvs));
 	MemSet(_ezodus_blkdevs, 0, sizeof(_ezodus_blkdevs));
+	StrCopy(_ezodus_home_dir, "Z:/Home");
+	StrCopy(_ezodus_root_dir, "/");
+	StrCopy(_ezodus_tmp_name, "OpCodes.DD");
 	blkdev.drvs		= _ezodus_drvs;
 	blkdev.blkdevs	= _ezodus_blkdevs;
 	for (i = 0; i < DRIVES_NUM; i++)
@@ -75,7 +80,7 @@ U0 EzodusVfsInit()
 	blkdev.drvs['Z' - 'A'].drive_signature	= DRIVE_SIGNATURE_VAL;
 	blkdev.drvs['Z' - 'A'].fs_type			= FSt_VIRT;
 	blkdev.blkdevs[0].bd_signature			= BD_SIGNATURE_VAL;
-	blkdev.blkdevs[0].type					= BDT_ISO_FILE_READ;
+	blkdev.blkdevs[0].type					= BDT_ATA;
 	blkdev.drvs['Z' - 'A'].bd				= &blkdev.blkdevs[0];
 	if (Fs)
 		EzodusCurDirSet(_ezodus_root_dir);
@@ -208,7 +213,33 @@ public U8 *FileRead(U8 *filename, I64 *_size=NULL, I64 *_attr=NULL)
 
 public I64 FileWrite(U8 *filename, U8 *fbuf, I64 size, CDate cdt=0, I64 attr=0)
 {
-	return 0;
+	U8	*absname, *vfs_path;
+	I64	 res = 0;
+
+	no_warn cdt, attr;
+	if (!_ezodus_vfs_init)
+		EzodusVfsInit();
+	absname = FileNameAbs(filename);
+	if (!absname)
+		return 0;
+	vfs_path = absname;
+	if (vfs_path[1] == ':')
+	{
+		VFsSetDrv(*vfs_path);
+		vfs_path += 2;
+	}
+	else
+		VFsSetDrv('Z');
+	if (*vfs_path == '/')
+		VFsSetPwd("/");
+	else if (Fs->cur_dir && *Fs->cur_dir)
+		VFsSetPwd(Fs->cur_dir);
+	else
+		VFsSetPwd("/");
+	if (VFsFWrite(vfs_path, fbuf, size))
+		res = size;
+	Free(absname);
+	return res;
 }
 
 public I64 ClusNumNext(CDrive *drive, I64 c, I64 count=1)
@@ -265,48 +296,96 @@ public CDirContext *DirContextNew(U8 *_mask, Bool make_mask=FALSE, Bool make_dir
 public U0 DirContextDel(CDirContext *dirc, Bool restore=TRUE);
 
 public CBlkDev *DriveIsWritable(U8 drv_let=0, Bool except=FALSE)
-{
-	no_warn drv_let;
-	if (except)
-		throw('Drive');
-	return NULL;
-}
+{//Host VFS drives are always writable.
+	CDrive *drive = Letter2Drive(drv_let, except);
 
-public U8 *FileMgr(I64 mode=0, CTask *mem_task=NULL)
-{
+	if (drive && drive->drive_signature == DRIVE_SIGNATURE_VAL)
+		return drive->bd;
 	return NULL;
 }
 
 public Bool Copy(U8 *src_files_find_mask, U8 *dst_files_find_mask=".")
-{
-	return FALSE;
+{//Copy a single file (host VFS; masks not supported).
+	U8	*buf, *src_abs, *dst_abs, *name, *dst2;
+	I64	 size;
+	Bool res = FALSE;
+
+	src_abs = FileNameAbs(src_files_find_mask);
+	dst_abs = FileNameAbs(dst_files_find_mask);
+	if (src_abs && dst_abs && (buf = FileRead(src_abs, &size)))
+	{
+		if (IsDir(dst_abs))
+		{
+			name = StrLastOcc(src_abs, "/");
+			if (!name)
+				name = src_abs;
+			dst2 = MStrPrint("%s/%s", dst_abs, name + 1);
+			res = FileWrite(dst2, buf, size) == size;
+			Free(dst2);
+		}
+		else
+			res = FileWrite(dst_abs, buf, size) == size;
+		Free(buf);
+	}
+	Free(src_abs);
+	Free(dst_abs);
+	return res;
 }
 
 public Bool Move(U8 *f1, U8 *f2)
 {
-	return FALSE;
+	if (!Copy(f1, f2))
+		return FALSE;
+	return Del(f1,,, FALSE) > 0;
 }
 
+extern CDirEntry *FilesFind(U8 *files_find_mask, I64 fuf_flags=0);
+extern U0 DirTreeDel(CDirEntry *tmpde);
+
 public I64 CopyTree(U8 *src_files_find_mask, U8 *dst_files_find_mask, Bool no_mask=TRUE)
-{
-	return 0;
+{//Recursive copy (host VFS).
+	CDirEntry	*tmpde, *tmpde1;
+	U8			*mask, *dst2;
+	I64			 count = 0;
+
+	no_warn no_mask;
+	DirMake(dst_files_find_mask);
+	mask = MStrPrint("%s/*", src_files_find_mask);
+	tmpde1 = tmpde = FilesFind(mask);
+	while (tmpde)
+	{
+		if (!(tmpde->name[0] == '.' &&
+				(!tmpde->name[1] || tmpde->name[1] == '.' && !tmpde->name[2])))
+		{
+			dst2 = MStrPrint("%s/%s", dst_files_find_mask, tmpde->name);
+			if (tmpde->attr & RS_ATTR_DIR)
+				count += CopyTree(tmpde->full_name, dst2);
+			else if (Copy(tmpde->full_name, dst2))
+				count++;
+			Free(dst2);
+		}
+		tmpde = tmpde->next;
+	}
+	DirTreeDel(tmpde1);
+	Free(mask);
+	return count;
 }
 
 public I64 DelTree(U8 *files_find_mask, U8 *fu_flags=NULL)
-{
-	return 0;
+{//Host VFsDel already deletes recursively.
+	no_warn fu_flags;
+	return Del(files_find_mask,, TRUE, FALSE);
 }
 
 public U0 Touch(U8 *files_find_mask="*", U8 *attr="+?", U8 *fu_flags=NULL, CDate cdt=I64_MIN)
 {
-}
-
-public U0 MountFile(U8 *filename)
-{
+	no_warn files_find_mask, attr, fu_flags, cdt;
 }
 
 public U8 Mount(Bool caller_is_prtdisk=FALSE)
 {
+	no_warn caller_is_prtdisk;
+	PrintErr("Mount not available on host VFS\n");
 	return 0;
 }
 
@@ -450,4 +529,48 @@ public U0 FClose(CFile *f)
 		VFsFClose(f->fblk_num);
 		Free(f);
 	}
+}
+
+// FileMgr menu actions that need real block devices; not available on host.
+public CBlkDev *Letter2BlkDev(U8 drv_let=0, Bool except=TRUE)
+{
+	no_warn drv_let, except;
+	return NULL;
+}
+
+public U0 Format(I64 drv_let, Bool quick=TRUE, Bool confirm=TRUE, I64 type=FSt_FAT32)
+{
+	no_warn drv_let, quick, confirm, type;
+	PrintErr("Format not available on host VFS\n");
+}
+
+public U0 Unmount(U8 drv_let=0)
+{
+	no_warn drv_let;
+}
+
+public U0 MountFile(U8 *filename)
+{
+	no_warn filename;
+	PrintErr("Mount not available on host VFS\n");
+}
+
+public I64 RedSeaISO(U8 *_iso_filename=NULL, U8 *_src_dir, U8 *_stage2_filename=NULL)
+{
+	no_warn _iso_filename, _src_dir, _stage2_filename;
+	PrintErr("ISO creation not available on host VFS\n");
+	return 0;
+}
+
+public I64 ISO9660ISO(U8 *_filename=NULL, U8 *src_files_find_mask, U8 *fu_flags=NULL, U8 *_stage2_filename=NULL)
+{
+	no_warn _filename, src_files_find_mask, fu_flags, _stage2_filename;
+	PrintErr("ISO creation not available on host VFS\n");
+	return 0;
+}
+
+public U0 DVDImageWrite(U8 dvd_drive_let, U8 *in_name=NULL, I64 media_type=0)
+{
+	no_warn dvd_drive_let, in_name, media_type;
+	PrintErr("DVD burning not available on host\n");
 }

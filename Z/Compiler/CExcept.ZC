@@ -102,7 +102,7 @@ U0 LexExcept(CCompCtrl *cc, U8 *str=NULL)
 	if (cc && cc->lex_include_stack)
 	{
 		if (cc->flags & (CCF_CMD_LINE | CCF_PROMPT))
-			TOSPrint("LexErrAt:CmdLine,%d\n", cc->lex_include_stack->line_num);
+			TOSPrint("LexErrAt:CmdLine,%d [%s]\n", cc->lex_include_stack->line_num, cc->lex_include_stack->line_start);
 		else
 		{
 			fn = cc->lex_include_stack->full_name;

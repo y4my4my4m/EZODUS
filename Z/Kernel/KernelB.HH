@@ -267,37 +267,4 @@ public U8		sys_bootloader_id;
 
 #help_index ""
 
-// EZODUS: runtime symbol binding when KernelB.HH is ExePutS2'd with BOOT_EXODUS
-// (see FULL_PACKAGE.ZC LoadImps). Not active during AOT compile of HCRT_TOS.
-#ifdef BOOT_EXODUS
-_extern _HASH_STR I64 HashStr(U8 *st);
-_extern _HASH_FIND CHash *HashFind(U8 *needle_str, CHashTable *haystack_table, I64 mask, I64 instance=1);
-_extern _HASH_SINGLE_TABLE_FIND CHash *HashSingleTableFind(U8 *needle_str, CHashTable *haystack_table, I64 mask, I64 instance=1);
-_extern _HASH_BUCKET_FIND CHash **HashBucketFind(U8 *needle_str, CHashTable *haystack_table);
-_extern _HASH_REM_DEL Bool HashRemDel(CHash *tmph, CHashTable *table, I64 instance=1);
-_extern _STRICOMPARE I64 StrICompare(U8 *st1, U8 *st2);
-_extern _STRNCOMPARE I64 StrNCompare(U8 *st1, U8 *st2, I64 n);
-_extern _STRNICOMPARE I64 StrNICompare(U8 *st1, U8 *st2, I64 n);
-_extern _STRMATCH U8 *StrMatch(U8 *needle, U8 *haystack_str);
-_extern _STRIMATCH U8 *StrIMatch(U8 *needle, U8 *haystack_str);
-_extern _FREE U0 Free(U8 *addr);
-_extern _MSIZE I64 MSize(U8 *src);
-_extern _MSIZE2 I64 MSize2(U8 *src);
-_extern _MHEAP_CTRL CHeapCtrl *MHeapCtrl(U8 *src);
-_extern _MALLOC U8 *MAlloc(I64 size, CTask *mem_task=NULL);
-_extern _TEXT_CHAR Bool TextChar(CTask *task, Bool allow_border=FALSE, I64 x, I64 y, I64 d);
-_extern _TEXT_LEN_STR Bool TextLenStr(CTask *task, I64 x, I64 y, I64 len, I64 attr, U8 *s);
-_extern _TEXT_LEN_ATTR_STR Bool TextLenAttrStr(CTask *task, I64 x, I64 y, I64 len, U32 *_attr);
-_extern _TEXT_LEN_ATTR Bool TextLenAttr(CTask *task, I64 x, I64 y, I64 len, I64 attr);
-_extern _GR_ROP_EQU_U8_NO_CLIPPING U0 GrRopEquU8NoClipping(I64 ch, U8 *dst, I64 width_internal);
-_extern _IS_PIX_COVERED0 Bool IsPixCovered0(CTask *task, I64 x, I64 y);
-_extern _DC_BLOT_COLOR4 U0 DCBlotColor4(U8 *dst, I64 *img, I64 *img_cache, I64 cnt);
-_extern _LAST_FUN I64 LastFun(I64 argc, I64 *argv);
-_extern _TEST_EXCEPT U0 TestExcept();
-_extern _TAKE_EXCEPT U0 TakeExcept();
-_extern _SAVE_EXCEPT_REGS U0 SaveExceptRegs(CExcept *t);
-_extern _TASK_CONTEXT_RESTORE U0 TaskContextRestore();
-_extern _TASK_END_NOW U0 TaskEndNow();
-_extern _YIELD U0 _Yield();
-#endif
 

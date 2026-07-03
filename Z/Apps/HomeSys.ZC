@@ -8,10 +8,6 @@ U0 UserStartUp()
 	LBts(&Fs->display_flags, DISPLAYf_SHOW);
 	WinZBufUpdate;
 	Dir("*", FALSE);
-	//EZODUS TODO: ~/Once (Tips of the Day) disabled: the prompt reader still
-	//lexes doc text that TipOfDay inserts (DocGetStr2 semantics differ from
-	//stock), so tips get compiled as commands. Run "#include \"~/Once\";"
-	//manually to see it.
 }
 
 U0 ServerStartUp()
@@ -34,6 +30,7 @@ U0 StartUpTasks()
 	TaskDerivedValsUpdate(sys_task, FALSE);
 	WinZBufUpdate;
 	"Boot Time:%7.3fs\n", tS;
+	XTalkWait(user, "Cd; #include \"Once\";\n");
 	Silent;
 	try ACInit("::/Kernel/Kernel*.HH;::/Compiler/Compiler*.HH;::/System/*;::/Doc/*;::/Home/*");
 	catch {}

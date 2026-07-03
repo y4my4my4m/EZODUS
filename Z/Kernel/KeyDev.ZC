@@ -24,7 +24,10 @@ U0 PutChars(U64 ch)
 {//Output chars. Up to 8 chars in a single U64.
 //Don't use this.  $LK,"See Print() shortcut.",A="FF:::/Doc/ZealC.DD,DemoZealC"$
 	if (__IsCmdLine) //EZODUS: route raw output to host stdout
+	{
 		TOSPrint("%c", ch);
+		return;
+	}
 	while (ch)
 	{
 		PutKey(ch & 255, 0);

@@ -118,7 +118,22 @@ Bool IsDir(U8 *dir_name)
 	if (!dir_name || !*dir_name)
 		return FALSE;
 	if (Fs->cur_dv && Fs->cur_dv->fs_type == FSt_VIRT)
-		return VirtFileFind(Fs->cur_dv, Fs->cur_dir, dir_name, &de, FUF_JUST_DIRS);
+	{//EZODUS: ask the host; dir_name may be a full path.
+		U8 *abs = FileNameAbs(dir_name), *vfs_path;
+
+		if (!abs)
+			return FALSE;
+		vfs_path = abs;
+		if (vfs_path[1] == ':')
+		{
+			VFsSetDrv(*vfs_path);
+			vfs_path += 2;
+		}
+		VFsSetPwd("/");
+		res = VFsIsDir(vfs_path);
+		Free(abs);
+		return res;
+	}
 	{
 		U8			*mask = MStrPrint("%s/*", dir_name);
 		Bool		 old_silent = Silent;

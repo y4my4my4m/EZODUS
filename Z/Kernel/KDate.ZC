@@ -195,7 +195,6 @@ U0 TimeSet(CDateStruct *ds)
 	U8 *b = ds;
 
 	PUSHFD
-	CLI
 	while (LBts(&sys_semas[SEMA_SYS_DATE], 0))
 		PAUSE
 

@@ -1,0 +1,40 @@
+
+$WW+H,1$$FG,5$$TX+CX,"Ezodus ZealOS",D="DD_OS_NAME_VERSION"$$FG$
+
+$TX+CX,"Public Domain Operating System"$
+
+$LK,"Help & Index",A="FI:::/Doc/HelpIndex.DD"$, $LK,"Quick Start: Cmd line",A="FI:::/Doc/CmdLineOverview.DD"$
+
+$MA,"Directory",LM="PopUpCd;Dir;\n"$ of Z:/
+DATE_ TIME_   SIZE
+07/03 13:48 00001C $MA,".",LM="Cd(\"Z:/.\");Dir;\n"$
+07/03 12:35 000017 $MA,"..",LM="Cd(\"Z:/..\");Dir;\n"$
+07/03 13:00 00000D $MA,"Apps",LM="Cd(\"Z:/Apps\");Dir;\n"$
+07/03 07:18 000023 $MA,"Compiler",LM="Cd(\"Z:/Compiler\");Dir;\n"$
+07/01 00:55 000031 $MA,"Demo",LM="Cd(\"Z:/Demo\");Dir;\n"$
+07/01 20:56 00005C $MA,"Doc",LM="Cd(\"Z:/Doc\");Dir;\n"$
+07/01 18:50 000008 $MA,"Home",LM="Cd(\"Z:/Home\");Dir;\n"$
+07/03 08:41 000031 $MA,"Kernel",LM="Cd(\"Z:/Kernel\");Dir;\n"$
+07/01 00:55 000008 $MA,"Misc",LM="Cd(\"Z:/Misc\");Dir;\n"$
+07/03 10:16 00001D $MA,"System",LM="Cd(\"Z:/System\");Dir;\n"$
+07/03 13:48 000000 $MA,"Tmp",LM="Cd(\"Z:/Tmp\");Dir;\n"$
+07/03 12:21 00081B $LK,"UH‹ìVH‹uH¸Â« @",A="FI:Z:/UH‹ìVH‹uH¸Â« @"$
+07/03 12:19 0007D9 $LK,"UH‹ìVH‹uH¸ÂûJA",A="FI:Z:/UH‹ìVH‹uH¸ÂûJA"$
+07/03 13:48 0460C1 $LK,"HCRT.DBG.Z",A="FI:Z:/HCRT.DBG.Z"$
+07/01 00:55 00FFFF $LK,"PersonalMenu.DD",A="FI:Z:/PersonalMenu.DD"$
+07/01 00:55 00003A $LK,"PersonalNotes.DD",A="FI:Z:/PersonalNotes.DD"$
+07/03 13:13 017D1D $LK,"HeadersGen.HH",A="FI:Z:/HeadersGen.HH"$
+07/03 13:13 00051A $LK,"HeadersGenSys.HH",A="FI:Z:/HeadersGenSys.HH"$
+07/03 13:32 0000F4 $LK,"BuildHCRT.ZC",A="FI:Z:/BuildHCRT.ZC"$
+07/03 13:23 00161A $LK,"FULL_PACKAGE.ZC",A="FI:Z:/FULL_PACKAGE.ZC"$
+07/03 12:04 0028CC $LK,"HCRT_TOS.ZC",A="FI:Z:/HCRT_TOS.ZC"$
+07/01 00:55 001330 $LK,"HomeKeyPlugIns.ZC",A="FI:Z:/HomeKeyPlugIns.ZC"$
+07/03 12:18 000272 $LK,"HomeLocalize.ZC",A="FI:Z:/HomeLocalize.ZC"$
+07/03 13:48 00047F $LK,"HomeSys.ZC",A="FI:Z:/HomeSys.ZC"$
+07/01 00:55 0003B5 $LK,"HomeWrappers.ZC",A="FI:Z:/HomeWrappers.ZC"$
+07/03 12:20 0001A7 $LK,"MakeHome.ZC",A="FI:Z:/MakeHome.ZC"$
+07/02 01:07 000432 $LK,"Once.ZC",A="FI:Z:/Once.ZC"$
+07/01 20:48 00009E $LK,"PUBLIC.ZC",A="FI:Z:/PUBLIC.ZC"$
+07/01 00:55 000495 $LK,"StartOS.ZC",A="FI:Z:/StartOS.ZC"$
+07/03 13:48 10F6D0 $LK,"HCRT.ZXE",A="FI:Z:/HCRT.ZXE"$
+Z:/>$PT$

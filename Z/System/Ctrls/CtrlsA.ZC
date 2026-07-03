@@ -78,54 +78,30 @@ U0 DrawCtrls(CTask *task)
 			{
 				if (!Bt(&task->display_flags, DISPLAYf_NO_BORDER))
 				{
-					if (_ezodus_host)
-					{
-						task->win_left--;
-						task->win_right++;
-						task->win_top--;
-						task->win_bottom++;
-						WinDerivedValsUpdate(task);
-						if (c->draw_it)
-							(*c->draw_it)(dc, c);
-						task->win_left++;
-						task->win_right--;
-						task->win_top++;
-						task->win_bottom++;
-						WinDerivedValsUpdate(task);
-					}
-					else
-					{
-						PUSHFD
-						CLI
-						while (LBts(&task->task_flags, TASKf_TASK_LOCK))
-							PAUSE
+					while (LBts(&task->task_flags, TASKf_TASK_LOCK))
+						PAUSE
 
-						task->win_left--; //Allow drawing on border
-						task->win_right++;
-						task->win_top--;
-						task->win_bottom++;
-						WinDerivedValsUpdate(task);
+					task->win_left--; //Allow drawing on border
+					task->win_right++;
+					task->win_top--;
+					task->win_bottom++;
+					WinDerivedValsUpdate(task);
 
-						LBtr(&task->task_flags, TASKf_TASK_LOCK);
-						POPFD
+					LBtr(&task->task_flags, TASKf_TASK_LOCK);
 
-						if (c->draw_it)
-							(*c->draw_it)(dc, c);
+					if (c->draw_it)
+						(*c->draw_it)(dc, c);
 
-						PUSHFD
-						CLI
-						while (LBts(&task->task_flags, TASKf_TASK_LOCK))
-							PAUSE
+					while (LBts(&task->task_flags, TASKf_TASK_LOCK))
+						PAUSE
 
-						task->win_left++;
-						task->win_right--;
-						task->win_top++;
-						task->win_bottom++;
-						WinDerivedValsUpdate(task);
+					task->win_left++;
+					task->win_right--;
+					task->win_top++;
+					task->win_bottom--;
+					WinDerivedValsUpdate(task);
 
-						LBtr(&task->task_flags, TASKf_TASK_LOCK);
-						POPFD
-					}
+					LBtr(&task->task_flags, TASKf_TASK_LOCK);
 				}
 			}
 			else

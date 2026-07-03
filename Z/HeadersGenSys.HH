@@ -2,8 +2,10 @@
 // _extern asm-label headers; compiled at boot by LoadImps
 // after BootstrapImportSymbol creates the sys syms.
 
-_extern _STRCOMPARE I64 StrCompare(U8 *st1, U8 *st2);
-_extern _STRCOPY U0 StrCopy(U8 *dst, U8 *src);
+_extern _YIELD U0 _Yield();
+_extern _TEST_EXCEPT U0 TestExcept();
+_extern _TAKE_EXCEPT U0 TakeExcept();
+_extern _SAVE_EXCEPT_REGS U0 SaveExceptRegs(CExcept *t);
 _extern CMP_TEMPLATES U32 comp_templates[1];
 _extern CMP_TEMPLATES_DONT_POP U32 comp_templates_dont_pop[1];
 _extern CMP_TEMPLATES_DONT_PUSH2 U32 comp_templates_dont_push2[1];
@@ -13,3 +15,6 @@ public _extern _TEXT_CHAR Bool TextCharRaw(CTask *task, Bool allow_border, I64 x
 public _extern _TEXT_LEN_STR Bool TextLenStrRaw(CTask *task, I64 x, I64 y, I64 len, I64 attr, U8 *s);
 public _extern _TEXT_LEN_ATTR_STR Bool TextLenAttrStrRaw(CTask *task, I64 x, I64 y, I64 len, U32 *_attr);
 public _extern _TEXT_LEN_ATTR Bool TextLenAttrRaw(CTask *task, I64 x, I64 y, I64 len, I64 attr);
+_extern _GR_ROP_EQU_U8_NO_CLIPPING U0 GrRopEquU8NoClipping(I64 ch, U8 *dst, I64 width_internal);
+public _extern _IS_PIX_COVERED0 Bool IsPixCovered0(CTask *task, I64 x, I64 y);
+_extern _DC_BLOT_COLOR4 U0 DCBlotColor4(U8 *dst, I64 *img, I64 *img_cache, I64 count);

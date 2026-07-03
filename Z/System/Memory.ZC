@@ -48,7 +48,6 @@ public Bool HeapRep(CTask *task)
 		return FALSE;
 
 	PUSHFD
-	CLI
 	while (LBts(&task->code_heap->locked_flags, HClf_LOCKED))
 		PAUSE
 	if (task->data_heap != task->code_heap)
@@ -108,7 +107,6 @@ public Bool IsInHeapCtrl(U8 *a, CHeapCtrl *hc, Bool lock=TRUE)
 	CMemBlk *m;
 
 	PUSHFD
-	CLI
 	if (lock)
 		while (LBts(&hc->locked_flags, HClf_LOCKED))
 			PAUSE
@@ -137,7 +135,6 @@ public Bool HeapCtrlWalk(CHeapCtrl *hc)
 	CMemUnused	*uum;
 
 	PUSHFD
-	CLI
 	while (LBts(&hc->locked_flags, HClf_LOCKED))
 		PAUSE
 

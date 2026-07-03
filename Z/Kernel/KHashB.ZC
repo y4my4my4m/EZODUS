@@ -130,7 +130,6 @@ I64 HashTablePurge(CHashTable *table)
 		return 0;
 
 	PUSHFD
-	CLI 	 //Precaution
 	for (i = 0; i <= table->mask; i++)
 	{
 		tmph = table->body[i];

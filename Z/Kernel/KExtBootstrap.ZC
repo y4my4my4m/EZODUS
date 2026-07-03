@@ -2,6 +2,21 @@
 asm {
 _EZODUS_EXT_TAB::
 	DU64	0, 0, 0, 0, 0;
+// Ring-0 BIOS/PCI symbols referenced by KernelC.HH; never called on host.
+_FAR_CALL32::
+	XOR	RAX, RAX
+	RET1	8
+SYS_PCIBIOS_SERVICE_DIR::
+	DU32	0;
+SYS_PCI_SERVICES::
+	DU32	0, 0, 0;
+C32_EAX::	DU32	0;
+C32_EBX::	DU32	0;
+C32_ECX::	DU32	0;
+C32_EDX::	DU32	0;
+C32_ESI::	DU32	0;
+C32_EDI::	DU32	0;
+C32_EFLAGS::	DU32	0;
 };
 
 U0 EzodusExtInit()

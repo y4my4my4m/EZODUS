@@ -475,9 +475,6 @@ U0 GrUpdateScreen()
 	DCBlotColor4(gr.dc1->body, gr.dc2->body, gr.dc_cache->body, GR_HEIGHT * GR_WIDTH >> 3);
 	if (text.raw_screen && text.fb_alias)
 		GrUpdateScreen32;
-	// EZODUS: draw cursor after compositing so DCBlotColor4/32 don't erase it.
-	if (mouse.show && mouse_hard.installed)
-		DrawMouse(gr.dc2);
 	// EZODUS: always SDL blit (T/Exodus GrUpdateScrn); VBE fb_alias is not the display on host.
 	if (gr.screen_zoom == 1)
 		DrawWindowUpdate(gr.dc2->body);

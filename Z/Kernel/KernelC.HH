@@ -380,8 +380,8 @@ public extern	CColorROPU32	  Str2ColorU32(U8 *st);
 
 #help_index "Hash"
 #help_file "::/Doc/Hash"
-public _extern _HASH_ADD				U0			  HashAdd(     CHash *tmph,              CHashTable *table);
-public _extern _HASH_ADD_AFTER			U0			  HashAddAfter(CHash *tmph, CHash *pred, CHashTable *table);
+//EZODUS: HashAdd is plain HolyC (KHashA.ZC); no asm label.
+//EZODUS: HashAddAfter is plain HolyC (KHashA.ZC); no asm label.
 //Add hash entry after entry.
 public _extern _HASH_BUCKET_FIND		CHash		**HashBucketFind(     U8 *needle_str, CHashTable *haystack_table);
 public _extern _HASH_FIND				CHash		 *HashFind(           U8 *needle_str, CHashTable *haystack_table,

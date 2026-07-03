@@ -79,7 +79,6 @@ Bool EdLite(U8 *filename, I64 num=1, I64 edf_dof_flags=0)
 	buf = FileRead(filename, &size);
 
 	PUSHFD
-	CLI
 	text.raw_flags = text.raw_flags & ~RAWF_SCROLL | RAWF_SHOW_DOLLAR;
 	kbd.scan_code = 0;
 	QueueInit(&head);
