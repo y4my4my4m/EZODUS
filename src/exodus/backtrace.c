@@ -88,8 +88,8 @@ __attribute__((used, visibility("default"))) char const *WhichFun(u8 *ptr) {
   CSymbol *sym;
   vec_foreach(&sortedsyms, s, iter) {
     sym = map_get(&symtab, s);
-    if (sym->val >= ptr)
-      return s;
+    if (sym->val > ptr)
+      return last;
     last = s;
   }
   return last;

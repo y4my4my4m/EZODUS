@@ -49,6 +49,18 @@
 #include <exodus/types.h>
 
 noret void terminate(int i) {
+  /* EZDBG */ void *bt[8]; int n = 0;
+  extern char const *WhichFun(unsigned char *);
+  fprintf(stderr, "EZDBG terminate(%d) from:\n", i);
+  unsigned long *fp = __builtin_frame_address(0);
+  for (n = 0; n < 14 && fp; n++) {
+    unsigned long rip = fp[1];
+    if (!rip) break;
+    fprintf(stderr, "  %#lx %s\n", rip, rip < 0x100000000ul ? WhichFun((unsigned char *)rip) : "(host)");
+    fp = (unsigned long *)fp[0];
+    if ((unsigned long)fp < 0x1000) break;
+  }
+  (void)bt;
   _Exit(i);
 }
 
