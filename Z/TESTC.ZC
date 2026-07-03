@@ -1,0 +1,3 @@
+TOSPrint("alive\n");
+I64 xq; xq=42; TOSPrint("xq=%d\n",xq);
+Shutdown;

@@ -650,7 +650,6 @@ public Bool WinBorder(Bool val = OFF, CTask *task = NULL)
 
 U0 WinEzodusInit()
 {//EZODUS: defer module-level IET_MAIN — ext/Fs not ready at load.
-	TOSPrint("IET: WinEzodusInit\n");
 	winmgr.ideal_refresh_tS = tS;
 	winmgr.last_refresh_tS = tS;
 	if (!winmgr.t)

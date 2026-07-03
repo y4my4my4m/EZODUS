@@ -1,79 +1,42 @@
 #help_index "DolDoc/Task;StdOut/Task"
-I64 TermRightClickLink0(CDoc *doc, CDocEntry *doc_e)
-{
-	return TermRightClickLink(doc, doc_e);
-}
-
 public CDoc *DocBorderNew(CDoc *pdoc)
 {//Make new std border doc.
 	CDocEntry	*doc_e;
 	CDoc		*bdoc;
-	CTask noreg *wt;
 
 	bdoc = DocNew;
 	bdoc->flags |= DOCF_BORDER_DOC;
 	if (pdoc)
 	{
-		wt = pdoc->win_task;
-		if (!TaskValidate(wt) || wt != ac.task)
-		{
-			DocPrint(bdoc, "$$CM+H+BY+RX+NC,-3,1$$");
-			doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
-			doc_e->user_data = pdoc;
-			doc_e->tag_cb	 = &EdFilterCB;
-			doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
-			doc_e->user_data = pdoc;
-			doc_e->tag_cb	 = &EdOverStrikeCB;
-			doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
-			doc_e->user_data = pdoc;
-			doc_e->tag_cb	 = &EdDollarCB;
-			DocPrint(bdoc, "$$CM+H+BY+RX+NC,-12,1$$");
-			doc_e = DocPrint(bdoc, "$$TX+BD+TC+IV,\"     \"$$");
-			doc_e->user_data = pdoc;
-			doc_e->tag_cb	 = &EdMoreCB;
-			doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
-			doc_e->user_data = pdoc;
-			doc_e->tag_cb	 = &EdDollarTypeCB;
-		}
+		DocPrint(bdoc, "$$CM+H+BY+RX+NC,-3,1$$");
+		doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
+		doc_e->user_data = pdoc;
+		doc_e->tag_cb	 = &EdFilterCB;
+		doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
+		doc_e->user_data = pdoc;
+		doc_e->tag_cb	 = &EdOverStrikeCB;
+		doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
+		doc_e->user_data = pdoc;
+		doc_e->tag_cb	 = &EdDollarCB;
+		DocPrint(bdoc, "$$CM+H+BY+RX+NC,-12,1$$");
+		doc_e = DocPrint(bdoc, "$$TX+BD+TC+IV,\"     \"$$");
+		doc_e->user_data = pdoc;
+		doc_e->tag_cb	 = &EdMoreCB;
+		doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
+		doc_e->user_data = pdoc;
+		doc_e->tag_cb	 = &EdDollarTypeCB;
 	}
 	DocPrint(bdoc, "$$CM+H+TY+NC,0,-1$$");
 	doc_e = DocPrint(bdoc, "$$DA+H-TRM-P+BD+RD+CX+IV,LEN=STR_LEN-1,A=\"%%s...\",SCX=15$$");
-	if (wt && TaskValidate(wt))
-	{
-		doc_e->data = &wt->task_title;
-		DocDataFormat(bdoc, doc_e);
-		DocPrint(bdoc, "$$CM+H+NC,1,0$$$$TX+H+BD+IV,\"%X\"$$", wt);
-		if (!Bt(&wt->win_inhibit, WIf_SELF_FOCUS))
-			DocPrint(bdoc, "$$BG+H,LTRED$$$$LTGRAY+H$$$$TX+H+RX+BD,\"[X]\"$$$$BG+H$$$$FG+H$$");
-		if (!Bt(&wt->win_inhibit, WIf_SELF_FOCUS))
-			DocPrint(bdoc, "$$BG+H,BROWN$$$$YELLOW+H$$$$TX+H+LX+BD,\"MENU\"$$$$FG+H$$$$BG+H$$");
-	}
+	doc_e->data = &Fs->task_title;
+	DocDataFormat(bdoc, doc_e);
+	DocPrint(bdoc, "$$CM+H+NC,1,0$$$$TX+H+BD+IV,\"%X\"$$", Fs);
+	if (pdoc->win_task != sys_task)
+		DocPrint(bdoc, "$$BG+H,LTRED$$$$LTGRAY+H$$$$TX+H+RX+BD,\"[X]\"$$$$BG+H$$$$FG+H$$");
+	if (pdoc->win_task != sys_task && pdoc->win_task != ac.task)
+		DocPrint(bdoc, "$$BG+H,BROWN$$$$YELLOW+H$$$$TX+H+LX+BD,\"MENU\"$$$$FG+H$$$$BG+H$$");
 
 	return bdoc;
-}
-
-public U0 DocTermNew()
-{//Make into term win task with Put/Display/Border docs.
-	CTask noreg *t = Fs;
-	CDoc *pdoc;
-
-	if (!TaskValidate(t))
-		return;
-	pdoc = DocNew;
-
-	pdoc->right_click_link	= &TermRightClickLink0;
-	pdoc->max_entries		= 4096;
-	pdoc->win_task			= t;
-	t->border_src			= BDS_CUR_DRIVE;
-	pdoc->desc				= 'Term';
-	t->put_doc				= t->display_doc = pdoc;
-	t->border_doc			= DocBorderNew(pdoc);
-	try
-		t->cur_menu			= MenuFile("::/Doc/EdPullDown.DD");
-	catch
-		t->cur_menu			= NULL;
-	WinScrollsInit(t);
-	Raw(OFF);
 }
 
 #help_index "DolDoc"
@@ -142,13 +105,6 @@ I64 TermRightClickLink(CDoc *doc, CDocEntry *doc_e)
 	I64			 i;
 	CEdFileName	 fn;
 
-	if (!doc || doc->doc_signature != DOC_SIGNATURE_VAL)
-	{
-		if (doc)
-			DocUnlock(doc);
-		return FALSE;
-	}
-
 	if (st2 = DocEntryLink(doc, doc_e))
 	{
 		if (st = DocLinkFile(st2))
@@ -168,7 +124,7 @@ I64 TermRightClickLink(CDoc *doc, CDocEntry *doc_e)
 								break;
 							}
 						}
-						DocPrint(doc, "#include \"%s\";\n$$PT$$$$FG$$$$BG$$", st);
+						"#include \"%s\";\n$$PT$$$$FG$$$$BG$$", st;
 						WinZBufUpdate;
 						ExeFile(st, CCF_CMD_LINE);
 						res = TRUE;
@@ -183,7 +139,7 @@ I64 TermRightClickLink(CDoc *doc, CDocEntry *doc_e)
 								break;
 							}
 						}
-						DocPrint(doc, "Sys(\"#include \\\"%s\\\"\" );\n$$PT$$$$FG$$$$BG$$", st);
+						"Sys(\"#include \\\"%s\\\"\" );\n$$PT$$$$FG$$$$BG$$", st;
 						WinZBufUpdate;
 						SysFile(st, FALSE);
 						res = TRUE;
@@ -224,7 +180,7 @@ I64 TermRightClickLink(CDoc *doc, CDocEntry *doc_e)
 								break;
 							}
 						}
-						DocPrint(doc, "Ed(\"%s\");\n$$PT$$$$FG$$$$BG$$", st);
+						"Ed(\"%s\");\n$$PT$$$$FG$$$$BG$$", st;
 						res = Ed(st);
 						break;
 
@@ -237,14 +193,14 @@ I64 TermRightClickLink(CDoc *doc, CDocEntry *doc_e)
 								break;
 							}
 						}
-						DocPrint(doc, "MountFile(\"%s\");\n$$PT$$$$FG$$$$BG$$", st);
+						"MountFile(\"%s\");\n$$PT$$$$FG$$$$BG$$", st;
 						WinZBufUpdate;
 						MountFile(st);
 						res = TRUE;
 						break;
 
 					case RIGHT_PLAIN:
-						DocPrint(doc, "Plain(\"%s\");\n$$PT$$$$FG$$$$BG$$", st);
+						"Plain(\"%s\");\n$$PT$$$$FG$$$$BG$$", st;
 						res = Plain(st);
 						break;
 
@@ -257,7 +213,7 @@ I64 TermRightClickLink(CDoc *doc, CDocEntry *doc_e)
 								break;
 							}
 						}
-						DocPrint(doc, "InFile(\"%s\");\n$$PT$$$$FG$$$$BG$$", st);
+						"InFile(\"%s\");\n$$PT$$$$FG$$$$BG$$", st;
 						WinZBufUpdate;
 						InFile(st);
 						res = TRUE;
@@ -275,10 +231,27 @@ I64 TermRightClickLink(CDoc *doc, CDocEntry *doc_e)
 	else
 		send_new_line = TRUE;
 	DocBottom(doc);
-	DocPrint(doc, "$$PT$$$$FG$$$$BG$$");
+	"$$PT$$$$FG$$$$BG$$";
 	if (send_new_line)
-		DocPrint(doc, "\n");
-	DocUnlock(doc);
+		'\n';
 
 	return res;
 }
+
+// EZODUS: DocTermNew moved below TermRightClickLink; the seed AOT compiler
+// cannot take the address of a still-extern function.
+public U0 DocTermNew()
+{//Make into term win task with Put/Display/Border docs.
+	CDoc *pdoc = DocNew;
+
+	pdoc->right_click_link	= &TermRightClickLink;
+	pdoc->max_entries		= 4096;
+	Fs->border_src	= BDS_CUR_DRIVE;
+	pdoc->desc				= 'Term';
+	Fs->put_doc		= Fs->display_doc = pdoc;
+	Fs->border_doc	= DocBorderNew(pdoc);
+	Fs->cur_menu	= MenuFile("::/Doc/EdPullDown.DD");
+	WinScrollsInit(Fs);
+	Raw(OFF);
+}
+

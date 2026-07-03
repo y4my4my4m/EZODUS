@@ -1,70 +1,9 @@
 #help_index "DolDoc"
 
-#exe {Option(OPTf_NO_REG_VAR, ON);};
-
-I64 DocCharDist(CDoc *_doc, I64 x, I64 y)
+I64 DocCharDist(CDoc *doc, I64 x, I64 y)
 {
-	I64		 doc_ad = _doc, doc_x, doc_y;
-	CDoc	*doc;
-
 #assert FONT_WIDTH == FONT_HEIGHT
-	if (!doc_ad || doc_ad < 0x100000)
-		return I64_MAX;
-	try
-	{
-		doc = doc_ad(CDoc *);
-		if (doc->doc_signature != DOC_SIGNATURE_VAL)
-			return I64_MAX;
-		doc_x = doc->x;
-		doc_y = doc->y;
-	}
-	catch
-	{
-		return I64_MAX;
-	}
-	return ((doc_x - x) * (doc_x - x) + (doc_y - y) * (doc_y - y)) * FONT_WIDTH * FONT_WIDTH;
-}
-
-public U0 DocFindCursorFromXY(CDoc *_doc)
-{//After layout recalc: snap cur_entry to nearest entry from doc->x/doc->y.
-	I64			 doc_stk[1], cx, cy, d, best_d = I64_MAX, best_col = 0;
-	CDoc		*doc;
-	CDocEntry	*doc_e, *best_doc_e;
-
-	doc_stk[0] = _doc;
-	doc = doc_stk[0](CDoc *);
-	if (!doc || doc->doc_signature != DOC_SIGNATURE_VAL)
-		return;
-	cx = doc->x;
-	cy = doc->y;
-	best_doc_e = doc->cur_entry;
-	doc_e = doc->head.next;
-	while (doc_e != doc)
-	{
-		if (!(doc_e->de_flags & (DOCEF_SKIP | DOCEF_FILTER_SKIP | DOCEF_NO_CLICK_ON)))
-		{
-			d = ((doc_e->x - cx) * (doc_e->x - cx) + (doc_e->y - cy) * (doc_e->y - cy)) * FONT_WIDTH * FONT_WIDTH;
-			if (d < best_d)
-			{
-				best_d = d;
-				best_doc_e = doc_e;
-				best_col = doc_e->min_col;
-			}
-		}
-		doc_e = doc_e->next;
-	}
-	doc->cur_entry = best_doc_e;
-	doc->cur_col = best_col;
-	if (best_d < FONT_WIDTH)
-		doc->best_d = 0;
-	else
-		doc->best_d = best_d;
-	DocFormBwd(doc);
-	if (best_doc_e->type_u8 != DOCT_HEX_ED)
-	{
-		doc->y = best_doc_e->y;
-		doc->x = best_doc_e->x + best_col;
-	}
+	return (SqrI64(doc->x - x) + SqrI64(doc->y - y)) * FONT_WIDTH * FONT_WIDTH;
 }
 
 U0 DocDelToNum(CDoc *doc, I64 num)
@@ -112,16 +51,11 @@ U0 DocDelToEntry(CDoc *doc, CDocEntry *clear_entry, Bool clear_holds)
 U0 DocBorderListDraw(CDoc *doc)
 {
 	CTask	*win_task = doc->win_task;
-	I64		 i, y = -1, attr;
+	I64		 i, y = -1, attr = win_task->border_attr << 8;
 	U64		 ch;
 	CDoc	*tmpl = doc;
 	CD3I64	 saved_scroll;
 
-	if (!win_task)
-		win_task = Fs;
-	if (!win_task || !TaskValidate(win_task))
-		return;
-	attr = win_task->border_attr << 8;
 	while (tmpl && tmpl->doc_signature == DOC_SIGNATURE_VAL)
 	{
 		y += (Bsr(tmpl->desc) + 7) >> 3 + 1; //StrLen+1
@@ -208,8 +142,7 @@ public U0 DocClear(CDoc *doc=NULL, Bool clear_holds=FALSE)
 	{
 		if (IsRaw)
 		{
-			if (text.fb_alias)
-				MemSet(text.fb_alias, BLACK32, text.buffer_size);
+			MemSet(text.fb_alias, BLACK32, text.buffer_size);
 		}
 		return;
 	}
@@ -289,31 +222,25 @@ public I64 DocMax(I64 i=I64_MAX)
 #help_index "DolDoc/Task;StdOut/Task"
 U0 DocUpdateTaskDocs(CTask *task)
 {//This is called from $LK,"GrUpdateTaskWin",A="MN:GrUpdateTaskWin"$() by the winmgr at 60fps.
-	CDoc noreg *doc;
+	CDoc *doc;
 	CD3I64 saved_scroll;
-	CTask noreg *t = task;
 
-	if (!TaskValidate(t))
-		return;
-
-	if (t->border_src == BDS_CUR_DRIVE && t->cur_dv)
-		t->border_attr = DriveTextAttrGet(Drive2Letter(t->cur_dv));
-	if (t->title_src == TTS_TASK_NAME)
-		StrCopy(t->task_title, t->task_name);
-	if ((doc = DocDisplay(t)) && !(doc->flags & DOCF_DONT_SHOW))
+	if (task->border_src == BDS_CUR_DRIVE && task->cur_dv)
+		task->border_attr = DriveTextAttrGet(Drive2Letter(task->cur_dv));
+	if (task->title_src == TTS_TASK_NAME)
+		StrCopy(task->task_title, task->task_name);
+	if ((doc = DocDisplay(task)) && !(doc->flags & DOCF_DONT_SHOW))
 	{
-		if (t->border_src == BDS_ED_FILENAME_DRIVE)
-			t->border_attr = DriveTextAttrGet(*doc->filename.name);
-		if (t->title_src == TTS_ED_FILENAME)
-			StrCopy(t->task_title, doc->filename.name);
+		if (task->border_src == BDS_ED_FILENAME_DRIVE)
+			task->border_attr = DriveTextAttrGet(*doc->filename.name);
+		if (task->title_src == TTS_ED_FILENAME)
+			MemCopy(task->task_title, doc->filename.name, STR_LEN - 1);
 		DocRecalc(doc, RECALCt_TO_SCREEN | RECALCF_HAS_CURSOR);
 	}
-	if ((doc = DocBorder(t)) && !(doc->flags & DOCF_DONT_SHOW))
+	if ((doc = DocBorder(task)) && !(doc->flags & DOCF_DONT_SHOW))
 	{
-		WinScrollNull(t, &saved_scroll);
+		WinScrollNull(task, &saved_scroll);
 		DocRecalc(doc, RECALCt_TO_SCREEN);
-		WinScrollRestore(t, &saved_scroll);
+		WinScrollRestore(task, &saved_scroll);
 	}
 }
-
-#exe {Option(OPTf_NO_REG_VAR, OFF);};

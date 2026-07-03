@@ -159,16 +159,11 @@ public U0 ACInit(U8 *mask=NULL)
 		ACMainFileListTraverse(mask);
 
 	ACDWordsLoad;
+	RegDefault("AutoComplete", "ac.col = TEXT_COLS-34;ac.row = 10;");
+	RegExe("AutoComplete");
 	LBtr(&ac.flags, ACf_INIT_IN_PROGRESS);
-	if (!ac.hash_table)
-		return;
 	LBts(&sys_run_level, RLf_AUTOCOMPLETE);
-#ifdef EZODUS
-	// EZODUS: build hash at boot; spawn AC window on first Alt-Shift-A only.
-#else
-	try AutoComplete(ON);
-	catch {}
-#endif
+	AutoComplete(ON);
 }
 
 I64 AutoCompleteSize()

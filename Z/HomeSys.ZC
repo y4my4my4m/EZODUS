@@ -3,57 +3,34 @@
 
 U0 UserStartUp()
 {//Run each time a user is spawned
-	CTask noreg *t = Fs;
-
-	if (!TaskValidate(t))
-		return;
 	DocTermNew;
-	try Type("::/Doc/Start.DD");
-	catch {}
-	LBts(&t->display_flags, DISPLAYf_SHOW);
-	WinToTop(t);
+	Type("::/Doc/Start.DD");
+	LBts(&Fs->display_flags, DISPLAYf_SHOW);
 	WinZBufUpdate;
-	try Dir("*", FALSE);
-	catch {}
+	Dir("*", FALSE);
 }
 
 U0 ServerStartUp()
 {//Run each time a server task is spawned.
-	CTask noreg *t = Fs;
-
-	if (!TaskValidate(t))
-		return;
 	DocTermNew;
-	LBts(&t->display_flags, DISPLAYf_SHOW);
-	WinToTop(t);
+	LBts(&Fs->display_flags, DISPLAYf_SHOW);
 	WinZBufUpdate;
 }
 
 U0 StartUpTasks()
 {
-	CTask noreg *user;
-	CTask noreg *st;
+	CTask *user = User;
 
-	user = User;
-	if (!TaskValidate(user))
-	{
-		"StartUpTasks: User spawn failed\n";
-		return;
-	}
 	if (sys_boot_src.u16[0] != BOOT_SRC_DVD)
 		User;
 
-	if (TaskValidate(user))
-		WinToTop(user);
+	WinToTop(user);
 	WinTileVert;
-	st = sys_task;
-	WinVert(2, text.rows / 8, st);
-	if (TaskValidate(st))
-		TaskDerivedValsUpdate(st, FALSE);
+	WinVert(2, text.rows / 8, sys_task);
+	TaskDerivedValsUpdate(sys_task, FALSE);
 	WinZBufUpdate;
 	"Boot Time:%7.3fs\n", tS;
-	try XTalkWait(user, "Cd; #include \"Once\";\n");
-	catch {}
+	XTalkWait(user, "Cd; #include \"Once\";\n");
 	Silent;
 	try ACInit("::/Kernel/Kernel*.HH;::/Compiler/Compiler*.HH;::/System/*;::/Doc/*;::/Home/*");
 	catch {}

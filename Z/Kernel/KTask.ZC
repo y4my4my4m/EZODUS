@@ -49,6 +49,8 @@ U0 TaskQueueInsChild(CTask *task)
 
 U0 Exit()
 {//Terminate own task.
+	if (IsRaw) //EZODUS: cmd-line mode has no task to fall back to
+		Shutdown;
 	if (Fs == sys_focus_task && IsDebugMode)
 	{
 		LBts(&Fs->task_flags, TASKf_KILL_AFTER_DEBUG);

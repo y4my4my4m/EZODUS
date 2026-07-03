@@ -1,0 +1,4 @@
+TOSPrint("off_ht=%x off_addr=%x size=%x\n",
+  offset(CTask.hash_table), offset(CTask.addr), sizeof(CTask));
+TOSPrint("fs=%x\n", Fs);
+Shutdown;

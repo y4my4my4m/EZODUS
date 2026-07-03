@@ -4,13 +4,6 @@ $LK,"KernelB",A="FF:::/Compiler/Compiler.PRJ,KernelB"$ Compiler.PRJ
 $LK,"KernelB",A="FF:::/StartOS.ZC,KernelB"$ StartOS.ZC
 */
 
-// EZODUS: _intern decls below need the IC_* defines. During the AOT build
-// HCRT_TOS.ZC includes CompilerA.HH beforehand; when this header is JIT
-// compiled at boot (LoadImps, BOOT_EXODUS) they must be pulled in here.
-#ifdef BOOT_EXODUS
-#include "Compiler/CompilerA.HH"
-#endif
-
 #help_index "Bit"
 #help_file "::/Doc/Bit"
 public _intern IC_BSF				I64	 Bsf(I64 bit_field_val); //Scan forward from lowest for 1st set. -1 if not found.
@@ -277,16 +270,14 @@ public U8		sys_bootloader_id;
 // EZODUS: runtime symbol binding when KernelB.HH is ExePutS2'd with BOOT_EXODUS
 // (see FULL_PACKAGE.ZC LoadImps). Not active during AOT compile of HCRT_TOS.
 #ifdef BOOT_EXODUS
-_extern _HASH_ADD_AFTER U0 HashAddAfter(CHash *tmph, CHash *pred, CHashTable *table);
 _extern _HASH_STR I64 HashStr(U8 *st);
 _extern _HASH_FIND CHash *HashFind(U8 *needle_str, CHashTable *haystack_table, I64 mask, I64 instance=1);
 _extern _HASH_SINGLE_TABLE_FIND CHash *HashSingleTableFind(U8 *needle_str, CHashTable *haystack_table, I64 mask, I64 instance=1);
 _extern _HASH_BUCKET_FIND CHash **HashBucketFind(U8 *needle_str, CHashTable *haystack_table);
-_extern _HASH_ADD U0 HashAdd(CHash *tmph, CHashTable *table);
 _extern _HASH_REM_DEL Bool HashRemDel(CHash *tmph, CHashTable *table, I64 instance=1);
-_extern _STRICMP I64 StrICompare(U8 *st1, U8 *st2);
-_extern _STRNCMP I64 StrNCompare(U8 *st1, U8 *st2, I64 n);
-_extern _STRNICMP I64 StrNICompare(U8 *st1, U8 *st2, I64 n);
+_extern _STRICOMPARE I64 StrICompare(U8 *st1, U8 *st2);
+_extern _STRNCOMPARE I64 StrNCompare(U8 *st1, U8 *st2, I64 n);
+_extern _STRNICOMPARE I64 StrNICompare(U8 *st1, U8 *st2, I64 n);
 _extern _STRMATCH U8 *StrMatch(U8 *needle, U8 *haystack_str);
 _extern _STRIMATCH U8 *StrIMatch(U8 *needle, U8 *haystack_str);
 _extern _FREE U0 Free(U8 *addr);
@@ -302,7 +293,6 @@ _extern _GR_ROP_EQU_U8_NO_CLIPPING U0 GrRopEquU8NoClipping(I64 ch, U8 *dst, I64 
 _extern _IS_PIX_COVERED0 Bool IsPixCovered0(CTask *task, I64 x, I64 y);
 _extern _DC_BLOT_COLOR4 U0 DCBlotColor4(U8 *dst, I64 *img, I64 *img_cache, I64 cnt);
 _extern _LAST_FUN I64 LastFun(I64 argc, I64 *argv);
-_extern _ARC_ENTRY_GET U0 ArcEntryGet(CArcCtrl *c);
 _extern _TEST_EXCEPT U0 TestExcept();
 _extern _TAKE_EXCEPT U0 TakeExcept();
 _extern _SAVE_EXCEPT_REGS U0 SaveExceptRegs(CExcept *t);

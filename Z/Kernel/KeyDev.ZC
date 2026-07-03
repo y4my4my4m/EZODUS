@@ -23,6 +23,8 @@ U0 PutKey(I64 ch=0, I64 sc=0)
 U0 PutChars(U64 ch)
 {//Output chars. Up to 8 chars in a single U64.
 //Don't use this.  $LK,"See Print() shortcut.",A="FF:::/Doc/ZealC.DD,DemoZealC"$
+	if (IsRaw) //EZODUS: route raw output to host stdout
+		TOSPrint("%c", ch);
 	while (ch)
 	{
 		PutKey(ch & 255, 0);
@@ -37,6 +39,11 @@ U0 PutS(U8 *st)
 	U8				*ptr;
 	Bool			 cont = TRUE;
 	if (!st) return;
+	if (__IsCmdLine) //EZODUS: route raw output to host stdout
+	{
+		TOSPrint("%s", st);
+		return;
+	}
 	CKeyDevEntry	*tmpk = keydev.put_key_head.next;
 
 	if (!Bt(&Fs->display_flags, DISPLAYf_SILENT))

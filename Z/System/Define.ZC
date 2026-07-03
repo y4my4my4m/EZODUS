@@ -7,14 +7,10 @@ U0 LoadDocDefines()
 
 	if (!os_name)
 		os_name = "Ezodus ZealOS";
-	TOSPrint("LDD:1\n");
 	DefinePrint("DD_OS_NAME_VERSION", os_name);
-	TOSPrint("LDD:2\n");
 	// EZODUS: skip float DefinePrint — host StrPrintJoin %f path SIGSEGV during boot.
 	DefinePrint("DD_ZEALOS_AGE", "0.0");
-	TOSPrint("LDD:3\n");
 	DefinePrint("DD_TEMPLEOS_AGE", "0.0");
-	TOSPrint("LDD:4\n");
 	// DocBorderNew LEN=STR_LEN-1 and $$BG+H,LTRED$$ need these for LexExpressionI64.
 	DefinePrint("STR_LEN", "144");
 	DefinePrint("BLACK", "0");

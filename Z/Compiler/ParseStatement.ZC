@@ -1371,12 +1371,7 @@ sm_not_keyword_afterall:
 						if (Lex(cc) == ':') //skip cur_str
 							Lex(cc); //skip colon
 						else
-						{
-							TOSPrint("UNDEF_IDENT:%s Fs=%x ht=%x htnext=%x asmh=%x find=%x ccht=%x\n",
-									 g_lb->str, Fs, Fs->hash_table, Fs->hash_table->next, cmp.asm_hash,
-									 HashFind("include", Fs->hash_table, -1), cc->htc.hash_table_list); //EZDBG
 							LexExcept(cc, "Undefined identifier at ");
-						}
 						if (!cc->htc.fun)
 							LexExcept(cc, "No global labels at ");
 						if (cc->token != ',')

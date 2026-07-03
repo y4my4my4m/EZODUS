@@ -99,8 +99,6 @@ U0 LexExcept(CCompCtrl *cc, U8 *str=NULL)
 
 	if (str)
 		TOSPrint("LexErr:%s\n", str);
-	if (!IsRaw && str)
-		TOSPrint("LexErrTask:%08X %s\n", Fs, str);
 	if (cc && cc->lex_include_stack)
 	{
 		if (cc->flags & (CCF_CMD_LINE | CCF_PROMPT))

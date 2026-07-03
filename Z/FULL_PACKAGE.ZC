@@ -35,12 +35,24 @@ static U0 BootstrapImportSymbol(U8 *name,U8 *ptr,U64 type) {
   }
 }
 
-asm { // embed KERNEL*.HH to speedup boot
+asm { // embed boot headers to speedup boot
   _KERNELA_BIN::
   BINFILE "Kernel/KernelA.HH";
   DU8 0;
   _KERNELB_BIN::
   BINFILE "Kernel/KernelB.HH";
+  DU8 0;
+  _COMPILERA_BIN::
+  BINFILE "Compiler/CompilerA.HH";
+  DU8 0;
+  _COMPILERB_BIN::
+  BINFILE "Compiler/CompilerB.HH";
+  DU8 0;
+  _GR_HH_BIN::
+  BINFILE "System/Gr/Gr.HH";
+  DU8 0;
+  _HEADERS_GEN_BIN:: // scripts/genheaders.py output: AOT public API headers
+  BINFILE "HeadersGen.HH";
   DU8 0;
 };
 
@@ -50,6 +62,9 @@ U0 LoadImps() {
   try {
     ExePutS2("#define FPTRS;\n");
     ExePutS2(_KERNELA_BIN,"KernelA.HH");
+    ExePutS2(_COMPILERA_BIN,"CompilerA.HH");
+    ExePutS2(_GR_HH_BIN,"Gr.HH");
+    ExePutS2(_HEADERS_GEN_BIN,"HeadersGen.HH");
     __BootstrapForeachSymbol(&BootstrapImportSymbol);
 #ifdef GEN_HEADERS
     DocWrite(unfound);
@@ -58,6 +73,7 @@ U0 LoadImps() {
 //Load asm externs second
     ExePutS2("#define BOOT_EXODUS;\n");
     ExePutS2(_KERNELB_BIN,"KernelB.HH");
+    ExePutS2(_COMPILERB_BIN,"CompilerB.HH");
   } catch {
     TOSPrint("BOOT ERROR:%c\n",Fs->except_ch);
     Fs->catch_except=TRUE;
@@ -131,9 +147,7 @@ U0 HostKMainBoot()
   GrInit2;
   WinEzodusInit;
   GrEzodusInit;
-  WallPaperEzodusInit;
   GrInit1;
-  MouseGrInit;
   GrInit3;
   GrInit4;
   GrPaletteInit;
@@ -168,19 +182,14 @@ U0 HostKMainBoot()
 
 U0 _InitUI() {
   if (__IsCmdLine) {
-    TOSPrint("_InitUI:cli\n");
     EzodusVfsInit;
     CInit;
     Drive('Z');
     LoadImps;
     try ExePrint("%s;\n", __CmdLineBootText);
-    catch {
-      PutExcept(FALSE);
-      Shutdown;
-    }
-    return;
+    catch PutExcept(FALSE);
+    Shutdown;
   }
-  TOSPrint("_InitUI:boot\n");
   SetFs(sys_task);
   HostKMainBoot;
 }

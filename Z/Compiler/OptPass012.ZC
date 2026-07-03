@@ -127,7 +127,11 @@ in int<-->F64 conversions of function args.
 				}
 				break;
 
-			case IC_FS:
+// EZODUS: IC_FS/IC_GS -> IC_MOV_FS/GS fusion disabled. IC_MOV_FS/GS emit
+// ring-0 segment-prefixed derefs (FS base = task) which read host libc TLS
+// in userspace. IC_FS/IC_GS read the host GS TLS slots instead; the deref
+// stays a separate IC. Same approach as EXODUS OPTPASS012.HC.
+/*			case IC_FS:
 			case IC_GS:
 //CALL,FS/GS,CALL_END,IMM,ADD,DEREF-->MOV_FS/GS
 				tmpi1 = tmpi->next->next; //IMM
@@ -155,6 +159,7 @@ in int<-->F64 conversions of function args.
 					OptSetNOP1(tmpi2);
 				}
 				break;
+*/
 
 			case IC_PUSH_CMP:
 				if (tmpi1 = OptLag(tmpi))
@@ -1502,6 +1507,8 @@ in int<-->F64 conversions of function args.
 			case IC_ADDR_IMPORT:
 			case IC_GET_LABEL:
 			case IC_TYPE:
+			case IC_FS: // EZODUS: no MOV_FS/GS fusion; treat as plain value ICs
+			case IC_GS:
 			case IC_RDTSC:
 			case IC_RFLAGS_SET:
 			case IC_RBP_SET:

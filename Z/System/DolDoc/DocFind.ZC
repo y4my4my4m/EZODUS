@@ -9,12 +9,7 @@ public Bool DocGoToLine(CDoc *doc, I64 line_num) //one based
 		unlock = DocLock(doc);
 		doc->x = 0;
 		doc->y = line_num - 1;
-#ifdef EZODUS
-		DocRecalc(doc, RECALCF_HAS_CURSOR);
-		DocFindCursorFromXY(doc);
-#else
 		DocRecalc(doc, RECALCt_FIND_CURSOR);
-#endif
 		DocCenter(doc);
 		if (doc->cur_entry->y == line_num - 1)
 			res = TRUE;

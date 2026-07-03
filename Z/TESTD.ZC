@@ -1,0 +1,3 @@
+#include "HGPART.HH"
+TOSPrint("RESULT canary=%x\n", HashFind("EzBisect2",Fs->hash_table,-1));
+Shutdown;

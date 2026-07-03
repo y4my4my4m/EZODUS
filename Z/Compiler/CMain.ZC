@@ -812,17 +812,11 @@ U0 CInit()
 			TaskInit(&_boot_task, 0);
 		SetFs(&_boot_task);
 	}
-	TOSPrint("CInit:a\n");
 	CompLoadDefines;
-	TOSPrint("CInit:b\n");
 	CompFillTables;
-	TOSPrint("CInit:c\n");
 	QueueInit(&cmp.ic_nop);
 	cmp.ic_nop.ic_class = cmp.internal_types[RT_I64];
 	cmp.ic_nop.ic_code = IC_NOP1;
-	TOSPrint("CInit:d\n");
 	AsmHashLoad;
-	TOSPrint("CInit:e\n");
 	UAsmHashLoad;
-	TOSPrint("CInit:f\n");
 }

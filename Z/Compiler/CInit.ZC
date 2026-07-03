@@ -214,7 +214,6 @@ CIntermediateStruct intermediate_code_table[IC_ICS_NUM] = {
 
 U0 CompLoadDefines()
 {
-	TOSPrint("CLD:0\n");
 	DefineListLoad("ST_RAW_TYPES",
 					" \0"
 					" \0"
@@ -232,7 +231,6 @@ U0 CompLoadDefines()
 					"UF32\0"
 					"F64\0"
 					"UF64\0");
-	TOSPrint("CLD:1\n");
 
 	DefineListLoad("ST_NATURAL_TYPES",
 					"I8\0"
