@@ -4,6 +4,13 @@ $LK,"KernelB",A="FF:::/Compiler/Compiler.PRJ,KernelB"$ Compiler.PRJ
 $LK,"KernelB",A="FF:::/StartOS.ZC,KernelB"$ StartOS.ZC
 */
 
+// EZODUS: _intern decls below need the IC_* defines. During the AOT build
+// HCRT_TOS.ZC includes CompilerA.HH beforehand; when this header is JIT
+// compiled at boot (LoadImps, BOOT_EXODUS) they must be pulled in here.
+#ifdef BOOT_EXODUS
+#include "Compiler/CompilerA.HH"
+#endif
+
 #help_index "Bit"
 #help_file "::/Doc/Bit"
 public _intern IC_BSF				I64	 Bsf(I64 bit_field_val); //Scan forward from lowest for 1st set. -1 if not found.

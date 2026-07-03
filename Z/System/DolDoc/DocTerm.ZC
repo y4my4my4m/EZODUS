@@ -15,23 +15,26 @@ public CDoc *DocBorderNew(CDoc *pdoc)
 	if (pdoc)
 	{
 		wt = pdoc->win_task;
-		DocPrint(bdoc, "$$CM+H+BY+RX+NC,-3,1$$");
-		doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
-		doc_e->user_data = pdoc;
-		doc_e->tag_cb	 = &EdFilterCB;
-		doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
-		doc_e->user_data = pdoc;
-		doc_e->tag_cb	 = &EdOverStrikeCB;
-		doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
-		doc_e->user_data = pdoc;
-		doc_e->tag_cb	 = &EdDollarCB;
-		DocPrint(bdoc, "$$CM+H+BY+RX+NC,-12,1$$");
-		doc_e = DocPrint(bdoc, "$$TX+BD+TC+IV,\"     \"$$");
-		doc_e->user_data = pdoc;
-		doc_e->tag_cb	 = &EdMoreCB;
-		doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
-		doc_e->user_data = pdoc;
-		doc_e->tag_cb	 = &EdDollarTypeCB;
+		if (!TaskValidate(wt) || wt != ac.task)
+		{
+			DocPrint(bdoc, "$$CM+H+BY+RX+NC,-3,1$$");
+			doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
+			doc_e->user_data = pdoc;
+			doc_e->tag_cb	 = &EdFilterCB;
+			doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
+			doc_e->user_data = pdoc;
+			doc_e->tag_cb	 = &EdOverStrikeCB;
+			doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
+			doc_e->user_data = pdoc;
+			doc_e->tag_cb	 = &EdDollarCB;
+			DocPrint(bdoc, "$$CM+H+BY+RX+NC,-12,1$$");
+			doc_e = DocPrint(bdoc, "$$TX+BD+TC+IV,\"     \"$$");
+			doc_e->user_data = pdoc;
+			doc_e->tag_cb	 = &EdMoreCB;
+			doc_e = DocPrint(bdoc, "$$TX+H+BD+TC+IV,\" \"$$");
+			doc_e->user_data = pdoc;
+			doc_e->tag_cb	 = &EdDollarTypeCB;
+		}
 	}
 	DocPrint(bdoc, "$$CM+H+TY+NC,0,-1$$");
 	doc_e = DocPrint(bdoc, "$$DA+H-TRM-P+BD+RD+CX+IV,LEN=STR_LEN-1,A=\"%%s...\",SCX=15$$");
@@ -42,7 +45,7 @@ public CDoc *DocBorderNew(CDoc *pdoc)
 		DocPrint(bdoc, "$$CM+H+NC,1,0$$$$TX+H+BD+IV,\"%X\"$$", wt);
 		if (!Bt(&wt->win_inhibit, WIf_SELF_FOCUS))
 			DocPrint(bdoc, "$$BG+H,LTRED$$$$LTGRAY+H$$$$TX+H+RX+BD,\"[X]\"$$$$BG+H$$$$FG+H$$");
-		if (!Bt(&wt->win_inhibit, WIf_SELF_FOCUS) && wt != ac.task)
+		if (!Bt(&wt->win_inhibit, WIf_SELF_FOCUS))
 			DocPrint(bdoc, "$$BG+H,BROWN$$$$YELLOW+H$$$$TX+H+LX+BD,\"MENU\"$$$$FG+H$$$$BG+H$$");
 	}
 

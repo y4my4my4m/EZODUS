@@ -70,3 +70,4 @@ Module.symvers
 *.orig
 *.rej
 .port-ref/
+.claude/

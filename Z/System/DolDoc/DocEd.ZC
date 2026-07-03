@@ -96,6 +96,7 @@ U8 *EdDollarTypeCB(CDoc *, CDocEntry *doc_e, CTask *mem_task)
 
 public Bool DocEd(CDoc *doc, I64 dof_flags=0)
 {//Live for user interaction. End on <ESC> or <SHIFT-ESC>.
+	I64			 doc_stk[1];
 	CDoc		*old_put_doc 	 = DocPut,
 				*old_display_doc = DocDisplay,
 				*old_border_doc  = DocBorder,
@@ -113,6 +114,8 @@ public Bool DocEd(CDoc *doc, I64 dof_flags=0)
 	if (dof_flags & DOF_WIN_MAX)
 		WinMax;
 
+	doc_stk[0] = doc;
+	doc = doc_stk[0](CDoc *);
 	unlock = DocLock(doc);
 	doc->win_task = Fs;
 	bdoc = DocNew;
@@ -125,7 +128,7 @@ public Bool DocEd(CDoc *doc, I64 dof_flags=0)
 	if (Fs->title_src != TTS_LOCKED_CONST)
 	{
 		Fs->title_src = TTS_ED_FILENAME;
-		MemCopy(Fs->task_title, doc->filename.name, STR_LEN - 1);
+		StrCopy(Fs->task_title, doc->filename.name);
 	}
 	doc_e = DocPrint(bdoc, "$$DA-TRM-P+BD+RD+CX+IV,LEN=143,A=\"%%s\"$$");
 	doc_e->data = &Fs->task_title;

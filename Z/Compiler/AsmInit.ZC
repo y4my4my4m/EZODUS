@@ -89,21 +89,12 @@ U0 AsmInternalTypesLoad()
 
 U0 AsmHashLoad()
 {//See $LK,"::/Compiler/OpCodes.DD"$.
-	cmp.asm_hash = HashTableNew(1024);
-	// EZODUS: stub skips opcode table but compiler still needs internal_types for
-	// LexExpressionI64 in DolDoc dollar-cmd parse (DocBorderNew, Start.DD, etc.).
-	AsmInternalTypesLoad;
-	TOSPrint("AsmHL:stub\n");
-	return;
 	I64				 i, j, size, size_max;
-	CInternalType	*tmpit;
 	CCompCtrl		*cc;
 	CHashGeneric	*tmph;
 	CHashReg		*tmpr;
 	CHashOpcode		*tmpo, *tmpo2, *tmpo_max;
 	CInst			*tmpins;
-	CHashClass		*tmpc;
-	U8				*opcodes_buf;
 
 	cmp.size_arg_mask[0]  = 0xF0003FF0FFFFFE;
 	cmp.size_arg_mask[1]  = 0x1110111112;
@@ -113,25 +104,10 @@ U0 AsmHashLoad()
 	cmp.size_arg_mask[16] = 0xF8000000000000;
 
 	cmp.asm_hash = HashTableNew(1024);
-	TOSPrint("AsmHL:0\n");
 	size_max = offset(CHashOpcode.ins) + sizeof(CInst) << 5;
 	tmpo_max = MAlloc(size_max);
 
-	opcodes_buf = FileRead("Compiler/OpCodes.DD");
-	if (!opcodes_buf)
-	{
-		I64 sz;
-		VFsSetDrv('Z');
-		VFsSetPwd("/");
-		opcodes_buf = VFsFRead("Compiler/OpCodes.DD", &sz);
-	}
-	if (!opcodes_buf)
-		opcodes_buf = _OpCodes_DD;
-	TOSPrint("AsmHL:1 %X\n", opcodes_buf);
-	if (!_ezodus_vfs_init)
-		EzodusVfsInit();
-	cc = CompCtrlNew(opcodes_buf, CCF_DONT_FREE_BUF);
-	TOSPrint("AsmHL:2\n");
+	cc = CompCtrlNew(StrNew(_OpCodes_DD),, "OpCodes.DD");
 	cc->htc.hash_table_list = NULL;
 	Lex(cc);
 	while (cc->token)

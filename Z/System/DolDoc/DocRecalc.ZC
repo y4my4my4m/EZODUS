@@ -1,91 +1,35 @@
 #help_index "DolDoc"
 
-CDoc *DocRecalcDocAd(CDoc *_doc)
-{
-	I64 ad = _doc;
-	CDoc noreg *d;
+#exe {Option(OPTf_NO_REG_VAR, ON);};
 
-	if (!ad || ad < 0x10000)
-		return NULL;
-	d = ad(CDoc *);
-	if (!d || d->doc_signature != DOC_SIGNATURE_VAL)
-		return NULL;
-	return d;
-}
-
-I64 DocWordWrapDel(CDoc *_doc, CDocEntry *doc_e, Bool full_refresh, Bool same_win, I64 left_margin, I64 right_margin,
+I64 DocWordWrapDel(CDoc *doc, CDocEntry *doc_e, Bool full_refresh, Bool same_win, I64 left_margin, I64 right_margin,
 				   CDocEntry **_best_doc_e, I64 *_best_col)
 {
-	CDoc noreg *doc = DocRecalcDocAd(_doc);
-	CDocEntry	*doc_e2;
-	U8			*ptr;
-	I64			 j, k;
+	I64			 doc_e_stk[1], k;
+	CDocEntry *de;
 
-	if (!doc)
+	doc_e_stk[0] = doc_e;
+	de = doc_e_stk[0](CDocEntry *);
+	if (de(U64) < 0x10000)
 		return 0;
-
-	if (doc_e->de_flags & DOCEF_TAG && doc_e->tag)
-		k = StrLen(doc_e->tag);
+	if (de->de_flags & DOCEF_TAG && de->tag)
+		k = StrLen(de->tag);
 	else
 		k = 0;
-	if (full_refresh)
-		while (TRUE)
-		{
-			doc_e2 = doc_e->next;
-			if (doc_e2->type_u8 == DOCT_SOFT_NEW_LINE && !same_win)
-			{
-				if (doc->cur_entry == doc_e2)
-				{
-					doc->cur_entry	= doc_e2->next;
-					doc->cur_col	= doc->cur_entry->min_col;
-				}
-				if (*_best_doc_e == doc_e2)
-				{
-					*_best_doc_e = doc_e2->next;
-					*_best_col = 0;
-				}
-				DocEntryDel(doc, doc_e2);
-			}
-			else if (IsEditableText(doc_e) && doc_e->de_flags == doc_e2->de_flags && doc_e->type == doc_e2->type)
-			{
-				j = StrLen(doc_e2->tag);
-				ptr =  MAlloc(k + j + 1, doc->mem_task);
-				MemCopy(ptr, doc_e->tag, k);
-				MemCopy(ptr + k, doc_e2->tag, j + 1);
-				Free(doc_e->tag);
-				doc_e->tag = ptr;
-				if (doc->cur_entry == doc_e2)
-				{
-					doc->cur_entry	=  doc_e;
-					doc->cur_col	+= k;
-				}
-				if (*_best_doc_e == doc_e2)
-				{
-					*_best_doc_e = doc_e;
-					*_best_col = 0;
-				}
-				DocEntryDel(doc, doc_e2);
-				k += j;
-				if (k > (right_margin - left_margin + 1) << 1)
-					break;
-			}
-			else
-				break;
-		}
-	if (doc_e->de_flags & DOCEF_SCROLLING_X)
-		k = doc_e->scroll_len;
-
+	if (de->de_flags & DOCEF_SCROLLING_X)
+		k = de->scroll_len;
 	return k;
 }
 
-U0 DocRecalcXY(CDoc *_doc, CDocEntry *doc_e, I64 k, I64 left, I64 width, I64 height, I64 left_margin, I64 right_margin,
+U0 DocRecalcXY(CDoc *doc, CDocEntry *doc_e, I64 k, I64 left, I64 width, I64 height, I64 left_margin, I64 right_margin,
 			   I64 x0, I64 y0, I64 *_x, I64 *_y)
 {
-	CDoc noreg *doc = DocRecalcDocAd(_doc);
-	I64 i, x = *_x, y = *_y;
+	I64			 doc_stk[1];
+	CDoc	*d;
+	I64			 i, x = *_x, y = *_y;
 
-	if (!doc)
-		return;
+	doc_stk[0] = doc;
+	d = doc_stk[0](CDoc *);
 
 	if (doc_e->de_flags & DOCEF_MARGIN_REL_X)
 	{
@@ -108,7 +52,7 @@ U0 DocRecalcXY(CDoc *_doc, CDocEntry *doc_e, I64 k, I64 left, I64 width, I64 hei
 	i = y;
 	if (doc_e->de_flags & DOCEF_PAGE_REL_Y)
 	{
-		doc->flags |= DOCF_BWD_MOVEMENT;
+		d->flags |= DOCF_BWD_MOVEMENT;
 		if (doc_e->de_flags & DOCEF_TOP_Y)
 			y -= doc_e->page_line_num;
 		else if (doc_e->de_flags & DOCEF_BOTTOM_Y)
@@ -118,7 +62,7 @@ U0 DocRecalcXY(CDoc *_doc, CDocEntry *doc_e, I64 k, I64 left, I64 width, I64 hei
 	}
 	else
 	{
-		doc->flags |= DOCF_BWD_MOVEMENT;
+		d->flags |= DOCF_BWD_MOVEMENT;
 		if (doc_e->de_flags & DOCEF_TOP_Y)
 			y = y0;
 		else if (doc_e->de_flags & DOCEF_BOTTOM_Y)
@@ -128,39 +72,39 @@ U0 DocRecalcXY(CDoc *_doc, CDocEntry *doc_e, I64 k, I64 left, I64 width, I64 hei
 	}
 	if (y != i)
 	{
-		doc->page_line_num += y - i;
-		if (doc->page_line_num < 0)
-			doc->page_line_num = doc_e->settings.page_len + doc->page_line_num % doc_e->settings.page_len;
+		d->page_line_num += y - i;
+		if (d->page_line_num < 0)
+			d->page_line_num = doc_e->settings.page_len + d->page_line_num % doc_e->settings.page_len;
 		else
-			doc->page_line_num = doc->page_line_num % doc_e->settings.page_len;
-		if (doc_e->settings.header != DOC_DEFAULT && doc->page_line_num < doc_e->settings.header)
+			d->page_line_num = d->page_line_num % doc_e->settings.page_len;
+		if (doc_e->settings.header != DOC_DEFAULT && d->page_line_num < doc_e->settings.header)
 		{
-			y += doc_e->settings.header - doc->page_line_num;
-			doc->page_line_num = doc_e->settings.header;
+			y += doc_e->settings.header - d->page_line_num;
+			d->page_line_num = doc_e->settings.header;
 		}
 		if (doc_e->settings.footer == DOC_DEFAULT)
 		{
-			if (doc->page_line_num >= doc_e->settings.page_len)
+			if (d->page_line_num >= doc_e->settings.page_len)
 			{
 				if (doc_e->settings.header == DOC_DEFAULT)
-					doc->page_line_num = 0;
+					d->page_line_num = 0;
 				else
 				{
-					doc->page_line_num = doc_e->settings.header;
+					d->page_line_num = doc_e->settings.header;
 					y += doc_e->settings.header;
 				}
 			}
 		}
 		else
 		{
-			if (doc->page_line_num >= doc_e->settings.page_len - doc_e->settings.footer)
+			if (d->page_line_num >= doc_e->settings.page_len - doc_e->settings.footer)
 			{
 				y += doc_e->settings.footer;
 				if (doc_e->settings.header == DOC_DEFAULT)
-					doc->page_line_num = 0;
+					d->page_line_num = 0;
 				else
 				{
-					doc->page_line_num = doc_e->settings.header;
+					d->page_line_num = doc_e->settings.header;
 					y += doc_e->settings.header;
 				}
 			}
@@ -170,79 +114,88 @@ U0 DocRecalcXY(CDoc *_doc, CDocEntry *doc_e, I64 k, I64 left, I64 width, I64 hei
 	*_y = y;
 }
 
-CDocEntry *DocSplitTag(CDoc *_doc, CDocEntry *doc_e, I64 i, I64 x, I64 y, I64 type_u8)
+CDocEntry *DocSplitTag(CDoc *doc, CDocEntry *doc_e, I64 i, I64 x, I64 y, I64 type_u8)
 {//Split tag at i, insert DOCT_SOFT_NEW_LINE, DOCT_MARKER or DOCT_CURSOR
-	CDoc noreg *doc = DocRecalcDocAd(_doc);
+	I64			 doc_stk[1], doc_e_stk[1];
+	CDoc	*d;
+	CDocEntry	*de;
 	U8			*ptr;
 	CDocEntry	*doc_e2;
 
-	if (!doc)
-		return NULL;
+	doc_stk[0] = doc;
+	doc_e_stk[0] = doc_e;
+	d = doc_stk[0](CDoc *);
+	de = doc_e_stk[0](CDocEntry *);
 
-	if (doc_e->type_u8 == DOCT_TEXT && i)
+	if (de->type_u8 == DOCT_TEXT && i)
 	{
-		if (i < StrLen(doc_e->tag))
+		if (i < StrLen(de->tag))
 		{
-			doc_e2 = MAllocIdent(doc_e, doc->mem_task);
-			doc_e2->tag		 = StrNew(doc_e->tag + i, doc->mem_task);
-			doc_e2->de_flags = doc_e->de_flags & ~DOCEG_HAS_ALLOC | DOCEF_TAG;
-			QueueInsert(doc_e2, doc_e);
-			if (doc->cur_entry == doc_e && doc->cur_col>=i)
+			doc_e2 = MAllocIdent(de, d->mem_task);
+			doc_e2->tag		 = StrNew(de->tag + i, d->mem_task);
+			doc_e2->de_flags = de->de_flags & ~DOCEG_HAS_ALLOC | DOCEF_TAG;
+			QueueInsert(doc_e2, de);
+			if (d->cur_entry == de && d->cur_col>=i)
 			{
-				doc->cur_entry	= doc_e2;
-				doc->cur_col	= doc->cur_col - i;
+				d->cur_entry	= doc_e2;
+				d->cur_col	= d->cur_col - i;
 			}
-			doc_e->tag[i] = 0;
-			ptr = StrNew(doc_e->tag, doc->mem_task);
-			Free(doc_e->tag);
-			doc_e->tag = ptr;
+			de->tag[i] = 0;
+			ptr = StrNew(de->tag, d->mem_task);
+			Free(de->tag);
+			de->tag = ptr;
 		}
 	}
 	else
-		doc_e = doc_e->last;
-	doc_e2 = DocEntryNewBase(doc, type_u8 | doc_e->type & 0xFFFFFF00, doc_e->de_flags & ~DOCEG_HAS_ARG,
-							 x, y, doc_e->page_line_num);
-	MemCopy(&doc_e2->settings, &doc_e->settings, sizeof(CDocSettings));
-	QueueInsert(doc_e2, doc_e);
+		de = de->last;
+	doc_e2 = DocEntryNewBase(d, type_u8 | de->type & 0xFFFFFF00, de->de_flags & ~DOCEG_HAS_ARG,
+							 x, y, de->page_line_num);
+	MemCopy(&doc_e2->settings, &de->settings, sizeof(CDocSettings));
+	QueueInsert(doc_e2, de);
 
 	return doc_e2;
 }
 
-CDocEntry *DocWordWrapAdd(CDoc *_doc, CDocEntry *doc_e, I64 *_k, I64 left, I64 right_margin, I64 x, I64 y)
+CDocEntry *DocWordWrapAdd(CDoc *doc, CDocEntry *doc_e, I64 *_k, I64 left, I64 right_margin, I64 x, I64 y)
 {
-	CDoc noreg *doc = DocRecalcDocAd(_doc);
+	I64			 doc_stk[1], doc_e_stk[1];
+	CDoc	*d;
+	CDocEntry	*de;
 	CDocEntry	*doc_e2;
 	I64			 j,
 				 i = right_margin + 1 - (x + left), //Space left on line
-				 ii = x + 1 - doc_e->settings.left_margin;
+				 ii;
 
-	if (!doc)
-		return NULL;
+	doc_stk[0] = doc;
+	doc_e_stk[0] = doc_e;
+	d = doc_stk[0](CDoc *);
+	de = doc_e_stk[0](CDocEntry *);
+	ii = x + 1 - de->settings.left_margin;
 
-	if (IsEditableText(doc_e))
+	if (IsEditableText(de))
 	{
-		if (doc->cur_entry == doc_e->next)
+		if (d->cur_entry == de->next)
 		{
-			if (doc->cur_col == doc_e->next->min_col)
+			if (d->cur_col == de->next->min_col)
 				i--;
 		}
 		else
 		{
-			if (doc->cur_entry == doc_e && doc->cur_col == i)
+			if (d->cur_entry == de && d->cur_col == i)
 				i--;
 		}
 		if (*_k > i)
 		{
 			for (j = i; j > 8 - ii && j >= 0; j--)
-				if (doc_e->tag[j] == CH_SPACE)
+				if (de->tag[j] == CH_SPACE)
 				{
 					i = j + 1;
 					break;
 				}
 			if (0 < i < *_k)
 			{
-				DocSplitTag(doc, doc_e, i, x, y, DOCT_SOFT_NEW_LINE);
-				*_k = StrLen(doc_e->tag);
+				DocSplitTag(d, de, i, x, y, DOCT_SOFT_NEW_LINE);
+				*_k = StrLen(de->tag);
 				return NULL;
 			}
 		}
@@ -251,16 +204,16 @@ CDocEntry *DocWordWrapAdd(CDoc *_doc, CDocEntry *doc_e, I64 *_k, I64 left, I64 r
 	}
 	if (*_k >= i)
 	{
-		doc_e2 = doc_e->last;
+		doc_e2 = de->last;
 		if (doc_e2->type_u8 != DOCT_SOFT_NEW_LINE &&
 			doc_e2->type_u8 != DOCT_NEW_LINE &&
 			doc_e2->type_u8 != DOCT_CURSOR_MOVEMENT)
 		{
-			doc_e2 = DocEntryNewBase(doc, DOCT_SOFT_NEW_LINE | doc_e->type & 0xFFFFFF00, 
-					   DOCEF_WORD_WRAP | doc_e->de_flags & (DOCEF_HIGHLIGHT | DOCG_BL_IV_UL | DOCEF_SKIP | DOCEF_FILTER_SKIP),
-					   x, y, doc_e->last->page_line_num);
-			MemCopy(&doc_e2->settings, &doc_e->settings, sizeof(CDocSettings));
-			QueueInsert(doc_e2, doc_e->last);
+			doc_e2 = DocEntryNewBase(d, DOCT_SOFT_NEW_LINE | de->type & 0xFFFFFF00, 
+					   DOCEF_WORD_WRAP | de->de_flags & (DOCEF_HIGHLIGHT | DOCG_BL_IV_UL | DOCEF_SKIP | DOCEF_FILTER_SKIP),
+					   x, y, de->last->page_line_num);
+			MemCopy(&doc_e2->settings, &de->settings, sizeof(CDocSettings));
+			QueueInsert(doc_e2, de->last);
 			return doc_e2;
 		}
 	}
@@ -268,19 +221,22 @@ CDocEntry *DocWordWrapAdd(CDoc *_doc, CDocEntry *doc_e, I64 *_k, I64 left, I64 r
 	return NULL;
 }
 
-I64 DocTmpAttr(CDoc *_doc, CDocEntry *doc_e, I64 cur_u8_attr)
+I64 DocTmpAttr(CDoc *doc, CDocEntry *doc_e, I64 cur_u8_attr)
 {
-	CDoc noreg *doc = DocRecalcDocAd(_doc);
-	I64 tmp_u32_attr;
+	I64			 doc_stk[1], doc_e_stk[1];
+	CDoc		*d;
+	I64			 tmp_u32_attr;
 
-	if (!doc)
-		return cur_u8_attr;
+	doc_stk[0] = doc;
+	doc_e_stk[0] = doc_e;
+	d = doc_stk[0](CDoc *);
+	doc_e = doc_e_stk[0](CDocEntry *);
 
-	doc_e->de_flags = doc->flags & (DOCG_BL_IV_UL | DOCEF_WORD_WRAP | DOCEF_HIGHLIGHT) |
+	doc_e->de_flags = d->flags & (DOCG_BL_IV_UL | DOCEF_WORD_WRAP | DOCEF_HIGHLIGHT) |
 					  doc_e->de_flags & ~(DOCG_BL_IV_UL | DOCEF_WORD_WRAP | DOCEF_HIGHLIGHT);
 
 	tmp_u32_attr =  (cur_u8_attr & 0xF0) << 8 |
-					doc->flags & DOCG_BL_IV_UL |
+					d->flags & DOCG_BL_IV_UL |
 					(doc_e->settings.shifted_x & 0x1F) << 16 |
 					(doc_e->settings.shifted_y & 0x1F) << 21;
 
@@ -328,7 +284,7 @@ I64 DocTmpAttr(CDoc *_doc, CDocEntry *doc_e, I64 cur_u8_attr)
 		}
 	doc_e->type.u8[1] = tmp_u32_attr.u8[1];
 	tmp_u32_attr |= doc_e->type & 0xFFFF0000;
-	if (doc_e == doc->cur_entry && !(doc->flags & DOCF_DONT_HIGHLIGHT_CURSOR) && doc_e->type_u8 != DOCT_TEXT)
+	if (doc_e == d->cur_entry && !(d->flags & DOCF_DONT_HIGHLIGHT_CURSOR) && doc_e->type_u8 != DOCT_TEXT)
 		tmp_u32_attr ^= 0xFF00;
 	doc_e->settings.final_u32_attr = tmp_u32_attr;
 
@@ -337,13 +293,13 @@ I64 DocTmpAttr(CDoc *_doc, CDocEntry *doc_e, I64 cur_u8_attr)
 
 public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 {//Recalc and format.  Also used by WinMgr to draw on screen.
-	I64				 doc_ad = _doc, doc_cx = 0, doc_cy = 0;
-	CDoc noreg		*doc;
+	I64				 doc_stk[1], doc_e_stk[1], wt_stk[1], entry_x_stk[1], entry_y_stk[1], doc_cx_stk[1], doc_cy_stk[1], doc_cx = 0, doc_cy = 0;
+	CDoc			*doc;
 	I64				 i, ii, j, k, x, x0, y, y0, D, d2, col, col2, best_col = 0, best_d = I64_MAX, xx, yy, zz, 
 					 num_entries = 0, i_jif, cur_u8_attr, tmp_u32_attr, 
 					 cursor_y = I64_MIN, left_margin, right_margin, y_plot_top, y_plot_bottom, 
 					 top, left, bottom, right, width, height, scroll_x, scroll_y, pix_top, pix_left;
-	CDocEntry	noreg *doc_e, noreg *doc_e2, *best_doc_e, *next_clear_found = NULL, *added_cursor = NULL;
+	CDocEntry	*doc_e, *doc_e2, *best_doc_e, *next_clear_found = NULL, *added_cursor = NULL;
 	CDocBin			*tmpb;
 	CDocSettings	*s;
 	Bool			 del_doc_e, skipped_update, tree_collapsed, same_win, more = FALSE, 
@@ -357,14 +313,15 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 	CWinScroll		*vss, *hss;
 	CHashDefineStr	*tmph;
 
-	if (!doc_ad || doc_ad < 0x10000)
-		return FALSE;
-	doc = doc_ad(CDoc *);
+	doc_stk[0] = _doc;
+	doc = doc_stk[0](CDoc *);
 	if (!doc || doc->doc_signature != DOC_SIGNATURE_VAL)
 		return FALSE;
 
 	doc_cx = doc->x;
 	doc_cy = doc->y;
+	doc_cx_stk[0] = doc_cx;
+	doc_cy_stk[0] = doc_cy;
 
 		//WinMgr updates all wins $TX,"(60000.0 / 1001)",D="WINMGR_FPS"$, 33.33333mS
 	if (recalc_flags & RECALCG_MASK == RECALCt_TO_SCREEN && doc->owning_task != Fs)
@@ -393,7 +350,9 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 		DocUnlock(doc);
 		return FALSE;
 	}
-	CTask noreg *wt = win_task;
+	CTask *wt = win_task;
+
+	wt_stk[0] = wt;
 	mem_task = doc->mem_task;
 	blink_flag = Blink;
 	dc = NULL;
@@ -403,6 +362,8 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 			find_cursor = TRUE;
 			doc_cx = doc->x;
 			doc_cy = doc->y;
+			doc_cx_stk[0] = doc_cx;
+			doc_cy_stk[0] = doc_cy;
 			if (wt)
 				dc = DCAlias(gr.dc2, wt); //Necessary for sprites
 			break;
@@ -450,6 +411,8 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 		doc->y = y;
 		doc_cx = x;
 		doc_cy = y;
+		doc_cx_stk[0] = doc_cx;
+		doc_cy_stk[0] = doc_cy;
 	}
 
 	hss = &wt->horz_scroll;
@@ -485,6 +448,8 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 				doc->y = doc->top_line_num   + height / 2;
 				doc_cx = doc->x;
 				doc_cy = doc->y;
+				doc_cx_stk[0] = doc_cx;
+				doc_cy_stk[0] = doc_cy;
 				find_cursor = TRUE;
 			}
 		}
@@ -505,12 +470,16 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 		y_plot_top = y0 - scroll_y / FONT_HEIGHT;
 		y_plot_bottom = y0 + height - 1 - scroll_y / FONT_HEIGHT;
 		if (!(doc->flags & DOCF_BORDER_DOC) && !Bt(&wt->display_flags, DISPLAYf_NO_BORDER))
-			DocBorderListDraw(doc);
+			DocBorderListDraw(doc_stk[0](CDoc *));
 	}
 
+	doc = doc_stk[0](CDoc *);
+	wt = wt_stk[0](CTask *);
+	win_task = wt;
 	if (doc->cur_col <= doc->cur_entry->min_col)
 		doc->cur_col = doc->cur_entry->min_col;
 	doc_e = doc->head.next;
+	doc_e_stk[0] = doc_e;
 	doc_e->de_flags &= ~(DOCG_BL_IV_UL | DOCEF_WORD_WRAP | DOCEF_HIGHLIGHT);
 	if (doc_e == doc->head.next)
 		s = &doc->settings_head;
@@ -546,11 +515,10 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 	}
 	while (doc_e != doc)
 	{
-		if (doc->doc_signature != DOC_SIGNATURE_VAL)
-		{
-			DocUnlock(doc);
-			return FALSE;
-		}
+		doc_e_stk[0] = doc_e;
+		doc = doc_stk[0](CDoc *);
+		wt = wt_stk[0](CTask *);
+		win_task = wt;
 		while (TRUE)
 		{
 			del_doc_e = FALSE;
@@ -567,7 +535,7 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 				if (doc_e->de_flags & DOCEF_TAG_CB)
 				{
 					if (doc_e->tag_cb)
-						doc_e->tag = (*doc_e->tag_cb)(doc, doc_e, mem_task);
+						doc_e->tag = (*doc_e->tag_cb)(doc_stk[0](CDoc *), doc_e, mem_task);
 					else
 						doc_e->tag = StrNew("", mem_task);
 				}
@@ -587,21 +555,32 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 						doc->cur_col = 0;
 				}
 			}
-			k = DocWordWrapDel(doc, doc_e, full_refresh, same_win, left_margin, right_margin, &best_doc_e, &best_col);
+			if (doc_e->de_flags & DOCEF_TAG && doc_e->tag)
+				k = StrLen(doc_e->tag);
+			else
+				k = 0;
+			if (doc_e->de_flags & DOCEF_SCROLLING_X)
+				k = doc_e->scroll_len;
 			if (doc_e->de_flags &
 					(DOCEF_LEFT_X | DOCEF_RIGHT_X | DOCEF_CENTER_X | DOCEF_TOP_Y | DOCEF_BOTTOM_Y | DOCEF_CENTER_Y))
-				DocRecalcXY(doc, doc_e, k, left, width, height, left_margin, right_margin, x0, y0, &x, &y);
+				DocRecalcXY(doc_stk[0](CDoc *), doc_e, k, left, width, height, left_margin, right_margin, x0, y0, &x, &y);
 			if (full_refresh && k > 0 && doc->flags & DOCF_WORD_WRAP &&
-					(doc_e2 = DocWordWrapAdd(doc, doc_e, &k, left, right_margin, x, y)))
+					(doc_e2 = DocWordWrapAdd(doc_stk[0](CDoc *), doc_e, &k, left, right_margin, x, y)))
+			{
 				doc_e = doc_e2;
+				doc_e_stk[0] = doc_e;
+			}
 			else
 				break;
 		}
 
+		doc_e = doc_e_stk[0](CDocEntry *);
 		if (full_refresh)
 		{
 			doc_e->x			 = x;
 			doc_e->y			 = y;
+			entry_x_stk[0]		 = x;
+			entry_y_stk[0]		 = y;
 			doc_e->page_line_num = doc->page_line_num;
 			if (x < doc->min_x)
 				doc->min_x = x;
@@ -609,13 +588,15 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 				doc->min_y = y;
 			if (find_cursor)
 			{
-				D = DocCharDistXY(doc_cx, doc_cy, x, y);
+				D = ((doc_cx_stk[0] - x) * (doc_cx_stk[0] - x) + (doc_cy_stk[0] - y) * (doc_cy_stk[0] - y)) * FONT_WIDTH * FONT_WIDTH;
 				col = 0;
 			}
 		}
 		col2 = 0;
 
-		tmp_u32_attr = DocTmpAttr(doc, doc_e, cur_u8_attr);
+		tmp_u32_attr = DocTmpAttr(doc_stk[0](CDoc *), doc_e, cur_u8_attr);
+		doc = doc_stk[0](CDoc *);
+		doc_e = doc_e_stk[0](CDocEntry *);
 		if (doc_e == doc->cur_entry)
 		{
 			cursor_y = doc_e->y;
@@ -626,7 +607,9 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 						~(DOCEF_TAG|DOCG_BL_IV_UL|DOCEF_WORD_WRAP|DOCEF_HIGHLIGHT|DOCEF_SKIP|DOCEF_FILTER_SKIP)) &&
 					!(doc_e->type & DOCG_BL_IV_UL))
 				{
-					added_cursor = DocSplitTag(doc, doc_e, doc->cur_col, x, y, DOCT_CURSOR);
+					added_cursor = DocSplitTag(doc_stk[0](CDoc *), doc_e, doc->cur_col, x, y, DOCT_CURSOR);
+					doc = doc_stk[0](CDoc *);
+					doc_e = doc_e_stk[0](CDocEntry *);
 					k = StrLen(doc_e->tag);
 				}
 				else
@@ -646,6 +629,7 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 			(doc_e->type_u8 == DOCT_DATA || doc_e->type_u8 == DOCT_CHECK_BOX || doc_e->de_flags & DOCEF_LIST))
 		{
 			DocDataFormat(doc, doc_e);
+			doc_e = doc_e_stk[0](CDocEntry *);
 			k = StrLen(doc_e->tag);
 		}
 		if (doc_e->de_flags & DOCEF_TAG)
@@ -714,8 +698,8 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 				}
 				if (find_cursor)
 				{
-					D = DocCharDistXY(doc_cx, doc_cy, doc_e->x, doc_e->y);
-					col = doc_e->min_col;
+					D = ((doc_cx_stk[0] - entry_x_stk[0]) * (doc_cx_stk[0] - entry_x_stk[0]) + (doc_cy_stk[0] - entry_y_stk[0]) * (doc_cy_stk[0] - entry_y_stk[0])) * FONT_WIDTH * FONT_WIDTH;
+					col = doc_e_stk[0](CDocEntry *)->min_col;
 				}
 				col2 = doc_e->scroll_len; //TODO This is flawed
 			}
@@ -730,7 +714,7 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 						else
 							if (find_cursor)
 							{
-								d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
+								d2 = ((doc_cx_stk[0] - x) * (doc_cx_stk[0] - x) + (doc_cy_stk[0] - y) * (doc_cy_stk[0] - y)) * FONT_WIDTH * FONT_WIDTH;
 								if (d2 < D)
 								{
 									D = d2;
@@ -768,7 +752,7 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 						{
 							while (k--)
 							{
-								d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
+								d2 = ((doc_cx_stk[0] - x) * (doc_cx_stk[0] - x) + (doc_cy_stk[0] - y) * (doc_cy_stk[0] - y)) * FONT_WIDTH * FONT_WIDTH;
 								if (d2 < D)
 								{
 									D = d2;
@@ -788,6 +772,11 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 				}
 			}
 		}
+		doc_e = doc_e_stk[0](CDocEntry *);
+		doc = doc_stk[0](CDoc *);
+		wt = wt_stk[0](CTask *);
+		win_task = wt;
+		s = &doc_e->settings;
 		switch [doc_e->type_u8]
 		{
 			case DOCT_TEXT:
@@ -822,7 +811,7 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 						}
 						if (find_cursor)
 						{
-							d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
+							d2 = ((doc_cx_stk[0] - x) * (doc_cx_stk[0] - x) + (doc_cy_stk[0] - y) * (doc_cy_stk[0] - y)) * FONT_WIDTH * FONT_WIDTH;
 							if (d2 < D)
 							{
 								D = d2;
@@ -848,7 +837,7 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 							}
 							if (find_cursor)
 							{
-								d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
+								d2 = ((doc_cx_stk[0] - x) * (doc_cx_stk[0] - x) + (doc_cy_stk[0] - y) * (doc_cy_stk[0] - y)) * FONT_WIDTH * FONT_WIDTH;
 								if (d2 < D)
 								{
 									D = d2;
@@ -876,7 +865,7 @@ public Bool DocRecalc(CDoc *_doc, I64 recalc_flags=RECALCt_NORMAL)
 						}
 						if (find_cursor)
 						{
-							d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
+							d2 = ((doc_cx_stk[0] - x) * (doc_cx_stk[0] - x) + (doc_cy_stk[0] - y) * (doc_cy_stk[0] - y)) * FONT_WIDTH * FONT_WIDTH;
 							if (d2 < D)
 							{
 								D = d2;
@@ -970,7 +959,7 @@ rc_adjust_xy:
 							TextChar(wt, TRUE, x - x0, y - y0, tmp_u32_attr + CH_SPACE);
 						if (find_cursor)
 						{
-							d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
+							d2 = ((doc_cx_stk[0] - x) * (doc_cx_stk[0] - x) + (doc_cy_stk[0] - y) * (doc_cy_stk[0] - y)) * FONT_WIDTH * FONT_WIDTH;
 							if (d2 < D)
 								D = d2;
 						}
@@ -992,7 +981,7 @@ rc_adjust_xy:
 						{
 							while (k--)
 							{
-								d2 = DocCharDistXY(doc_cx, doc_cy, x, y);
+								d2 = ((doc_cx_stk[0] - x) * (doc_cx_stk[0] - x) + (doc_cy_stk[0] - y) * (doc_cy_stk[0] - y)) * FONT_WIDTH * FONT_WIDTH;
 								if (d2 < D)
 									D = d2;
 								x++;
@@ -1278,9 +1267,14 @@ rc_adjust_xy:
 				break;
 		}
 
+		doc_e = doc_e_stk[0](CDocEntry *);
+		wt = wt_stk[0](CTask *);
+		win_task = wt;
 		if (doc_e->de_flags & DOCEF_HAS_BORDER)
 			TextBorder(wt, doc_e->x - x0, x - x0 - 1, doc_e->y - y0, y - y0,
 					   tmp_u32_attr.u8[1], ToBool(doc_e->de_flags & DOCEF_SOLID_BORDER));
+		doc_e = doc_e_stk[0](CDocEntry *);
+		doc = doc_stk[0](CDoc *);
 		if (full_refresh)
 		{
 			switch (doc_e->type_u8)
@@ -1348,6 +1342,7 @@ rc_adjust_xy:
 		}
 
 		doc_e2 = doc_e->next;
+		doc_e_stk[0] = doc_e2;
 rc_skip:
 		while (doc_e2 != doc && doc_e2->de_flags & (DOCEF_SKIP | DOCEF_FILTER_SKIP))
 		{
@@ -1394,6 +1389,7 @@ rc_skip:
 		if (!full_refresh && doc_e->y > y_plot_bottom)
 			break;
 		doc_e = doc_e2;
+		doc_e_stk[0] = doc_e;
 	}
 
 	if (full_refresh)
@@ -1426,7 +1422,7 @@ rc_skip:
 			doc_e->type.u8[1]		= cur_u8_attr;
 			if (find_cursor)
 			{
-				D = DocCharDistXY(doc_cx, doc_cy, x, y);
+				D = ((doc_cx_stk[0] - x) * (doc_cx_stk[0] - x) + (doc_cy_stk[0] - y) * (doc_cy_stk[0] - y)) * FONT_WIDTH * FONT_WIDTH;
 				if (D < best_d && !(doc_e->de_flags & DOCEF_NO_CLICK_ON))
 				{
 					best_d = D;
@@ -1599,3 +1595,5 @@ rc_skip:
 
 	return TRUE;
 }
+
+#exe {Option(OPTf_NO_REG_VAR, OFF);};

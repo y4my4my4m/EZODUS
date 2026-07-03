@@ -439,6 +439,8 @@ I64 WinMgrSleep(Bool flush_messages = FALSE)
 	return message_code;
 }
 
+public U0 DocFindCursorFromXY(CDoc *_doc);
+
 CDoc *WinCursorPosSet(CTask *task, I64 mouse_x, I64 mouse_y, Bool set_cursor = TRUE)
 {
 	CDoc *res = NULL;
@@ -463,7 +465,11 @@ CDoc *WinCursorPosSet(CTask *task, I64 mouse_x, I64 mouse_y, Bool set_cursor = T
 				DocRecalc(res, RECALCF_HAS_CURSOR);
 				res->x = (mouse_x-task->pix_left - task->scroll_x) / FONT_WIDTH + x0;
 				res->y = (mouse_y-task->pix_top - task->scroll_y) / FONT_HEIGHT + y0;
+#ifdef EZODUS
+				DocFindCursorFromXY(res);
+#else
 				DocRecalc(res, RECALCt_FIND_CURSOR);
+#endif
 				task->scroll_x = 0;
 				task->scroll_y = 0;
 				task->scroll_z = 0;

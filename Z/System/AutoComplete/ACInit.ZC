@@ -163,8 +163,12 @@ public U0 ACInit(U8 *mask=NULL)
 	if (!ac.hash_table)
 		return;
 	LBts(&sys_run_level, RLf_AUTOCOMPLETE);
+#ifdef EZODUS
+	// EZODUS: build hash at boot; spawn AC window on first Alt-Shift-A only.
+#else
 	try AutoComplete(ON);
 	catch {}
+#endif
 }
 
 I64 AutoCompleteSize()

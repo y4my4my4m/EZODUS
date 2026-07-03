@@ -137,7 +137,8 @@ _boot_task.data_heap = &ahd;
 _boot_task.code_heap = &ahc;
 SetGs(&cpu_structs[0]);
 _boot_task.gs = &cpu_structs[0]; //EZODUS: Spawn copies parent->gs; WinToTop derefs task->gs->num.
-CTask *sys_task = &_boot_task;
+// sys_task is defined in KGlobals.ZC and assigned to &_boot_task after its
+// include; an earlier duplicate definition here would be shadowed by it.
 // mp_count/sys_code_bp init after KernelB.HH (declares those globals).
 // QueueInit is _intern (KernelB.HH); next_dying queue + TaskInit run after it.
 
@@ -164,6 +165,7 @@ mem_page_size = MEM_PAG_SIZE;
 #include "Kernel/KExterns.ZC"
 #include "Kernel/StrA.ZC"
 #include "Kernel/KGlobals.ZC"
+sys_task = &_boot_task;
 #include "Kernel/KExtBootstrap.ZC"
 #include "Kernel/KMathB.ZC"
 #include "Kernel/Sched.ZC"

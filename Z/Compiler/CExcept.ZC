@@ -108,14 +108,7 @@ U0 LexExcept(CCompCtrl *cc, U8 *str=NULL)
 		else
 		{
 			fn = cc->lex_include_stack->full_name;
-			name_ok = FALSE;
-			if (fn && fn[0] >= 32 && fn[0] < 127)
-			{
-				if (!StrCompare(fn, "DolDoc"))
-					name_ok = TRUE;
-				else if (StrFind("/", fn) || StrFind(":", fn))
-					name_ok = TRUE;
-			}
+			name_ok = fn && fn[0] >= 32 && fn[0] < 127;
 			if (name_ok)
 				TOSPrint("LexErrAt:%s,%d\n", fn, cc->lex_include_stack->line_num);
 			else

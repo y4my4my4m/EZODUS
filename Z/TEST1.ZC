@@ -1,0 +1,2 @@
+"Hello from Ezodus %d\n", 40+2;
+"StrLen=%d\n", StrLen("abcdef");

@@ -152,13 +152,15 @@ Bool Suspend(CTask *task=NULL, Bool state=TRUE)
 
 Bool IsSuspended(CTask *task=NULL)
 {//You might use this in a DrawIt() or Animatetask().
-	if (!task)
-		task = Fs;
+	CTask noreg *t;
 
-	if (TaskValidate(task))
-		return Bt(&task->task_flags, TASKf_SUSPENDED);
+	if (!task)
+		t = Fs;
 	else
+		t = task;
+	if (!TaskValidate(t))
 		return FALSE;
+	return Bt(&t->task_flags, TASKf_SUSPENDED);
 }
 
 CTaskStack *TaskStackNew(I64 stack_size, CTask *task)
@@ -703,6 +705,13 @@ I64 TaskEnd()
 		if (doc = task->put_doc)
 			if (doc->doc_signature == DOC_SIGNATURE_VAL)
 				DocUnlock(doc);
+		if (task->task_end_cb)
+		{
+			I64 ecb = task->task_end_cb;
+
+			task->task_end_cb = NULL;
+			Call(ecb);
+		}
 		if (TaskValidate(next) && TaskValidate(task->last_task))
 			TaskQueueRemove(task);
 		task->task_signature = 0;

@@ -1,17 +1,11 @@
 #help_index "DolDoc"
 
-I64 DocCharDistXY(I64 doc_x, I64 doc_y, I64 x, I64 y)
-{
-	I64 ax = doc_x, ay = doc_y, bx = x, by = y;
-
-#assert FONT_WIDTH == FONT_HEIGHT
-	return (SqrI64(ax - bx) + SqrI64(ay - by)) * FONT_WIDTH * FONT_WIDTH;
-}
+#exe {Option(OPTf_NO_REG_VAR, ON);};
 
 I64 DocCharDist(CDoc *_doc, I64 x, I64 y)
 {
-	I64			 doc_ad = _doc, doc_x, doc_y;
-	CDoc noreg	*doc;
+	I64		 doc_ad = _doc, doc_x, doc_y;
+	CDoc	*doc;
 
 #assert FONT_WIDTH == FONT_HEIGHT
 	if (!doc_ad || doc_ad < 0x100000)
@@ -28,7 +22,49 @@ I64 DocCharDist(CDoc *_doc, I64 x, I64 y)
 	{
 		return I64_MAX;
 	}
-	return DocCharDistXY(doc_x, doc_y, x, y);
+	return ((doc_x - x) * (doc_x - x) + (doc_y - y) * (doc_y - y)) * FONT_WIDTH * FONT_WIDTH;
+}
+
+public U0 DocFindCursorFromXY(CDoc *_doc)
+{//After layout recalc: snap cur_entry to nearest entry from doc->x/doc->y.
+	I64			 doc_stk[1], cx, cy, d, best_d = I64_MAX, best_col = 0;
+	CDoc		*doc;
+	CDocEntry	*doc_e, *best_doc_e;
+
+	doc_stk[0] = _doc;
+	doc = doc_stk[0](CDoc *);
+	if (!doc || doc->doc_signature != DOC_SIGNATURE_VAL)
+		return;
+	cx = doc->x;
+	cy = doc->y;
+	best_doc_e = doc->cur_entry;
+	doc_e = doc->head.next;
+	while (doc_e != doc)
+	{
+		if (!(doc_e->de_flags & (DOCEF_SKIP | DOCEF_FILTER_SKIP | DOCEF_NO_CLICK_ON)))
+		{
+			d = ((doc_e->x - cx) * (doc_e->x - cx) + (doc_e->y - cy) * (doc_e->y - cy)) * FONT_WIDTH * FONT_WIDTH;
+			if (d < best_d)
+			{
+				best_d = d;
+				best_doc_e = doc_e;
+				best_col = doc_e->min_col;
+			}
+		}
+		doc_e = doc_e->next;
+	}
+	doc->cur_entry = best_doc_e;
+	doc->cur_col = best_col;
+	if (best_d < FONT_WIDTH)
+		doc->best_d = 0;
+	else
+		doc->best_d = best_d;
+	DocFormBwd(doc);
+	if (best_doc_e->type_u8 != DOCT_HEX_ED)
+	{
+		doc->y = best_doc_e->y;
+		doc->x = best_doc_e->x + best_col;
+	}
 }
 
 U0 DocDelToNum(CDoc *doc, I64 num)
@@ -269,7 +305,7 @@ U0 DocUpdateTaskDocs(CTask *task)
 		if (t->border_src == BDS_ED_FILENAME_DRIVE)
 			t->border_attr = DriveTextAttrGet(*doc->filename.name);
 		if (t->title_src == TTS_ED_FILENAME)
-			MemCopy(t->task_title, doc->filename.name, STR_LEN - 1);
+			StrCopy(t->task_title, doc->filename.name);
 		DocRecalc(doc, RECALCt_TO_SCREEN | RECALCF_HAS_CURSOR);
 	}
 	if ((doc = DocBorder(t)) && !(doc->flags & DOCF_DONT_SHOW))
@@ -279,3 +315,5 @@ U0 DocUpdateTaskDocs(CTask *task)
 		WinScrollRestore(t, &saved_scroll);
 	}
 }
+
+#exe {Option(OPTf_NO_REG_VAR, OFF);};

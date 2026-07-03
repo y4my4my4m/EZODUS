@@ -5,6 +5,7 @@
 #define FPTRS 1
 //#define GEN_HEADERS 1
 #define USE_DOLDOC 1
+#define EZODUS 1
 #include "HCRT_TOS.ZC"
 #ifdef GEN_HEADERS
 #include"GenHeaders.ZC";
@@ -47,9 +48,16 @@ asm { // embed KERNEL*.HH to speedup boot
 
 U0 LoadImps() {
   try {
-    TOSPrint("LoadImps:sym\n");
+    ExePutS2("#define FPTRS;\n");
+    ExePutS2(_KERNELA_BIN,"KernelA.HH");
     __BootstrapForeachSymbol(&BootstrapImportSymbol);
-    TOSPrint("LoadImps:done\n");
+#ifdef GEN_HEADERS
+    DocWrite(unfound);
+    DocDel(unfound);
+#endif
+//Load asm externs second
+    ExePutS2("#define BOOT_EXODUS;\n");
+    ExePutS2(_KERNELB_BIN,"KernelB.HH");
   } catch {
     TOSPrint("BOOT ERROR:%c\n",Fs->except_ch);
     Fs->catch_except=TRUE;
@@ -162,6 +170,7 @@ U0 _InitUI() {
   if (__IsCmdLine) {
     TOSPrint("_InitUI:cli\n");
     EzodusVfsInit;
+    CInit;
     Drive('Z');
     LoadImps;
     try ExePrint("%s;\n", __CmdLineBootText);

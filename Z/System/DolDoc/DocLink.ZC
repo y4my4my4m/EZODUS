@@ -59,7 +59,7 @@ public U8 *DocEntryLink(CDoc *doc, CDocEntry *doc_e)
 
 Bool DocFileEd(I64 _type, U8 *filename, U8 *needle_str, I64 *_num, I64 edf_dof_flags)
 {
-	I64			 type = _type, flags = 0, old_border_src = Fs->border_src;
+	I64			 doc_stk[1], type = _type, flags = 0, old_border_src = Fs->border_src;
 	CDocEntry	*doc_e;
 	CDoc		*doc;
 	Bool		 old_silent = Bt(&Fs->display_flags, DISPLAYf_SILENT), res = FALSE, other_found = FALSE;
@@ -100,6 +100,7 @@ Bool DocFileEd(I64 _type, U8 *filename, U8 *needle_str, I64 *_num, I64 edf_dof_f
 		if (LK_DOC <= _type <= LK_DOC_LINE)
 		{
 			doc = Str2I64(filename);//See $LK,"SpriteEdText",A="MN:SpriteEdText"$()
+			doc_stk[0] = doc;
 			res = TRUE;
 		}
 		else
@@ -117,6 +118,8 @@ Bool DocFileEd(I64 _type, U8 *filename, U8 *needle_str, I64 *_num, I64 edf_dof_f
 				else if (!(res = FileFind(filename,, FUF_JUST_FILES)))
 					other_found = FileFind(filename,, FUF_JUST_FILES | FUF_SCAN_PARENTS);
 				doc = DocRead(filename, flags);
+				doc_stk[0] = doc;
+				doc = doc_stk[0](CDoc *);
 				doc->desc = 'Edit';
 				Silent(old_silent);
 				Fs->border_src = BDS_ED_FILENAME_DRIVE;
@@ -128,6 +131,7 @@ Bool DocFileEd(I64 _type, U8 *filename, U8 *needle_str, I64 *_num, I64 edf_dof_f
 			res = FALSE;
 		else
 		{
+			doc = doc_stk[0](CDoc *);
 			if (Bt(&edf_dof_flags, EDf_COLLAPSE))
 				DocCollapse(TRUE, doc);
 			else if (Bt(&edf_dof_flags, EDf_UNCOLLAPSE))
@@ -214,6 +218,8 @@ public I64 EdLinkConvert(U8 *link_st, U8 **_filename=NULL, U8 **_needle_str=NULL
 	{
 		st[2] = 0;
 		filename2 = st + 3;
+		if (filename2[0] == ':' && filename2[1] == '/')
+			filename2--;
 		switch (res = DefineMatch(st, "ST_LINK_TYPES", LMF_IGNORE_CASE))
 		{
 			case LK_MAN_PAGE:
