@@ -1,0 +1,13 @@
+U8 best_name[256];
+I64 best_addr = 0;
+U0 SymCB(U8 *name, U8 *ptr, U64 type)
+{
+	no_warn type;
+	if (ptr(I64) <= 0x409E40C8 && ptr(I64) > best_addr)
+	{
+		best_addr = ptr;
+		StrCopy(best_name, name);
+	}
+}
+__BootstrapForeachSymbol(&SymCB);
+TOSPrint("SYM 0x409E40C8 -> %s+0x%x\n", best_name, 0x409E40C8 - best_addr);

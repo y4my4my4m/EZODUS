@@ -194,7 +194,15 @@ U0 HostKMainBoot()
   DefinePrint("GR_HEIGHT", "%d", sys_framebuffer_height);
   DefinePrint("TEXT_ROWS", "%d", text.rows);
   DefinePrint("TEXT_COLS", "%d", text.cols);
+  //Stock ~/MakeHome loads these; MakeBoot/MakeUtils/MapFileLoad are skipped
+  //(already AOT in HCRT; no .MAP files on the host).
   try ExePrint("#include \"~/HomeLocalize\";\n");
+  catch PutExcept(FALSE);
+  try ExePrint("#include \"/System/Utils/MakeUtils\";\n");
+  catch PutExcept(FALSE);
+  try ExePrint("#include \"~/HomeWrappers\";\n");
+  catch PutExcept(FALSE);
+  try ExePrint("#include \"~/HomeKeyPlugIns\";\n");
   catch PutExcept(FALSE);
   Drive('Z');
   LBts(&sys_run_level, RLf_BLKDEV);

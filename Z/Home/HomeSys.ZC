@@ -1,0 +1,47 @@
+//Place this file in /Home and change
+//anything you want.
+
+U0 UserStartUp()
+{//Run each time a user is spawned
+	DocTermNew;
+	Type("::/Doc/Start.DD");
+	WinToTop;
+	LBts(&Fs->display_flags, DISPLAYf_SHOW);
+	WinZBufUpdate;
+	Dir("*", FALSE);
+	//EZODUS TODO: ~/Once (Tips of the Day) disabled: the prompt reader still
+	//lexes doc text that TipOfDay inserts (DocGetStr2 semantics differ from
+	//stock), so tips get compiled as commands. Run "#include \"~/Once\";"
+	//manually to see it.
+}
+
+U0 ServerStartUp()
+{//Run each time a server task is spawned.
+	DocTermNew;
+	WinToTop;
+	LBts(&Fs->display_flags, DISPLAYf_SHOW);
+	WinZBufUpdate;
+}
+
+U0 StartUpTasks()
+{
+	CTask *user = User;
+
+	if (sys_boot_src.u16[0] != BOOT_SRC_DVD)
+		User;
+
+	WinToTop(user);
+	WinTileVert;
+	"Boot Time:%7.3fs\n", tS;
+	Silent;
+	try ACInit("::/Kernel/Kernel*.HH;::/Compiler/Compiler*.HH;::/System/*;::/Doc/*;::/Home/*");
+	catch {}
+	Silent(OFF);
+
+	if (sys_boot_src.u16[0] != BOOT_SRC_RAM)
+		try PopUp("ExeFile2(\"::/System/ZSplash.ZC\");");
+	catch {}
+
+	if (sys_os_version_nice)
+		"\n%s\n\n", sys_os_version_nice;
+}

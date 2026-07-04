@@ -1,0 +1,54 @@
+class CBtT
+{
+	CBtT *n1, *n2, *n3;
+	U8    arr[128];
+	I64   cur, mask;
+};
+
+I64 BCallee(CBtT *s, I64 num)
+{
+	I64 i, j, k, x, y, xx = s->cur, yy = s->cur, res = 0;
+	I8  brd[144];
+
+	MemSet(brd, 0, 144);
+	switch [num & 7]
+	{
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			res += xx + yy + brd[0];
+			break;
+		case 5:
+			if (!Bt(&s->mask, num))
+			{
+				res++;
+			}
+			break;
+		case 6:
+		case 7:
+			res += 2;
+			break;
+	}
+	for (i = 0; i < res; i++)
+		x = i;
+	return res;
+}
+
+U0 BCaller()
+{
+	CBtT s;
+	I64  i, sum = 0;
+
+	MemSet(&s, 0, sizeof(CBtT));
+	for (i = 0; i < 32; i++)
+	{
+		sum += BCallee(&s, i);
+		if (i & 7 == 5)
+			TOSPrint("EZ:B i=%d s=%x sum=%d\n", i, &s, sum);
+	}
+	TOSPrint("EZ:B done sum=%d\n", sum);
+}
+
+BCaller;

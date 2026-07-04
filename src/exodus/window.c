@@ -687,16 +687,33 @@ static int injectthrd(argign void *arg) {
     if (at > prev)
       SDL_Delay(at - prev);
     prev = at;
-    if (!strcmp(what, "key")) {
-      SDL_Keycode k = SDL_GetKeyFromName(rest);
+    if (!strcmp(what, "key") || !strcmp(what, "keydown") ||
+        !strcmp(what, "keyup")) {
+      char *name = rest;
+      u16 kmod = 0;
+      for (;;) { /* "ctrl+alt+m" style prefixes */
+        if (!strncasecmp(name, "ctrl+", 5))
+          kmod |= KMOD_LCTRL, name += 5;
+        else if (!strncasecmp(name, "alt+", 4))
+          kmod |= KMOD_LALT, name += 4;
+        else if (!strncasecmp(name, "shift+", 6))
+          kmod |= KMOD_LSHIFT, name += 6;
+        else
+          break;
+      }
+      SDL_Keycode k = SDL_GetKeyFromName(name);
       SDL_Event e = {.key = {.type = SDL_KEYDOWN,
                              .state = SDL_PRESSED,
                              .keysym = {.scancode = SDL_GetScancodeFromKey(k),
-                                        .sym = k}}};
-      SDL_PushEvent(&e);
-      e.key.type = SDL_KEYUP;
-      e.key.state = SDL_RELEASED;
-      SDL_PushEvent(&e);
+                                        .sym = k,
+                                        .mod = kmod}}};
+      if (strcmp(what, "keyup"))
+        SDL_PushEvent(&e);
+      if (strcmp(what, "keydown")) {
+        e.key.type = SDL_KEYUP;
+        e.key.state = SDL_RELEASED;
+        SDL_PushEvent(&e);
+      }
     } else if (!strcmp(what, "text")) {
       static char const shifted[] = "!1@2#3$4%5^6&7*8(9)0_-+=:;\"'<,>.?/{[}]|\\~`";
       for (char *p = rest; *p; ++p) {

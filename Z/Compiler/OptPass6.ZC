@@ -58,10 +58,6 @@ U0 OptPass6Lag(CCompCtrl *cc, CParseStack *ps, CIntermediateCode *tmpi, I64 *_st
 				clobbered_reg_mask |= tmpf->clobbered_reg_mask;
 			}
 		}
-		// Spill live pointer reg vars (RSI,RDI,R10,R11) before any call — SysV
-		// and host FFI clobber them; without this, reg *doc / reg *doc_e corrupt.
-		if (cc->htc.fun)
-			clobbered_stack_tmp_mask |= cc->htc.fun->used_reg_mask & REGG_CALLER_SAVED_PTR_VARS;
 		tmpi->ic_data = clobbered_stack_tmp_mask;
 		ParsePush(ps, stack_ptr);
 		ParsePush(ps, clobbered_stack_tmp_mask);

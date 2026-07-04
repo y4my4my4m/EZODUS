@@ -422,7 +422,11 @@ static void STK_VFsFClose(int *stk) {
 
 static u64 STK_VFsFBlkRead(i64 *stk) {
   i64 toread = stk[1] * stk[2];
-  return toread == readfd(stk[3], (void *)stk[0], toread);
+  i64 got = readfd(stk[3], (void *)stk[0], toread);
+  /* Block devices return whole blocks; zero-pad a partial tail read. */
+  if (0 <= got && got < toread)
+    memset((u8 *)stk[0] + got, 0, toread - got);
+  return got > 0;
 }
 
 static u64 STK_VFsFBlkWrite(i64 *stk) {

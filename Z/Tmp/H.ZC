@@ -1,0 +1,2 @@
+SysLog("test %d\n",42);
+"after\n";

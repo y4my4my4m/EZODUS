@@ -1,0 +1,14 @@
+class CBtD { I64 a, b, c, mask; };
+I64 BtF(CBtD *s, I64 n)
+{
+	return Bt(&s->mask, n);
+}
+U8 *fp = &BtF;
+I64 i;
+TOSPrint("EZ:CODE ");
+for (i = 0; i < 96; i++)
+	TOSPrint("%02x ", fp[i]);
+TOSPrint("\n");
+CBtD t;
+t.mask = 8;
+TOSPrint("EZ:RES bit3=%d bit2=%d\n", BtF(&t, 3), BtF(&t, 2));

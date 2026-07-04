@@ -454,6 +454,24 @@ public U8 DriveTextAttrGet(U8 drv_let=0)
 		return BLACK << 4 | WHITE;
 }
 
+public I64 DriveUnused(U8 drv_let=0)
+{//Free space; the host filesystem has no fixed size to report.
+	no_warn drv_let;
+	return 0;
+}
+
+public U0 KbdTypeMatic(U8 delay)
+{//Stock programs the 8042 typematic rate; the host owns the keyboard.
+	no_warn delay;
+}
+
+public U0 BootRAM(U8 *filename=NULL)
+{//Stock softboots Kernel.ZXE in place; restart the host process instead.
+	no_warn filename;
+	"Ezodus runs in ring-3; there is no kernel image to softboot.\n"
+	"Exit and restart ezodus on the host instead.\n";
+}
+
 public U0 BootHDIns(U8 drv_let=0)
 {//Stock recompiles the kernel and patches the boot loader; Ezodus has neither.
 	no_warn drv_let;
@@ -517,12 +535,17 @@ public CFile *FOpen(U8 *filename, U8 *flags, I64 count=0)
 		fd = VFsFOpenW(abs + 2);
 	else
 		fd = VFsFOpenR(abs + 2);
-	Free(abs);
 	if (fd < 0)
+	{
+		Free(abs);
 		return NULL;
+	}
 	f = CAlloc(sizeof(CFile));
 	f->fblk_num = fd;
 	f->flags	= rw;
+	f->de.size	= VFsFSize(abs + 2);
+	StrLastRemove(abs, "/", f->de.name);
+	Free(abs);
 	return f;
 }
 

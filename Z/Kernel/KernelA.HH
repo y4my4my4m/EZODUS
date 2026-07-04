@@ -1950,7 +1950,6 @@ class CInst
 #define REGG_STACK_TMP			0x0200 //R9
 #define REGG_LOCAL_VARS 		0xCCC0 //RSI,RDI,R10,R11,R14,R15
 #define REGG_LOCAL_NON_PTR_VARS	0x3000 //R12,R13
-#define REGG_CALLER_SAVED_PTR_VARS	0x0C30 //RSI,RDI,R10,R11 — SysV caller-saved; must spill at calls
 
 #define AOT_BIN_BLK_BITS	16
 #define AOT_BIN_BLK_SIZE	(1 << AOT_BIN_BLK_BITS)

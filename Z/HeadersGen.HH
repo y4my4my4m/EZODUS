@@ -1115,6 +1115,8 @@ public extern Bool ISOCd(U8 *buf, I64 cur_dir_clus);
 public extern Bool FAT32Cd(U8 *buf, I64 cur_dir_clus);
 public extern Bool RedSeaMkDir(CDrive *drive, U8 *cur_dir, U8 *name, I64 entry_count);
 public extern Bool FAT32MkDir(CDrive *drive, U8 *cur_dir, U8 *name, I64 entry_count);
+public extern I64 DriveUnused(U8 drv_let=0);
+public extern U0 BootRAM(U8 *filename=NULL);
 public extern U0 BootHDIns(U8 drv_let=0);
 public extern U0 Unmount(U8 drv_let=0);
 public extern U0 MountFile(U8 *filename);

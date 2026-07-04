@@ -1,0 +1,2 @@
+TOSPrint("x2 addr=%x vals=%d %d %d %d\n", gr_x_offsets2, gr_x_offsets2[0], gr_x_offsets2[1], gr_x_offsets2[2], gr_x_offsets2[3]);
+TOSPrint("x1 addr=%x vals=%d %d\n", gr_x_offsets, gr_x_offsets[0], gr_x_offsets[1]);
