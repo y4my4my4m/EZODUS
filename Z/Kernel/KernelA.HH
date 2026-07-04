@@ -47,7 +47,9 @@ extern class CTask;
 #define F64_MAX 	(0x7FEFFFFFFFFFFFFF(F64))
 #define F64_MIN 	(0xFFEFFFFFFFFFFFFF(F64))
 #define inf 		(0x7FF0000000000000(F64))
+#define ì 			(0x7FF0000000000000(F64))
 #define pi			(0x400921FB54442D18(F64))
+#define ã 			(0x400921FB54442D18(F64))
 #define exp_1 		(0x4005BF0A8B145769(F64)) //The number "e"
 #define log2_10 	(0x400A934F0979A371(F64))
 #define log2_e		(0x3FF71547652B82FE(F64))
@@ -4639,6 +4641,7 @@ import U8  *__GetStr(U8 *pmt="");
 import U0  SndFreq(U64 freq);
 import U0  __BootstrapForeachSymbol(U8 *fptr);
 import U0i DrawWindowUpdate(U8i *);
+import U0i DrawWindowUpdate32(U32 *);
 import U0  DrawWindowNew(I64i width, I64i height);
 import U0  PCSpkInit();
 import U0i SetKBCallback(U8i *);
@@ -4708,6 +4711,7 @@ extern U8  *__GetStr(U8 *pmt="");
 extern U0  SndFreq(U64 freq);
 extern U0  __BootstrapForeachSymbol(U8 *fptr);
 extern U0i DrawWindowUpdate(U8i *);
+extern U0i DrawWindowUpdate32(U32 *);
 extern U0  DrawWindowNew(I64i width, I64i height);
 extern U0  PCSpkInit();
 extern U0i SetKBCallback(U8i *);

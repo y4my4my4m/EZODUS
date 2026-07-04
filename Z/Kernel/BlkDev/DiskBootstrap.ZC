@@ -71,7 +71,12 @@ U0 EzodusVfsInit()
 	blkdev.drvs		= _ezodus_drvs;
 	blkdev.blkdevs	= _ezodus_blkdevs;
 	for (i = 0; i < DRIVES_NUM; i++)
+	{
 		blkdev.let_to_drive[i] = &blkdev.drvs[i];
+		//Ring-0 reads of drv->bd->x on empty slots hit the identity-mapped
+		//zero page; give ring-3 the same "all zeros" via a null blkdev.
+		blkdev.drvs[i].bd = &blkdev.blkdevs[BLKDEVS_NUM - 1];
+	}
 	// EZODUS: always assign — uninitialized blkdev may hold garbage non-NULL pointers.
 	blkdev.home_dir		= _ezodus_home_dir;
 	blkdev.tmp_filename	= _ezodus_tmp_name;
@@ -447,6 +452,15 @@ public U8 DriveTextAttrGet(U8 drv_let=0)
 		return blkdev_text_attr[Letter2BlkDevType(drv_let)] << 4 | drv_text_attr['C' % sizeof(drv_text_attr)];
 	else
 		return BLACK << 4 | WHITE;
+}
+
+public U0 BootHDIns(U8 drv_let=0)
+{//Stock recompiles the kernel and patches the boot loader; Ezodus has neither.
+	no_warn drv_let;
+	"Ezodus runs in ring-3; there is no boot sector or kernel image to install.\n"
+	"Rebuild the host image instead:\n"
+	"    ./ezodus -c -f HCRT_BOOTSTRAP.BIN BuildHCRT.ZC\n"
+	"Display resolution lives in ::/EzodusRes.HH.\n";
 }
 
 public U0 DrivesRelease()

@@ -155,8 +155,8 @@
 #define SPE_ABORT 	(-1)
 #define SPE_EXIT	0
 #define SPE_CONT	1
-#define GR_WIDTH	640
-#define GR_HEIGHT	480
+#define GR_WIDTH	1024
+#define GR_HEIGHT	768
 #define SPHT_ELEM_CODE		1
 #define GR_PEN_BRUSHES_NUM	64
 #define GR_SCREEN_ZOOM_MAX	8
@@ -933,7 +933,7 @@ extern CTask _boot_task;
 extern CCompGlobals cmp;
 extern CUAsmGlobals uasm;
 extern CWinMgrGlobals  winmgr;
-extern U32  char_bmp_alpha[16];
+extern U32  char_bmp_alpha[16],  char_bmp_alpha_numeric[16],  char_bmp_alpha_numeric_no_at[16],  char_bmp_word[16],  char_bmp_filename[16],  char_bmp_dec_numeric[16],  char_bmp_hex_numeric[16],  char_bmp_white_space[16],  char_bmp_non_eol_white_space[16],  char_bmp_zero_cr_nl_cursor[16],  char_bmp_zero_tab_cr_nl_cursor[16],  char_bmp_zero_tab_cr_nl_cursor_dollar[16],  char_bmp_macro[16],  char_bmp_printable[16],  char_bmp_displayable[16],  char_bmp_safe_dollar[16],  char_bmp_non_eol[16];
 extern CJob sys_macro_head;
 extern CTask *sys_macro_task;
 extern CDoc *sys_clip_doc;
@@ -1001,7 +1001,7 @@ extern CBGR24  gr_palette_dark[COLORS_NUM];
 extern CBGR24  gr_palette_light[COLORS_NUM];
 extern CBGR24  gr_palette_slate[COLORS_NUM];
 extern CBGR24  gr_palette_commander[COLORS_NUM];
-extern I64  gr_x_offsets[8];
+extern I64  gr_x_offsets[8],  gr_y_offsets[8],  gr_x_offsets2[4],  gr_y_offsets2[4];
 extern U8  polypt_map[9];
 extern I64  sprite_elem_base_sizes[SPT_TYPES_NUM];
 extern CMeshEdVertex sys_clip_vertex_head;
@@ -1115,6 +1115,7 @@ public extern Bool ISOCd(U8 *buf, I64 cur_dir_clus);
 public extern Bool FAT32Cd(U8 *buf, I64 cur_dir_clus);
 public extern Bool RedSeaMkDir(CDrive *drive, U8 *cur_dir, U8 *name, I64 entry_count);
 public extern Bool FAT32MkDir(CDrive *drive, U8 *cur_dir, U8 *name, I64 entry_count);
+public extern U0 BootHDIns(U8 drv_let=0);
 public extern U0 Unmount(U8 drv_let=0);
 public extern U0 MountFile(U8 *filename);
 public extern I64 RedSeaISO(U8 *_iso_filename=NULL, U8 *_src_dir, U8 *_stage2_filename=NULL);

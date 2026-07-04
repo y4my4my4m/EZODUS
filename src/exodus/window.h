@@ -7,6 +7,7 @@ void SetClipboard(char const *text);
 char *ClipboardText(argign void *stk);
 void DrawWindowNew(i64 width, i64 height);
 void DrawWindowUpdate(u8 *px);
+void DrawWindowUpdate32(u32 *px);
 void EventLoop(void);
 void PCSpkInit(void);
 void GrPaletteColorSet(u64 i, u64 _u);

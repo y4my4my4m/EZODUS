@@ -109,7 +109,9 @@ U0 HostSysGrInit()
   text.screen_size = sys_framebuffer_pidth * sys_framebuffer_height;
   text.buffer_size = text.screen_size * 4;
   text.raw_screen = CAlloc(text.buffer_size);
-  text.fb_alias = NULL;
+  //32-bit direct-framebuffer apps (Demo/Graphics/32BitColor.ZC) write here;
+  //blitted by DrawWindowUpdate32 while text.is_fb_busy.
+  text.fb_alias = CAlloc(text.buffer_size);
 }
 
 U0 HostRunStartOS()
@@ -184,6 +186,14 @@ U0 HostKMainBoot()
         PAUSE;
   }
   LoadImps;
+  //Stock GrGlobals.ZC does this at boot compile so JIT code sees the live
+  //resolution; shadows the values baked into HeadersGen.HH.
+  //(No HashPublic here: it needs an active compile context; DefineLoad
+  //entries land in the task hash and are visible to all JIT compiles.)
+  DefinePrint("GR_WIDTH", "%d", sys_framebuffer_width & ~7);
+  DefinePrint("GR_HEIGHT", "%d", sys_framebuffer_height);
+  DefinePrint("TEXT_ROWS", "%d", text.rows);
+  DefinePrint("TEXT_COLS", "%d", text.cols);
   try ExePrint("#include \"~/HomeLocalize\";\n");
   catch PutExcept(FALSE);
   Drive('Z');

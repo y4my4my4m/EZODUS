@@ -452,7 +452,10 @@ U0 GrUpdateScreen()
 	CDC *dc;
 
 	if (text.is_fb_busy)
+	{	//EZODUS: app owns the 32-bit framebuffer; show it directly.
+		DrawWindowUpdate32(text.fb_alias);
 		return;
+	}
 	if (!TaskValidate(Fs))
 	{
 		if (TaskValidate(sys_winmgr_task))

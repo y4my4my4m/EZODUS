@@ -391,6 +391,8 @@ I64 comp_type_flags_src_code[(DOCT_TYPES_NUM + 63) / 64] = {
 
 U0 LexAttachDoc(CCompCtrl *cc, CLexFile *tmpf=NULL, CDoc *doc=NULL, U8 *abs_filename=NULL, CDocEntry *doc_e=NULL, I64 col=0)
 {//Start lexing doc. Give either doc or abs_filename.
+	if (!comp_type_flags_src_code[0]) //EZODUS: seed AOT skips module-level init.
+		comp_type_flags_src_code[0] = 1 << DOCT_TEXT | 1 << DOCT_TAB | 1 << DOCT_INS_BIN | 1 << DOCT_INS_BIN_SIZE;
 	if (!doc)
 		doc = LexDocRead(abs_filename, DOCF_DBL_DOLLARS);
 	if (!tmpf)

@@ -35,6 +35,7 @@ static struct {
 
 enum {
   WINDOW_UPDATE,
+  WINDOW_UPDATE32,
   WINDOW_NEW,
   AUDIO_INIT,
   PALETTE_FLUSH,
@@ -173,6 +174,27 @@ static void updatescrn(u8 *px) {
   SDL_RenderCopy(win.rend, t, NULL, &viewport);
   SDL_RenderPresent(win.rend);
   SDL_DestroyTexture(t);
+  SDL_CondBroadcast(win.screen_done_cond);
+}
+
+static void updatescrn32(u32 *px) {
+  SDL_Surface *s = SDL_CreateRGBSurfaceWithFormatFrom(
+      px, gr_width, gr_height, 32, gr_width * 4, SDL_PIXELFORMAT_ARGB8888);
+  if (!s)
+    return;
+  SDL_SetRenderDrawColor(win.rend, 0, 0, 0, 255);
+  SDL_RenderClear(win.rend);
+  SDL_Rect viewport = {
+      .x = win.margin_x,
+      .y = win.margin_y,
+      .w = win.sz_x,
+      .h = win.sz_y,
+  };
+  SDL_Texture *t = SDL_CreateTextureFromSurface(win.rend, s);
+  SDL_RenderCopy(win.rend, t, NULL, &viewport);
+  SDL_RenderPresent(win.rend);
+  SDL_DestroyTexture(t);
+  SDL_FreeSurface(s);
   SDL_CondBroadcast(win.screen_done_cond);
 }
 
@@ -757,6 +779,9 @@ void EventLoop(void) {
       case WINDOW_UPDATE:
         updatescrn(e.user.data1);
         break;
+      case WINDOW_UPDATE32:
+        updatescrn32(e.user.data1);
+        break;
       case WINDOW_NEW:
         newwindow();
         break;
@@ -798,6 +823,19 @@ void DrawWindowUpdate(u8 *px) {
       .user = {
                .type = SDL_USEREVENT,
                .code = WINDOW_UPDATE,
+               .data1 = px,
+               }
+  });
+  SDL_LockMutex(win.screen_mutex);
+  SDL_CondWaitTimeout(win.screen_done_cond, win.screen_mutex, 1e3 / GetFPS());
+  SDL_UnlockMutex(win.screen_mutex);
+}
+
+void DrawWindowUpdate32(u32 *px) {
+  SDL_PushEvent(&(SDL_Event){
+      .user = {
+               .type = SDL_USEREVENT,
+               .code = WINDOW_UPDATE32,
                .data1 = px,
                }
   });

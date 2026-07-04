@@ -166,7 +166,14 @@ def top_level_statements(text):
             i = j + 1
             continue
         if c == "{":
-            yield "".join(stmt).strip(), True
+            s = "".join(stmt)
+            if s.rstrip().endswith("="):
+                # brace initializer: keep scanning so later comma-separated
+                # declarators ("I64 a[8]={...}, b[8]={...};") aren't lost
+                stmt.append("0")
+                i = skip_braces(text, i)
+                continue
+            yield s.strip(), True
             stmt = []
             i = skip_braces(text, i)
             # eat trailing ; of "class X {...};" so it doesn't open an
